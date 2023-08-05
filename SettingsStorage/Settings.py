@@ -4,17 +4,33 @@ __all__ = [
 
 import sqlite3 as sql
 from SettingsStorage import Errors
+from os import path
+from multiprocessing import cpu_count
 
 
 class Settings:
     def __init__(self):
+        settings_exists = False
+        if path.isfile('settings.db'):
+            settings_exists = True
+
         self._data = sql.connect('settings.db')
 
         cur = self._data.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS 'server_ignore' ('name' TEXT PRIMARY KEY);")
         cur.execute("CREATE TABLE IF NOT EXISTS 'local_ignore' ('name' TEXT PRIMARY KEY);")
+        cur.execute("CREATE TABLE IF NOT EXISTS 'app_settings' ('name' TEXT PRIMARY KEY, 'value' TEXT);")
+
+        if not settings_exists:
+            self._set_base_settings()
 
         self._data.commit()
+
+    def _set_base_settings(self):
+        cur = self._data.cursor()
+
+        cur.execute(f"INSERT INTO 'app_settings' VALUES ('threads', '{cpu_count()}')")
+        cur.execute(f"INSERT INTO 'app_settings' VALUES ('base_path_for_sync', '')")
 
     def add_track_to_server_ignore(self, name):
         if not isinstance(name, str):

@@ -3,6 +3,7 @@ import SettingsStorage
 
 
 def main():
+    SettingsStorage.Settings()
     pass
 
 
