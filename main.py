@@ -1,10 +1,9 @@
 import SpotifyLogin
+import SettingsStorage
 
 
 def main():
-    a = SpotifyLogin.Login()
-    print(a.get_authorization_url())
-    a.login_with_authorization_code(input())
+    pass
 
 
 if __name__ == '__main__':
