@@ -1,10 +1,11 @@
 import SpotifyLogin
+import SpotifyTracks
 import SettingsStorage
+import LocalTracks
 
 
 def main():
-    SettingsStorage.Settings()
-    pass
+    lc = LocalTracks.LcTracks()
 
 
 if __name__ == '__main__':

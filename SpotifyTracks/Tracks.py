@@ -38,6 +38,9 @@ class SpTracks:
     def start(self):
         self._total = self._client.current_user_saved_tracks(limit=1)['total']
 
+        self._spotify_tracks.clear()
+        self._tracks_info.clear()
+
         settings = Settings()
         local_ignore_list = settings.get_all_local_ignore_tracks()
 
