@@ -1,11 +1,8 @@
-import SpotifyLogin
-import SpotifyTracks
-import SettingsStorage
-import LocalTracks
+import CliUi
 
 
 def main():
-    lc = LocalTracks.LcTracks()
+    CliUi.Cli()
 
 
 if __name__ == '__main__':
