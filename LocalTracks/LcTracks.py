@@ -16,11 +16,10 @@ class LcTracks:
         settings = Settings()
         self._directory = settings.get_setting('path_for_sync')
 
-        if self._directory == '':
-            if directory is None:
-                raise Errors.PathError
-
+        if directory is not None:
             self._directory = directory
+        elif self._directory == '':
+            raise Errors.PathError
 
         self._local_tracks = set()
         self._get_tracks_from_folder()

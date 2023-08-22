@@ -9,7 +9,10 @@ import SpotifyLogin
 import SpotifyTracks
 import TrackDownloader
 import TracksComparator
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
+import win32com.client
+import time
 
 
 def _print_greeting():
@@ -69,10 +72,55 @@ class Cli:
         pass
 
     def _settings_set_threads(self):
-        pass
+        os.system('cls')
+        print(f'Смена кол-ва потоков для загрузки треков\n\nТекущее кол-во: {self._settings.get_setting("threads")}')
+
+        while True:
+            threads = input('Введи кол-во потоков (0 - для отмены)\n> ')
+
+            if not threads.isnumeric():
+                print('Ошибка ввода')
+                continue
+
+            if threads == '0':
+                print('Отменено')
+                time.sleep(1)
+                break
+
+            self._settings.change_setting('threads', threads)
+            print(f'Кол-во потоков изменено на {threads}')
+            time.sleep(1)
+            break
 
     def _settings_set_path(self):
-        pass
+        os.system('cls')
+        print(f'Смена папки, в которой производится синхронизация треков\n\nТекущее расположение: {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
+
+        print('[1] - Поменять расположение\n'
+              '[2] - Отмена')
+
+        while True:
+            match input('> '):
+                case '1':
+                    try:
+                        directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
+                        self._settings.change_setting('path_for_sync', directory)
+
+                        print(f'Кол-во потоков изменено на {directory}')
+                        time.sleep(1)
+
+                    except Exception:
+                        print('Отменено')
+                        time.sleep(1)
+
+                    break
+
+                case '2':
+                    print('Отменено')
+                    time.sleep(1)
+                    break
+                case _:
+                    print('Ошибка ввода')
 
     def _set_settings(self):
         _print_settings()
@@ -89,4 +137,3 @@ class Cli:
                     break
                 case _:
                     print('Ошибка ввода')
-        pass
