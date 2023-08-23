@@ -4,17 +4,23 @@ __all__ = [
 
 import sqlite3 as sql
 from SettingsStorage import Errors
-from os import path
+from os import path, getenv, mkdir
 from multiprocessing import cpu_count
 
 
 class Settings:
     def __init__(self):
         settings_exists = False
-        if path.isfile('settings.db'):
+
+        self._path = f'{getenv("APPDATA")}\\Spotify downloader'
+
+        if not path.exists(self._path):
+            mkdir(self._path)
+
+        if path.isfile(self._path + '\\settings.db'):
             settings_exists = True
 
-        self._data = sql.connect('settings.db')
+        self._data = sql.connect(self._path + '\\settings.db')
 
         cur = self._data.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS server_ignore ('name' TEXT PRIMARY KEY);")
