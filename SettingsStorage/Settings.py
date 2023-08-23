@@ -37,6 +37,11 @@ class Settings:
 
         cur.execute(f"INSERT INTO app_settings VALUES ('threads', '{cpu_count()}')")
         cur.execute(f"INSERT INTO app_settings VALUES ('path_for_sync', '')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('auto_comp', 'True')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('client_id', '')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('client_secret', '')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('redirect_uri', '')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('code', '')")
 
     def get_setting(self, name):
         if not isinstance(name, str):

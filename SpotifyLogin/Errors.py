@@ -1,6 +1,7 @@
 __all__ = [
     'LoginDataError',
-    'AuthorizationError'
+    'AuthorizationError',
+    'AuthorizationUrlError'
 ]
 
 
