@@ -74,38 +74,40 @@ class Cli:
                     print('Ошибка ввода')
 
     def _tracks_compare(self):
-        pass
-
-    def _tracks_syncing(self):
         os.system('cls')
-        print('Синхронизация треков с аккаунтом\n')
+        print('Проверка отсутствующих треков на сервере\n')
 
-        if self._settings.get_setting('path_for_sync') == '':
-            print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
+        spl = self._spotify_login()
 
-            while True:
-                match input('> '):
-                    case 'y':
+        if spl is None:
+            return
 
-                        try:
-                            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
-                            self._settings.change_setting('path_for_sync', directory)
+        spt = SpotifyTracks.SpTracks(spl)
+        spt.start()
+        spotify_tracks = spt.get_spotify_tracks()
+        tracks_info = spt.get_tracks_info()
 
-                            print(f'Путь изменен на: {directory}\n')
+        comp = TracksComparator.Comparator(set(), spotify_tracks, tracks_info)
 
-                            break
-                        except Exception:
-                            print('Синхронизация отменена')
-                            time.sleep(1)
+        server_missing_tracks = comp.get_server_missing_tracks()
 
-                            return
-                    case 'n':
-                        print('Синхронизация отменена')
-                        time.sleep(1)
-                        return
-                    case _:
-                        print('Ошибка ввода')
+        if len(server_missing_tracks) == 0:
+            print('\nТреки на сервере синхронизированы\n')
+        else:
+            print('\nСписок отсутствующих треков на сервере:\n')
+            for i, track in enumerate(server_missing_tracks):
+                print(f'{i + 1}) {track}')
+        print()
+        print('[b] - назад')
 
+        while True:
+            match input('> '):
+                case 'b':
+                    break
+                case _:
+                    print('Ошибка ввода')
+
+    def _spotify_login(self):
         try:
             spl = SpotifyLogin.Login()
             spl.login_with_authorization_code(self._settings.get_setting('code'))
@@ -149,7 +151,7 @@ class Cli:
                         print('Параметры изменены\n')
                         break
                     case 'n':
-                        print('Синхронизация отменена')
+                        print('Вход отменен')
                         time.sleep(1)
                         return
                     case _:
@@ -183,6 +185,43 @@ class Cli:
         except SpotifyLogin.AuthorizationError:
             print('Ошибка при входе в аккаунт')
             time.sleep(1)
+            return
+
+        return spl
+
+    def _tracks_syncing(self):
+        os.system('cls')
+        print('Синхронизация треков с аккаунтом\n')
+
+        if self._settings.get_setting('path_for_sync') == '':
+            print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
+
+            while True:
+                match input('> '):
+                    case 'y':
+
+                        try:
+                            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
+                            self._settings.change_setting('path_for_sync', directory)
+
+                            print(f'Путь изменен на: {directory}\n')
+
+                            break
+                        except Exception:
+                            print('Синхронизация отменена')
+                            time.sleep(1)
+
+                            return
+                    case 'n':
+                        print('Синхронизация отменена')
+                        time.sleep(1)
+                        return
+                    case _:
+                        print('Ошибка ввода')
+
+        spl = self._spotify_login()
+
+        if spl is None:
             return
 
         spt = SpotifyTracks.SpTracks(spl)
