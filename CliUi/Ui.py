@@ -16,6 +16,8 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 import win32com.client
 import time
+from urllib.parse import urlparse
+import requests
 
 
 def _print_greeting():
@@ -40,6 +42,20 @@ def _print_settings():
           '[3] - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
           '[4] - Очистить параметры для входа в аккаунт\n\n'
           '[b] - Назад\n', end='')
+
+
+def _create_download_query(track, directory):
+    separator = '\u29f8'
+
+    track_info = {
+        'id': track['id'],
+        'name': track['title'],
+        'artists': [aut.strip() for aut in track['artists'].split(',')],
+        'album_name': track['album'],
+        'release_date': track['releaseDate'][:4]
+    }
+
+    return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
 class Cli:
@@ -289,9 +305,76 @@ class Cli:
 
             for _ in tqdm.tqdm(as_completed(pool_results), desc='Загрузка треков', total=len(local_missing_tracks)):
                 pass
+        print('Загрузка завершена\n\n   '
+              '[b] - назад')
+
+        while True:
+            match input('> '):
+                case 'b':
+                    break
+                case _:
+                    print('Ошибка ввода')
 
     def _playlist_download(self):
-        pass
+        os.system('cls')
+        print('Загрузка треков из плейлиста\n')
+
+        link = input('Введи ссылку на плейлист\n> ')
+
+        playlist_id = urlparse(link).path
+
+        if '/' not in playlist_id:
+            print('Некорректная ссылка')
+            time.sleep(1)
+            return
+
+        playlist_id = playlist_id[playlist_id.rfind('/') + 1:]
+
+        try:
+            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
+        except Exception:
+            print('Загрузка отменена')
+            time.sleep(1)
+            return
+
+        playlist = []
+        offset = 0
+
+        try:
+            while True:
+                playlist_info = requests.get(f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}', headers=TrackDownloader.Downloader.headers).json()
+
+                if not playlist_info['success']:
+                    print('Ошибка при загрузке информации о плейлисте')
+                    time.sleep(1)
+                    return
+
+                playlist += playlist_info['trackList']
+
+                if playlist_info['nextOffset'] is None:
+                    break
+
+                offset = playlist_info['nextOffset']
+
+        except Exception:
+            print('Ошибка при работе с сcылкой')
+            time.sleep(1)
+            return
+
+        with ThreadPoolExecutor(int(self._settings.get_setting('threads'))) as pool:
+            pool_results = [pool.submit(TrackDownloader.Downloader, *_create_download_query(track, directory)) for track in playlist]
+            for _ in tqdm.tqdm(as_completed(pool_results), desc='Загрузка треков', total=len(playlist)):
+                pass
+
+        print('Загрузка завершена\n\n'
+              '[b] - назад')
+
+        while True:
+            match input('> '):
+                case 'b':
+                    break
+                case _:
+                    print('Ошибка ввода')
 
     def _multiple_tracks_download(self):
         pass
