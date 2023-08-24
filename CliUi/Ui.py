@@ -28,8 +28,8 @@ def _print_greeting():
           '[2] - Проверить отсутсвующие треки на сервере\n'
           '[3] - Скачать треки из плейлиста по ссылке\n'
           '[4] - Скачать отдельные треки по ссылке\n'
-          '[5] - Настройки\n'
-          '[6] - Выход\n', end='')
+          '[5] - Настройки\n\n'
+          '[x] - Выход\n', end='')
 
 
 def _print_settings():
@@ -38,8 +38,8 @@ def _print_settings():
           '[1] - Поменять кол-во потоков для загрузки треков\n'
           '[2] - Поменять путь для синхронизации треков\n'
           '[3] - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
-          '[4] - Очистить параметры для входа в аккаунт\n'
-          '[5] - Назад\n', end='')
+          '[4] - Очистить параметры для входа в аккаунт\n\n'
+          '[b] - Назад\n', end='')
 
 
 class Cli:
@@ -67,7 +67,7 @@ class Cli:
                 case '5':
                     self._set_settings()
                     _print_greeting()
-                case '6':
+                case 'x':
                     print('ББ')
                     break
                 case _:
@@ -260,19 +260,20 @@ class Cli:
     def _settings_set_threads(self):
         os.system('cls')
         print(f'Смена кол-ва потоков для загрузки треков\n\n'
-              f'Текущее кол-во: {self._settings.get_setting("threads")}')
+              f'Текущее кол-во: {self._settings.get_setting("threads")}\n\n'
+              f'[b] - назад')
 
         while True:
-            threads = input('Введи кол-во потоков (0 - для отмены)\n> ')
+            threads = input('Введи кол-во потоков\n> ')
 
-            if not threads.isnumeric():
-                print('Ошибка ввода')
-                continue
-
-            if threads == '0':
+            if threads == 'b':
                 print('Отменено')
                 time.sleep(1)
                 break
+
+            if not threads.isnumeric() or threads == '0':
+                print('Ошибка ввода')
+                continue
 
             self._settings.change_setting('threads', threads)
             print(f'Кол-во потоков изменено на {threads}')
@@ -284,8 +285,8 @@ class Cli:
         print(f'Смена папки, в которой производится синхронизация треков\n\n'
               f'Текущее расположение: {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
 
-        print('[1] - Поменять расположение\n'
-              '[2] - Отмена')
+        print('[1] - Поменять расположение\n\n'
+              '[b] - Назад')
 
         while True:
             match input('> '):
@@ -303,7 +304,7 @@ class Cli:
 
                     break
 
-                case '2':
+                case 'b':
                     print('Отменено')
                     time.sleep(1)
                     break
@@ -315,8 +316,8 @@ class Cli:
         print(f'Автоматическое обнаружение отсуствующих треков на сервере\n\n'
               f'Текущее значение: {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
 
-        print(f'[1] - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n'
-              f'[2] - Отмена')
+        print(f'[1] - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
+              f'[b] - Назад')
 
         while True:
             match input('> '):
@@ -331,7 +332,7 @@ class Cli:
                     time.sleep(1)
                     break
 
-                case '2':
+                case 'b':
                     print('Отменено')
                     time.sleep(1)
                     break
@@ -342,8 +343,8 @@ class Cli:
     def _settings_clear_login_data(self):
         os.system('cls')
         print('Очистка данных для входа в аккаунт\n\n'
-              '[1] - Очистить\n'
-              '[2] - Отмена')
+              '[1] - Очистить\n\n'
+              '[b] - Назад')
 
         while True:
             match input('> '):
@@ -355,7 +356,7 @@ class Cli:
                     print('Очищено')
                     time.sleep(1)
                     break
-                case '2':
+                case 'b':
                     print('Отменено')
                     time.sleep(1)
                     break
@@ -379,7 +380,7 @@ class Cli:
                 case '4':
                     self._settings_clear_login_data()
                     _print_settings()
-                case '5':
+                case 'b':
                     break
                 case _:
                     print('Ошибка ввода')

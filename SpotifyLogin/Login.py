@@ -3,8 +3,6 @@ __all__ = [
 ]
 
 from spotipy import Spotify, SpotifyOAuth, SpotifyOauthError
-from os import environ
-
 from SpotifyLogin import Errors
 from urllib.parse import urlparse, parse_qs
 import SettingsStorage
