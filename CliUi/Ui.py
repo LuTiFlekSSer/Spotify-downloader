@@ -119,6 +119,8 @@ class Cli:
         while True:
             match input('> '):
                 case 'b':
+                    print('Возврат в меню')
+                    time.sleep(1)
                     break
                 case _:
                     print('Ошибка ввода')
@@ -311,6 +313,8 @@ class Cli:
         while True:
             match input('> '):
                 case 'b':
+                    print('Возврат в меню')
+                    time.sleep(1)
                     break
                 case _:
                     print('Ошибка ввода')
@@ -372,12 +376,53 @@ class Cli:
         while True:
             match input('> '):
                 case 'b':
+                    print('Возврат в меню')
+                    time.sleep(1)
                     break
                 case _:
                     print('Ошибка ввода')
 
     def _multiple_tracks_download(self):
-        pass
+        os.system('cls')
+        print('Загрузка отдельных треков\n\n'
+              '[b] - назад')
+
+        try:
+            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
+        except Exception:
+            print('Загрузка отменена')
+            time.sleep(1)
+            return
+        print('Для загрузки треков поочередно вводи ссылку')
+
+        while True:
+            match link := input('> '):
+                case 'b':
+                    print('Возврат в меню')
+                    time.sleep(1)
+                    break
+                case _:
+                    track_id = urlparse(link).path
+
+                    if '/' not in track_id:
+                        print('Некорректная ссылка')
+                        continue
+
+                    track_id = track_id[track_id.rfind('/') + 1:]
+
+                    try:
+                        track = requests.get(f'https://api.spotifydown.com/metadata/track/{track_id}', headers=TrackDownloader.Downloader.headers).json()
+
+                        if not track['success']:
+                            print('Ошибка при загрузке информации о треке')
+                            continue
+
+                    except Exception:
+                        print('Ошибка при работе с сcылкой')
+                        continue
+
+                    TrackDownloader.Downloader(*_create_download_query(track, directory))
+                    print('Загружено')
 
     def _settings_set_threads(self):
         os.system('cls')
@@ -503,6 +548,8 @@ class Cli:
                     self._settings_clear_login_data()
                     _print_settings()
                 case 'b':
+                    print('Возврат в меню')
+                    time.sleep(1)
                     break
                 case _:
                     print('Ошибка ввода')
