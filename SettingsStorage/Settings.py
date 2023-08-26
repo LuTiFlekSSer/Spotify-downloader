@@ -86,7 +86,13 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"DELETE FROM server_ignore WHERE name = '{name}'")
+        cur.execute(f"SELECT * FROM server_ignore WHERE name = '{name}'")
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute(f"DELETE FROM server_ignore WHERE name = '{name}'")
+        else:
+            raise Errors.NotFoundError
 
         self._data.commit()
 
@@ -122,7 +128,13 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"DELETE FROM local_ignore WHERE name = '{name}'")
+        cur.execute(f"SELECT * FROM local_ignore WHERE name = '{name}'")
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute(f"DELETE FROM local_ignore WHERE name = '{name}'")
+        else:
+            raise Errors.NotFoundError
 
         self._data.commit()
 

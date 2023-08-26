@@ -620,9 +620,13 @@ class Cli:
                 case '3':
                     name = input('Введи название трека\n> ')
 
-                    self._settings.delete_track_from_local_ignore(name)
+                    try:
+                        self._settings.delete_track_from_local_ignore(name)
+                        print(f'Трек {name} удален из игнор листа')
 
-                    print(f'Трек {name} удален из игнор листа')
+                    except SettingsStorage.NotFoundError:
+                        print(f'Трек {name} не найден в игнор листе')
+
                 case 'b':
                     print('Возврат в настройки')
                     time.sleep(1)
@@ -664,9 +668,13 @@ class Cli:
                 case '3':
                     name = input('Введи название трека\n> ')
 
-                    self._settings.delete_track_from_server_ignore(name)
+                    try:
+                        self._settings.delete_track_from_server_ignore(name)
+                        print(f'Трек {name} удален из игнор листа')
 
-                    print(f'Трек {name} удален из игнор листа')
+                    except SettingsStorage.NotFoundError:
+                        print(f'Трек {name} не найден в игнор листе')
+
                 case 'b':
                     print('Возврат в настройки')
                     time.sleep(1)
