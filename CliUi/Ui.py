@@ -40,7 +40,9 @@ def _print_settings():
           '[1] - Поменять кол-во потоков для загрузки треков\n'
           '[2] - Поменять путь для синхронизации треков\n'
           '[3] - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
-          '[4] - Очистить параметры для входа в аккаунт\n\n'
+          '[4] - Очистить данные для входа в аккаунт\n'
+          '[5] - Управление локальным игнор листом\n'
+          '[6] - Управление серверным игнор листом\n\n'
           '[b] - Назад\n', end='')
 
 
@@ -114,10 +116,18 @@ class Cli:
             for i, track in enumerate(server_missing_tracks):
                 print(f'{i + 1}) {track}')
         print()
-        print('[b] - назад')
+        print('[1] - Добавить треки в серверный игнор лист\n\n'
+              '[b] - назад')
 
         while True:
             match input('> '):
+                case '1':
+                    name = input('Введи название трека\n> ')
+                    try:
+                        self._settings.add_track_to_server_ignore(name)
+                        print(f'Трек {name} добавлен в игнор лист')
+                    except SettingsStorage.AlreadyExistsError:
+                        print(f'Трек {name} уже добавлен в игнор лист')
                 case 'b':
                     print('Возврат в меню')
                     time.sleep(1)
@@ -243,7 +253,13 @@ class Cli:
             return
 
         spt = SpotifyTracks.SpTracks(spl)
-        spt.start()
+        try:
+            spt.start()
+        except SpotifyTracks.TracksGetError:
+            print('Ошибка при получении треков из spotify')
+            time.sleep(1)
+            return
+
         spotify_tracks = spt.get_spotify_tracks()
         tracks_info = spt.get_tracks_info()
 
@@ -263,16 +279,30 @@ class Cli:
                     print(f'{i + 1}) {track}')
                 print()
 
-                print('Продолжить синхронизацию локальных треков? (y - да, n - нет)')
+                print('[1] - Продолжить синхронизацию треков\n'
+                      '[2] - Добавить треки в серверный игнор лист\n\n'
+                      '[b] - Назад')
 
                 while True:
                     match input('> '):
-                        case 'y':
+                        case '1':
                             break
-                        case 'n':
-                            print('Отменено')
+
+                        case '2':
+                            name = input('Введи название трека\n> ')
+
+                            try:
+                                self._settings.add_track_to_server_ignore(name)
+                                print(f'Трек {name} добавлен в игнор лист')
+
+                            except SettingsStorage.AlreadyExistsError:
+                                print(f'Трек {name} уже добавлен в игнор лист')
+
+                        case 'b':
+                            print('Синхронизация прекращена')
                             time.sleep(1)
                             return
+
                         case _:
                             print('Ошибка ввода')
 
@@ -288,18 +318,39 @@ class Cli:
         for i, track in enumerate(local_missing_tracks):
             print(f'{i + 1}) {track}')
 
-        print('\nСкачать отсутствующие треки? (y - да, n - нет)')
+        print('\n[1] - Скачать отсутствующие треки\n'
+              '[2] - Добавить треки в локальный игнор лист (новые треки будут сразу проигнорированы при загрузке)\n\n'
+              '[b] - Назад')
 
+        new_tracks = False
         while True:
             match input('> '):
-                case 'y':
+                case '1':
                     break
-                case 'n':
+
+                case '2':
+                    name = input('Введи название трека\n> ')
+
+                    try:
+                        self._settings.add_track_to_local_ignore(name)
+                        print(f'Трек {name} добавлен в игнор лист')
+                        new_tracks = True
+
+                    except SettingsStorage.AlreadyExistsError:
+                        print(f'Трек {name} уже добавлен в игнор лист')
+
+                case 'b':
                     print('Загрузка отменена')
                     time.sleep(1)
                     return
                 case _:
+
                     print('Ошибка ввода')
+        if new_tracks:
+            spt.refresh_track_list()
+
+            comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
+            local_missing_tracks = comp.get_local_missing_tracks()
 
         with ThreadPoolExecutor(int(self._settings.get_setting('threads'))) as pool:
             pool_results = [pool.submit(TrackDownloader.Downloader, track, self._settings.get_setting('path_for_sync'),
@@ -396,7 +447,7 @@ class Cli:
         print('Для загрузки треков поочередно вводи ссылку')
 
         while True:
-            match link := input('> '):
+            match (link := input('> ')):
                 case 'b':
                     print('Возврат в меню')
                     time.sleep(1)
@@ -520,6 +571,12 @@ class Cli:
                     self._settings.change_setting('client_sedret', '')
                     self._settings.change_setting('redirect_uri', '')
                     self._settings.change_setting('code', '')
+
+                    try:
+                        os.remove('.cache')
+                    except FileNotFoundError:
+                        pass
+
                     print('Очищено')
                     time.sleep(1)
                     break
@@ -527,6 +584,102 @@ class Cli:
                     print('Отменено')
                     time.sleep(1)
                     break
+                case _:
+                    print('Ошибка ввода')
+
+    def _settings_local_ignore_list(self):
+        os.system('cls')
+        print('Управление локальным игнор листом\n'
+              'Эти треки будут игнорироваться при получении треков из спотифай\n')
+
+        print('[1] - Вывести текущий список треков\n'
+              '[2] - Добавить трек в игнор лист\n'
+              '[3] - Удалить трек из игнор листа\n\n'
+              '[b] - Назад')
+
+        while True:
+            match input('> '):
+                case '1':
+                    for i, name in enumerate(il := self._settings.get_all_local_ignore_tracks()):
+                        print(f'{i + 1}) {name}')
+
+                    if len(il) == 0:
+                        print('Список пуст')
+
+                case '2':
+                    name = input('Введи название трека (в виде: название - автор)\n> ')
+
+                    try:
+                        self._settings.add_track_to_local_ignore(name)
+
+                        print(f'Трек {name} добавлен в игнор лист')
+
+                    except SettingsStorage.AlreadyExistsError:
+                        print(f'Трек {name} уже добавлен игнор лист')
+
+                case '3':
+                    name = input('Введи название трека\n> ')
+
+                    try:
+                        self._settings.delete_track_from_local_ignore(name)
+                        print(f'Трек {name} удален из игнор листа')
+
+                    except SettingsStorage.NotFoundError:
+                        print(f'Трек {name} не найден в игнор листе')
+
+                case 'b':
+                    print('Возврат в настройки')
+                    time.sleep(1)
+                    break
+
+                case _:
+                    print('Ошибка ввода')
+
+    def _settings_server_ignore_list(self):
+        os.system('cls')
+        print('Управление серверным игнор листом\n'
+              'Эти треки будут игнорироваться при поиске треков, которых нет в спотифай\n')
+
+        print('[1] - Вывести текущий список треков\n'
+              '[2] - Добавить трек в игнор лист\n'
+              '[3] - Удалить трек из игнор листа\n\n'
+              '[b] - Назад')
+
+        while True:
+            match input('> '):
+                case '1':
+                    for i, name in enumerate(il := self._settings.get_all_server_ignore_tracks()):
+                        print(f'{i + 1}) {name}')
+
+                    if len(il) == 0:
+                        print('Список пуст')
+
+                case '2':
+                    name = input('Введи название трека (в виде: название - автор)\n> ')
+
+                    try:
+                        self._settings.add_track_to_server_ignore(name)
+
+                        print(f'Трек {name} добавлен в игнор лист')
+
+                    except SettingsStorage.AlreadyExistsError:
+                        print(f'Трек {name} уже добавлен игнор лист')
+
+                case '3':
+                    name = input('Введи название трека\n> ')
+
+                    try:
+                        self._settings.delete_track_from_server_ignore(name)
+                        print(f'Трек {name} удален из игнор листа')
+
+                    except SettingsStorage.NotFoundError:
+                        print(f'Трек {name} не найден в игнор листе')
+
+                case 'b':
+                    print('Возврат в настройки')
+                    time.sleep(1)
+                    break
+
                 case _:
                     print('Ошибка ввода')
 
@@ -546,6 +699,12 @@ class Cli:
                     _print_settings()
                 case '4':
                     self._settings_clear_login_data()
+                    _print_settings()
+                case '5':
+                    self._settings_local_ignore_list()
+                    _print_settings()
+                case '6':
+                    self._settings_server_ignore_list()
                     _print_settings()
                 case 'b':
                     print('Возврат в меню')

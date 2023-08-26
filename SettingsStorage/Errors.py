@@ -1,5 +1,6 @@
 __all__ = [
-    'AlreadyExistsError'
+    'AlreadyExistsError',
+    'NotFoundError'
 ]
 
 

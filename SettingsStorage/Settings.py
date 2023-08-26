@@ -63,7 +63,7 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"UPDATE app_settings SET 'value' = '{value}' WHERE name = '{name}'")
+        cur.execute(f"UPDATE app_settings SET value = '{value}' WHERE name = '{name}'")
 
         self._data.commit()
 
@@ -77,6 +77,22 @@ class Settings:
             cur.execute(f"INSERT INTO server_ignore VALUES ('{name}')")
         except sql.IntegrityError:
             raise Errors.AlreadyExistsError
+
+        self._data.commit()
+
+    def delete_track_from_server_ignore(self, name):
+        if not isinstance(name, str):
+            raise TypeError
+
+        cur = self._data.cursor()
+
+        cur.execute(f"SELECT * FROM server_ignore WHERE name = '{name}'")
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute(f"DELETE FROM server_ignore WHERE name = '{name}'")
+        else:
+            raise Errors.NotFoundError
 
         self._data.commit()
 
@@ -103,6 +119,22 @@ class Settings:
             cur.execute(f"INSERT INTO local_ignore VALUES ('{name}')")
         except sql.IntegrityError:
             raise Errors.AlreadyExistsError
+
+        self._data.commit()
+
+    def delete_track_from_local_ignore(self, name):
+        if not isinstance(name, str):
+            raise TypeError
+
+        cur = self._data.cursor()
+
+        cur.execute(f"SELECT * FROM local_ignore WHERE name = '{name}'")
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute(f"DELETE FROM local_ignore WHERE name = '{name}'")
+        else:
+            raise Errors.NotFoundError
 
         self._data.commit()
 
