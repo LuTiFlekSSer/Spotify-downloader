@@ -221,7 +221,7 @@ class Cli:
         os.system('cls')
         print('Синхронизация треков с аккаунтом\n')
 
-        if self._settings.get_setting('path_for_sync') == '':
+        if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
             print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
 
             while True:
