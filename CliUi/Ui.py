@@ -358,7 +358,7 @@ class Cli:
 
             for _ in tqdm.tqdm(as_completed(pool_results), desc='Загрузка треков', total=len(local_missing_tracks)):
                 pass
-        print('Загрузка завершена\n\n   '
+        print('Загрузка завершена\n\n'
               '[b] - назад')
 
         while True:
