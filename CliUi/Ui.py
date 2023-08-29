@@ -12,12 +12,11 @@ import SpotifyLogin
 import SpotifyTracks
 import TrackDownloader
 import TracksComparator
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import as_completed
 import win32com.client
 import time
 from urllib.parse import urlparse
 import requests
+import DownloaderPool
 
 
 def _print_greeting():
@@ -352,12 +351,9 @@ class Cli:
             comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
             local_missing_tracks = comp.get_local_missing_tracks()
 
-        with ThreadPoolExecutor(int(self._settings.get_setting('threads'))) as pool:
-            pool_results = [pool.submit(TrackDownloader.Downloader, track, self._settings.get_setting('path_for_sync'),
-                                        local_missing_tracks[track]) for track in local_missing_tracks]
+        dp = DownloaderPool.PlaylistPool()
+        dp.start([(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
 
-            for _ in tqdm.tqdm(as_completed(pool_results), desc='Загрузка треков', total=len(local_missing_tracks)):
-                pass
         print('Загрузка завершена\n\n'
               '[b] - назад')
 
@@ -416,10 +412,8 @@ class Cli:
             time.sleep(1)
             return
 
-        with ThreadPoolExecutor(int(self._settings.get_setting('threads'))) as pool:
-            pool_results = [pool.submit(TrackDownloader.Downloader, *_create_download_query(track, directory)) for track in playlist]
-            for _ in tqdm.tqdm(as_completed(pool_results), desc='Загрузка треков', total=len(playlist)):
-                pass
+        dp = DownloaderPool.PlaylistPool()
+        dp.start([_create_download_query(track, directory) for track in playlist])
 
         print('Загрузка завершена\n\n'
               '[b] - назад')

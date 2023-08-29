@@ -14,6 +14,9 @@ class Downloader:
     }
 
     def __init__(self, name, path, track_info):
+        if not isinstance(name, str) or not isinstance(path, str) or not isinstance(track_info, dict):
+            raise TypeError
+
         try:
             response = requests.get(f'https://api.spotifydown.com/download/{track_info["id"]}', headers=Downloader.headers).json()
 
@@ -29,6 +32,16 @@ class Downloader:
 
             try:
                 track = requests.get(response['link']).content
+
+                attempts = 0
+
+                while attempts < 5 and track.startswith(b'{"error":true'):
+                    track = requests.get(response['link']).content
+                    attempts += 1
+
+                if track.startswith(b'{"error":true'):
+                    print(f'Ошибка при загрузке трека: {name}')
+                    return
 
                 with open(f'{path}/{name}.mp3', 'wb') as file:
                     file.write(track)
