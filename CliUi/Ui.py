@@ -3,9 +3,6 @@ __all__ = [
 ]
 
 import os
-
-import tqdm
-
 import LocalTracks
 import SettingsStorage
 import SpotifyLogin
@@ -354,8 +351,12 @@ class Cli:
         dp = DownloaderPool.PlaylistPool()
         dp.start([(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
 
-        print('Загрузка завершена\n\n'
-              '[b] - назад')
+        if dp.cancelled():
+            print('Загрузка отменена\n\n'
+                  '[b] - назад')
+        else:
+            print('Загрузка завершена\n\n'
+                  '[b] - назад')
 
         while True:
             match input('> '):

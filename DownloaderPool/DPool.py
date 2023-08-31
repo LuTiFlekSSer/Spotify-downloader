@@ -2,14 +2,15 @@ __all__ = [
     'PlaylistPool'
 ]
 
+import time
+
 import TrackDownloader
 from concurrent.futures import ThreadPoolExecutor
 import SettingsStorage
-import tqdm
 from pynput.keyboard import Listener, KeyCode
 import msvcrt
-import time
 from progress.bar import IncrementalBar
+from progress.spinner import PixelSpinner
 
 
 class PlaylistPool:
@@ -20,6 +21,8 @@ class PlaylistPool:
 
         self._pool_results = None
 
+        self._cancelled = False
+
     def start(self, track_list):
         self._pool_results = [self._pool.submit(TrackDownloader.Downloader, *track) for track in track_list]
         checked = [False for _ in track_list]
@@ -27,14 +30,16 @@ class PlaylistPool:
         listener = Listener(on_release=self._stop)
         listener.start()
 
-        bar = IncrementalBar('Загрузка треков', max=len(track_list))
+        bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
+        spinner = PixelSpinner('Отмена загрузки ')
         bar.start()
+        last_time = 0
 
         for _ in track_list:
             i = 0
 
             while True:
-                if not checked[i] and ((task := self._pool_results[i]).cancelled() or task.done()):
+                if not checked[i] and (self._pool_results[i].done()):
                     checked[i] = True
                     break
 
@@ -42,9 +47,15 @@ class PlaylistPool:
                 if i == len(track_list):
                     i = 0
 
-            bar.next()
+                if self.cancelled() and time.time() - last_time >= 0.5:
+                    spinner.next()
+                    last_time = time.time()
+
+            if not self._cancelled:
+                bar.next()
 
         bar.finish()
+        spinner.finish()
 
         while msvcrt.kbhit():
             msvcrt.getch()
@@ -55,8 +66,12 @@ class PlaylistPool:
         if key != KeyCode.from_char('b'):
             return
 
+        self._cancelled = True
+        print(f'\r{" " * 80}\r', end='')
+
         for task in self._pool_results:
             if not task.running():
                 task.cancel()
 
-        print(f'Загрузка отменена')
+    def cancelled(self):
+        return self._cancelled
