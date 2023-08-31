@@ -18,9 +18,9 @@ import DownloaderPool
 
 def _print_greeting():
     os.system('cls')
-    print('-----------------------------------------')
-    print('| ADSKAYA KOCHALKA v14.88 WELCOMES YOU! |')
-    print('-----------------------------------------')
+    print('----------------------------------')
+    print('| ADSKAYA KOCHALKA WELCOMES YOU! |')
+    print('---------------------------------')
     print('What do you want to do?\n\n'
           '[1] - Синхронизировать треки с аккаунтом\n'
           '[2] - Проверить отсутсвующие треки на сервере\n'
@@ -351,6 +351,8 @@ class Cli:
         dp = DownloaderPool.PlaylistPool()
         dp.start([(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
 
+        print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+
         if dp.cancelled():
             print('Загрузка отменена\n\n'
                   '[b] - назад')
@@ -413,11 +415,17 @@ class Cli:
             time.sleep(1)
             return
 
+        print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+
         dp = DownloaderPool.PlaylistPool()
         dp.start([_create_download_query(track, directory) for track in playlist])
 
-        print('Загрузка завершена\n\n'
-              '[b] - назад')
+        if dp.cancelled():
+            print('Загрузка отменена\n\n'
+                  '[b] - назад')
+        else:
+            print('Загрузка завершена\n\n'
+                  '[b] - назад')
 
         while True:
             match input('> '):
