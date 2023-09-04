@@ -126,7 +126,7 @@ class PlaylistPool:
         listener.stop()
 
     def _stop(self, key):
-        if key != KeyCode.from_char('b'):
+        if not isinstance(key, KeyCode) or key.vk != 66:
             return
 
         self._cancelled = True
@@ -140,5 +140,5 @@ class PlaylistPool:
     def cancelled(self):
         return self._cancelled
 
-    def download_status(self):
-        pass
+    def pool_status(self):
+        return self._pool_status

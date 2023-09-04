@@ -4,8 +4,8 @@ __all__ = [
 
 from SettingsStorage import Settings
 from os import listdir
-import tqdm
 from LocalTracks import Errors
+from progress.bar import IncrementalBar
 
 
 class LcTracks:
@@ -29,7 +29,7 @@ class LcTracks:
 
         self._local_tracks.clear()
 
-        for track in tqdm.tqdm(tracks, desc='Чтение треков с диска'):
+        for track in IncrementalBar('Чтение треков с диска', max=len(tracks), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(tracks):
             if track.endswith('.mp3'):
                 self._local_tracks.add(track[:-4])
 

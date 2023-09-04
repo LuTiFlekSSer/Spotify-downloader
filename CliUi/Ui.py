@@ -56,6 +56,178 @@ def _create_download_query(track, directory):
     return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
+def _start_playlist_download(tracks):
+    dp = DownloaderPool.PlaylistPool()
+    dp.start(tracks)
+
+    print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+
+    if dp.cancelled():
+        print('Загрузка отменена')
+    else:
+        print('Загрузка завершена')
+
+    dp_status = dp.pool_status()
+
+    print(f'\nСтатистика по трекам:\n'
+          f'Успешно загружено: {dp_status["ok"]["quantity"]}\n'
+          f'Ошибка при загрузке: {dp_status["get_err"]["quantity"] + dp_status["api_err"]["quantity"]}\n'
+          f'Ошибка при изменении обложки: {dp_status["jpg_err"]["quantity"]}\n'
+          f'Не найдено: {dp_status["nf_err"]["quantity"]}\n'
+          f'Отменено: {dp_status["cancelled"]["quantity"]}\n')
+
+    print('\n[1] - Вывести успешно загруженные треки\n'
+          '[2] - Вывести треки с ошибкой при загрузке\n'
+          '[3] - Вывести треки с ошибкой изменения обложки\n'
+          '[4] - Вывести не найденные треки\n'
+          '[5] - Вывести отмененне треки\n\n'
+          '[b] - Назад')
+
+    while True:
+        match input('> '):
+            case '1':
+                if len(dp_status['ok']['list']) == 0:
+                    print('Список пуст')
+                    continue
+
+                for i, track in enumerate(dp_status['ok']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case '2':
+                if len(dp_status['get_err']['list'] + dp_status['api_err']['list']) == 0:
+                    print('Список пуст')
+                    continue
+
+                for i, track in enumerate(dp_status['get_err']['list'] + dp_status['api_err']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case '3':
+                if len(dp_status['jpg_err']['list']) == 0:
+                    print('Список пуст')
+                    continue
+
+                for i, track in enumerate(dp_status['jpg_err']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case '4':
+                if len(dp_status['nf_err']['list']) == 0:
+                    print('Список пуст')
+                    continue
+
+                for i, track in enumerate(dp_status['nf_err']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case '5':
+                if len(dp_status['cancelled']['list']) == 0:
+                    print('Список пуст')
+                    continue
+
+                for i, track in enumerate(dp_status['cancelled']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case 'b':
+                print('Возврат в меню')
+                time.sleep(1)
+                break
+
+            case _:
+                print('Ошибка ввода')
+
+
+def _playlist_download():
+    os.system('cls')
+    print('Загрузка треков из плейлиста\n')
+
+    link = input('Введи ссылку на плейлист\n> ')
+
+    playlist_id = urlparse(link).path
+
+    if '/' not in playlist_id:
+        print('Некорректная ссылка')
+        time.sleep(1)
+        return
+
+    playlist_id = playlist_id[playlist_id.rfind('/') + 1:]
+
+    try:
+        directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
+    except Exception:
+        print('Загрузка отменена')
+        time.sleep(1)
+        return
+
+    playlist = []
+    offset = 0
+
+    try:
+        while True:
+            playlist_info = requests.get(f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}', headers=TrackDownloader.Downloader.headers).json()
+
+            if not playlist_info['success']:
+                print('Ошибка при загрузке информации о плейлисте')
+                time.sleep(1)
+                return
+
+            playlist += playlist_info['trackList']
+
+            if playlist_info['nextOffset'] is None:
+                break
+
+            offset = playlist_info['nextOffset']
+
+    except Exception:
+        print('Ошибка при работе с сcылкой')
+        time.sleep(1)
+        return
+
+    print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+
+    _start_playlist_download([_create_download_query(track, directory) for track in playlist])
+
+
+def _multiple_tracks_download():
+    os.system('cls')
+    print('Загрузка отдельных треков\n\n'
+          '[b] - назад')
+
+    try:
+        directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
+    except Exception:
+        print('Загрузка отменена')
+        time.sleep(1)
+        return
+    print('Для загрузки треков поочередно вводи ссылку')
+
+    while True:
+        match (link := input('> ')):
+            case 'b':
+                print('Возврат в меню')
+                time.sleep(1)
+                break
+            case _:
+                track_id = urlparse(link).path
+
+                if '/' not in track_id:
+                    print('Некорректная ссылка')
+                    continue
+
+                track_id = track_id[track_id.rfind('/') + 1:]
+
+                try:
+                    track = requests.get(f'https://api.spotifydown.com/metadata/track/{track_id}', headers=TrackDownloader.Downloader.headers).json()
+
+                    if not track['success']:
+                        print('Ошибка при загрузке информации о треке')
+                        continue
+
+                except Exception:
+                    print('Ошибка при работе с сcылкой')
+                    continue
+
+                TrackDownloader.Downloader(*_create_download_query(track, directory))
+                print('Загружено')
+
+
 class Cli:
     def __init__(self):
         self._settings = SettingsStorage.Settings()
@@ -73,10 +245,10 @@ class Cli:
                     self._tracks_compare()
                     _print_greeting()
                 case '3':
-                    self._playlist_download()
+                    _playlist_download()
                     _print_greeting()
                 case '4':
-                    self._multiple_tracks_download()
+                    _multiple_tracks_download()
                     _print_greeting()
                 case '5':
                     self._set_settings()
@@ -342,141 +514,14 @@ class Cli:
                 case _:
 
                     print('Ошибка ввода')
+
         if new_tracks:
             spt.refresh_track_list()
 
             comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
             local_missing_tracks = comp.get_local_missing_tracks()
 
-        dp = DownloaderPool.PlaylistPool()
-        dp.start([(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
-
-        print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
-
-        if dp.cancelled():
-            print('Загрузка отменена\n\n'
-                  '[b] - назад')
-        else:
-            print('Загрузка завершена\n\n'
-                  '[b] - назад')
-
-        while True:
-            match input('> '):
-                case 'b':
-                    print('Возврат в меню')
-                    time.sleep(1)
-                    break
-                case _:
-                    print('Ошибка ввода')
-
-    def _playlist_download(self):
-        os.system('cls')
-        print('Загрузка треков из плейлиста\n')
-
-        link = input('Введи ссылку на плейлист\n> ')
-
-        playlist_id = urlparse(link).path
-
-        if '/' not in playlist_id:
-            print('Некорректная ссылка')
-            time.sleep(1)
-            return
-
-        playlist_id = playlist_id[playlist_id.rfind('/') + 1:]
-
-        try:
-            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
-        except Exception:
-            print('Загрузка отменена')
-            time.sleep(1)
-            return
-
-        playlist = []
-        offset = 0
-
-        try:
-            while True:
-                playlist_info = requests.get(f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}', headers=TrackDownloader.Downloader.headers).json()
-
-                if not playlist_info['success']:
-                    print('Ошибка при загрузке информации о плейлисте')
-                    time.sleep(1)
-                    return
-
-                playlist += playlist_info['trackList']
-
-                if playlist_info['nextOffset'] is None:
-                    break
-
-                offset = playlist_info['nextOffset']
-
-        except Exception:
-            print('Ошибка при работе с сcылкой')
-            time.sleep(1)
-            return
-
-        print('\n[b] - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
-
-        dp = DownloaderPool.PlaylistPool()
-        dp.start([_create_download_query(track, directory) for track in playlist])
-
-        if dp.cancelled():
-            print('Загрузка отменена\n\n'
-                  '[b] - назад')
-        else:
-            print('Загрузка завершена\n\n'
-                  '[b] - назад')
-
-        while True:
-            match input('> '):
-                case 'b':
-                    print('Возврат в меню')
-                    time.sleep(1)
-                    break
-                case _:
-                    print('Ошибка ввода')
-
-    def _multiple_tracks_download(self):
-        os.system('cls')
-        print('Загрузка отдельных треков\n\n'
-              '[b] - назад')
-
-        try:
-            directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
-        except Exception:
-            print('Загрузка отменена')
-            time.sleep(1)
-            return
-        print('Для загрузки треков поочередно вводи ссылку')
-
-        while True:
-            match (link := input('> ')):
-                case 'b':
-                    print('Возврат в меню')
-                    time.sleep(1)
-                    break
-                case _:
-                    track_id = urlparse(link).path
-
-                    if '/' not in track_id:
-                        print('Некорректная ссылка')
-                        continue
-
-                    track_id = track_id[track_id.rfind('/') + 1:]
-
-                    try:
-                        track = requests.get(f'https://api.spotifydown.com/metadata/track/{track_id}', headers=TrackDownloader.Downloader.headers).json()
-
-                        if not track['success']:
-                            print('Ошибка при загрузке информации о треке')
-                            continue
-
-                    except Exception:
-                        print('Ошибка при работе с сcылкой')
-                        continue
-
-                    TrackDownloader.Downloader(*_create_download_query(track, directory))
-                    print('Загружено')
+        _start_playlist_download([(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
 
     def _settings_set_threads(self):
         os.system('cls')
