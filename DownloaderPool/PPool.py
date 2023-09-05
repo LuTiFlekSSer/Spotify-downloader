@@ -3,7 +3,6 @@ __all__ = [
 ]
 
 import time
-
 import TrackDownloader
 from concurrent.futures import ThreadPoolExecutor, CancelledError
 import SettingsStorage

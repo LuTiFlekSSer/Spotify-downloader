@@ -1,11 +1,13 @@
 __all__ = [
     'Downloader',
-    'Status'
+    'Status',
+    'create_download_query'
 ]
 
 import requests
 import eyed3
 import enum
+import SpotifyTracks
 
 
 class Status(enum.Enum):
@@ -14,6 +16,20 @@ class Status(enum.Enum):
     GET_ERR = 2
     JPG_ERR = 3
     NF_ERR = 4
+
+
+def create_download_query(track, directory):
+    separator = '\u29f8'
+
+    track_info = {
+        'id': track['id'],
+        'name': track['title'],
+        'artists': [aut.strip() for aut in track['artists'].split(',')],
+        'album_name': track['album'],
+        'release_date': track['releaseDate'][:4]
+    }
+
+    return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
 class Downloader:
