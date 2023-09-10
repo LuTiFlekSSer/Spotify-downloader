@@ -1,6 +1,5 @@
 import DownloaderPool
 import time
-import enum
 
 
 def start_playlist_download(tracks):
@@ -81,13 +80,47 @@ def start_playlist_download(tracks):
                 print('Ошибка ввода')
 
 
-class Colors(enum.Enum):
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
+class Colors:
+    PURPLE = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    END = '\033[0m'
     BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    BLINK = '\033[6m'
+
+
+def purple(s):
+    return Colors.PURPLE + s + Colors.END
+
+
+def blue(s):
+    return Colors.BLUE + s + Colors.END
+
+
+def cyan(s):
+    return Colors.CYAN + s + Colors.END
+
+
+def green(s):
+    return Colors.GREEN + s + Colors.END
+
+
+def yellow(s):
+    return Colors.YELLOW + s + Colors.END
+
+
+def red(s):
+    return Colors.RED + s + Colors.END
+
+
+def bold(s):
+    return Colors.BOLD + s + Colors.END
+
+
+def g_input(s):
+    inp = input(bold(s) + Colors.GREEN)
+    print(Colors.END, end='')
+    return inp

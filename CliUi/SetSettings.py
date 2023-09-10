@@ -2,18 +2,19 @@ import SettingsStorage
 import os
 import time
 import win32com.client
+import Utils
 
 
 def _print_settings():
     os.system('cls')
-    print('Настройки\n\n'
-          '[1] - Поменять кол-во потоков для загрузки треков\n'
-          '[2] - Поменять путь для синхронизации треков\n'
-          '[3] - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
-          '[4] - Очистить данные для входа в аккаунт\n'
-          '[5] - Управление локальным игнор листом\n'
-          '[6] - Управление серверным игнор листом\n\n'
-          '[b] - Назад\n', end='')
+    print(f'{Utils.cyan("Настройки")}\n\n'
+          f'{Utils.blue("[1]")} - Поменять кол-во потоков для загрузки треков\n'
+          f'{Utils.blue("[2]")} - Поменять путь для синхронизации треков\n'
+          f'{Utils.blue("[3]")} - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
+          f'{Utils.blue("[4]")} - Очистить данные для входа в аккаунт\n'
+          f'{Utils.blue("[5]")} - Управление локальным игнор листом\n'
+          f'{Utils.blue("[6]")} - Управление серверным игнор листом\n\n'
+          f'{Utils.purple("[b]")} - Назад\n', end='')
 
 
 class SetSettings:
@@ -22,24 +23,25 @@ class SetSettings:
 
     def _settings_set_threads(self):
         os.system('cls')
-        print(f'Смена кол-ва потоков для загрузки треков\n\n'
-              f'Текущее кол-во: {self._settings.get_setting("threads")}\n\n'
-              f'[b] - назад')
+        print(f'{Utils.cyan("Смена кол-ва потоков для загрузки треков")}\n\n'
+              f'{Utils.green("Текущее кол-во:")} {self._settings.get_setting("threads")}\n\n'
+              f'{Utils.purple("[b]")} - назад')
 
         while True:
-            threads = input('Введи кол-во потоков\n> ')
+            print(Utils.yellow('Введи кол-во потоков'))
+            threads = Utils.g_input('> ')
 
             if threads == 'b':
-                print('Отменено')
+                print(Utils.green('Отменено'))
                 time.sleep(1)
                 break
 
             if not threads.isnumeric() or threads == '0':
-                print('Ошибка ввода')
+                print(Utils.red('Ошибка ввода'))
                 continue
 
             self._settings.change_setting('threads', threads)
-            print(f'Кол-во потоков изменено на {threads}')
+            print(Utils.green(f'Кол-во потоков изменено на {threads}'))
             time.sleep(1)
             break
 

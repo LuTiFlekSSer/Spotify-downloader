@@ -55,7 +55,6 @@ class Downloader:
                 attempts += 1
 
             if not response['success']:
-                # print(f'Трек {name} не найден')
                 self._status = Status.NF_ERR
                 return
 
@@ -69,7 +68,6 @@ class Downloader:
                     attempts += 1
 
                 if track.startswith(b'{"error":true'):
-                    # print(f'Ошибка при загрузке трека: {name}')
                     self._status = Status.GET_ERR
                     return
 
@@ -77,12 +75,10 @@ class Downloader:
                     file.write(track)
 
             except Exception:
-                # print(f'Ошибка при загрузке трека: {name}')
                 self._status = Status.GET_ERR
                 return
 
         except Exception:
-            # print(f'Ошибка получения данных о треке: {name}')
             self._status = Status.API_ERR
             return
 
@@ -92,7 +88,6 @@ class Downloader:
             track.tag.images.set(3, requests.get(response['metadata']['cover']).content, 'image/jpeg')
         except Exception:
             self._status = Status.JPG_ERR
-            # print(f'Ошибка изменения обложки трека: {name}')
 
         track.tag.title = track_info['name']
         track.tag.artist = '/'.join(track_info['artists'])

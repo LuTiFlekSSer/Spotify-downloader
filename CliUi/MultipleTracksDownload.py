@@ -3,6 +3,8 @@ from progress.spinner import PixelSpinner
 import win32com.client
 import time
 import DownloaderPool
+import Utils
+from urllib.parse import urlparse
 
 
 class MultipleTracksDownload:
@@ -11,41 +13,41 @@ class MultipleTracksDownload:
 
     def multiple_tracks_download(self):
         os.system('cls')
-        print('Загрузка отдельных треков\n'
-              '[1] - Стистика по трекам\n'
-              '[2] - Успешно загруженные треки\n'
-              '[3] - Запущенные загрузки\n'
-              '[4] - Треки с ошибкой при загрузке\n'
-              '[5] - Треки с ошибкой изменения обложки\n'
-              '[6] - Не найденные треки\n'
-              '[7] - Некорректные ссылки\n\n'
-              '[b] - назад')
+        print(f'{Utils.cyan("Загрузка отдельных треков")}\n\n'
+              f'{Utils.blue("[1]")} - Стистика по трекам\n'
+              f'{Utils.blue("[2]")} - Успешно загруженные треки\n'
+              f'{Utils.blue("[3]")} - Запущенные загрузки\n'
+              f'{Utils.blue("[4]")} - Треки с ошибкой изменения обложки\n'
+              f'{Utils.blue("[5]")} - Треки с ошибкой при загрузке\n'
+              f'{Utils.blue("[6]")} - Не найденные треки\n'
+              f'{Utils.blue("[7]")} - Некорректные ссылки\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         try:
             directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
         except Exception:
-            print('Загрузка отменена')
+            print(Utils.red('Загрузка отменена'))
             time.sleep(1)
             return
 
-        print('Для загрузки треков поочередно вводи ссылку')
+        print(Utils.yellow('Для загрузки треков поочередно вводи ссылку'))
 
         mtp = DownloaderPool.MultipleTracksPool(directory)
 
         while True:
             mtp_status = mtp.pool_status()
-            match (link := input('> ')):
+            match (link := Utils.g_input('> ')):
                 case '1':
-                    print(f'Успешно загружено: {mtp_status["ok"]["quantity"]}\n'
-                          f'Запущенные загрузки: {mtp_status["launched"]["quantity"]}\n'
-                          f'Ошибка при загрузке: {mtp_status["get_err"]["quantity"]}\n'
-                          f'Ошибка при изменении обложки: {mtp_status["jpg_err"]["quantity"]}\n'
-                          f'Не найдено: {mtp_status["nf_err"]["quantity"]}\n'
-                          f'Некорректные ссылки: {mtp_status["link_err"]["quantity"]}')
+                    print(f'{Utils.green("Успешно загружено:")} {mtp_status["ok"]["quantity"]}\n'
+                          f'{Utils.blue("Запущенные загрузки:")} {mtp_status["launched"]["quantity"]}\n'
+                          f'{Utils.yellow("Ошибка при изменении обложки:")} {mtp_status["jpg_err"]["quantity"]}\n'
+                          f'{Utils.red("Ошибка при загрузке:")} {mtp_status["get_err"]["quantity"]}\n'
+                          f'{Utils.red("Не найдено:")} {mtp_status["nf_err"]["quantity"]}\n'
+                          f'{Utils.red("Некорректные ссылки:")} {mtp_status["link_err"]["quantity"]}')
 
                 case '2':
                     if len(mtp_status['ok']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['ok']['list']):
@@ -53,23 +55,23 @@ class MultipleTracksDownload:
 
                 case '3':
                     if len(mtp_status['launched']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['launched']['list']):
                         print(f'{i + 1}) {track}')
 
-                case '4':
+                case '5':
                     if len(mtp_status['get_err']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['get_err']['list']):
                         print(f'{i + 1}) {track}')
 
-                case '5':
+                case '4':
                     if len(mtp_status['jpg_err']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['jpg_err']['list']):
@@ -77,7 +79,7 @@ class MultipleTracksDownload:
 
                 case '6':
                     if len(mtp_status['nf_err']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['nf_err']['list']):
@@ -85,14 +87,14 @@ class MultipleTracksDownload:
 
                 case '7':
                     if len(mtp_status['link_err']['list']) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
                         continue
 
                     for i, track in enumerate(mtp_status['link_err']['list']):
                         print(f'{i + 1}) {track}')
 
                 case 'b':
-                    spinner = PixelSpinner('Ожидание окончания загрузки треков ')
+                    spinner = PixelSpinner(Utils.Colors.YELLOW + 'Ожидание окончания загрузки треков ')
                     t = time.time()
                     spinner.next()
 
@@ -105,8 +107,11 @@ class MultipleTracksDownload:
                                 break
 
                     spinner.finish()
-                    print('Возврат в меню')
+                    print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
                 case _:
-                    mtp.add(link)
+                    if urlparse(link).scheme:
+                        mtp.add(link)
+                    else:
+                        print(Utils.red('Ошибка ввода'))

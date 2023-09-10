@@ -13,14 +13,15 @@ class PlaylistDownload:
 
     def playlist_download(self):
         os.system('cls')
-        print('Загрузка треков из плейлиста\n')
+        print(Utils.cyan('Загрузка треков из плейлиста\n'))
 
-        link = input('Введи ссылку на плейлист\n> ')
+        print(Utils.yellow('Введи ссылку на плейлист'))
+        link = Utils.g_input('> ')
 
         playlist_id = urlparse(link).path
 
         if '/' not in playlist_id:
-            print('Некорректная ссылка')
+            print(Utils.red('Некорректная ссылка'))
             time.sleep(1)
             return
 
@@ -29,7 +30,7 @@ class PlaylistDownload:
         try:
             directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
         except Exception:
-            print('Загрузка отменена')
+            print(Utils.red('Загрузка отменена'))
             time.sleep(1)
             return
 
@@ -41,7 +42,7 @@ class PlaylistDownload:
                 playlist_info = requests.get(f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}', headers=TrackDownloader.Downloader.headers).json()
 
                 if not playlist_info['success']:
-                    print('Ошибка при загрузке информации о плейлисте')
+                    print(Utils.red('Ошибка при загрузке информации о плейлисте'))
                     time.sleep(1)
                     return
 
@@ -53,7 +54,7 @@ class PlaylistDownload:
                 offset = playlist_info['nextOffset']
 
         except Exception:
-            print('Ошибка при работе с сcылкой')
+            print(Utils.red('Ошибка при работе с сcылкой'))
             time.sleep(1)
             return
 

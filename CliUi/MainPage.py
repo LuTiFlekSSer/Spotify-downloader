@@ -4,20 +4,21 @@ import TracksCompare
 import PlaylistDownload
 import MultipleTracksDownload
 import SetSettings
+import Utils
 
 
 def _print_greeting():
     os.system('cls')
-    print('----------------------------------')
-    print('| ADSKAYA KOCHALKA WELCOMES YOU! |')
-    print('---------------------------------')
-    print('What do you want to do?\n\n'
-          '[1] - Синхронизировать треки с аккаунтом\n'
-          '[2] - Проверить отсутсвующие треки на сервере\n'
-          '[3] - Скачать треки из плейлиста по ссылке\n'
-          '[4] - Скачать отдельные треки по ссылке\n'
-          '[5] - Настройки\n\n'
-          '[x] - Выход\n', end='')
+    print(Utils.cyan('----------------------------------\n'
+                     '| ADSKAYA KOCHALKA WELCOMES YOU! |\n'
+                     '----------------------------------'))
+    print(f'What do you want to do?\n\n'
+          f'{Utils.blue("[1]")} - Синхронизировать треки с аккаунтом\n'
+          f'{Utils.blue("[2]")} - Проверить отсутсвующие треки на сервере\n'
+          f'{Utils.blue("[3]")} - Скачать треки из плейлиста по ссылке\n'
+          f'{Utils.blue("[4]")} - Скачать отдельные треки по ссылке\n'
+          f'{Utils.blue("[5]")} - Настройки\n\n'
+          f'{Utils.purple("[x]")} - Выход\n', end='')
 
 
 class MainPage:
@@ -31,7 +32,7 @@ class MainPage:
     def main_page(self):
         _print_greeting()
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     self._tracks_syncing.tracks_syncing()
                     _print_greeting()
@@ -48,7 +49,13 @@ class MainPage:
                     self._set_settings.set_settings()
                     _print_greeting()
                 case 'x':
-                    print('ББ')
+                    os.system('cls')
+                    print(Utils.green(r'   _____  ____   ____  _____  ______     ________''\n'
+                                      r'  / ____|/ __ \ / __ \|  __ \|  _ \ \   / /  ____|''\n'
+                                      r' | |  __| |  | | |  | | |  | | |_) \ \_/ /| |__''\n'
+                                      r' | | |_ | |  | | |  | | |  | |  _ < \   / |  __|''\n'
+                                      r' | |__| | |__| | |__| | |__| | |_) | | |  | |____''\n'
+                                      r'  \_____|\____/ \____/|_____/|____/  |_|  |______|'))
                     break
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))

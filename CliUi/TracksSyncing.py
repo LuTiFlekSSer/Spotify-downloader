@@ -16,7 +16,7 @@ class TracksSyncing:
 
     def tracks_syncing(self):
         os.system('cls')
-        print('Синхронизация треков с аккаунтом\n')
+        print(Utils.cyan('Синхронизация треков с аккаунтом\n'))
 
         if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
             print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
