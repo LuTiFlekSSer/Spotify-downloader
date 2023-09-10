@@ -32,7 +32,7 @@ class SetSettings:
             threads = Utils.g_input('> ')
 
             if threads == 'b':
-                print(Utils.green('Отменено'))
+                print(Utils.green('Возврат в настройки'))
                 time.sleep(1)
                 break
 
@@ -47,72 +47,72 @@ class SetSettings:
 
     def _settings_set_path(self):
         os.system('cls')
-        print(f'Смена папки, в которой производится синхронизация треков\n\n'
-              f'Текущее расположение: {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
+        print(f'{Utils.cyan("Смена папки, в которой производится синхронизация треков")}\n\n'
+              f'{Utils.green("Текущее расположение:")} {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
 
-        print('[1] - Поменять расположение\n\n'
-              '[b] - Назад')
+        print(f'{Utils.blue("[1]")} - Поменять расположение\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     try:
                         directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
                         self._settings.change_setting('path_for_sync', directory)
 
-                        print(f'Путь изменен на: {directory}')
+                        print(f'{Utils.green("Путь изменен на:")} {directory}')
                         time.sleep(1)
 
                     except Exception:
-                        print('Отменено')
+                        print(Utils.red('Отменено'))
                         time.sleep(1)
 
                     break
 
                 case 'b':
-                    print('Отменено')
+                    print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
     def _settings_set_auto_compare(self):
         os.system('cls')
-        print(f'Автоматическое обнаружение отсуствующих треков на сервере\n\n'
-              f'Текущее значение: {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
+        print(f'{Utils.cyan("Автоматическое обнаружение отсуствующих треков на сервере")}\n\n'
+              f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
 
-        print(f'[1] - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
-              f'[b] - Назад')
+        print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     if self._settings.get_setting("auto_comp") == "True":
                         self._settings.change_setting('auto_comp', 'False')
-                        print('Выключено')
+                        print(Utils.green('Выключено'))
                     else:
                         self._settings.change_setting('auto_comp', 'True')
-                        print('Включено')
+                        print(Utils.green('Включено'))
 
                     time.sleep(1)
                     break
 
                 case 'b':
-                    print('Отменено')
+                    print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
 
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
     def _settings_clear_login_data(self):
         os.system('cls')
-        print('Очистка данных для входа в аккаунт\n\n'
-              '[1] - Очистить\n\n'
-              '[b] - Назад')
+        print(f'{Utils.cyan("Очистка данных для входа в аккаунт")}\n\n'
+              f'{Utils.blue("[1]")} - Очистить\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     self._settings.change_setting('client_id', '')
                     self._settings.change_setting('client_sedret', '')
@@ -124,117 +124,121 @@ class SetSettings:
                     except FileNotFoundError:
                         pass
 
-                    print('Очищено')
+                    print(Utils.green('Очищено'))
                     time.sleep(1)
                     break
                 case 'b':
-                    print('Отменено')
+                    print(Utils.green('Отменено'))
                     time.sleep(1)
                     break
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
     def _settings_local_ignore_list(self):
         os.system('cls')
-        print('Управление локальным игнор листом\n'
-              'Эти треки будут игнорироваться при получении треков из спотифай\n')
+        print(f'{Utils.cyan("Управление локальным игнор листом")}\n'
+              f'{Utils.green("Эти треки будут игнорироваться при получении треков из спотифай")}\n')
 
-        print('[1] - Вывести текущий список треков\n'
-              '[2] - Добавить трек в игнор лист\n'
-              '[3] - Удалить трек из игнор листа\n\n'
-              '[b] - Назад')
+        print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
+              f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
+              f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     for i, name in enumerate(il := self._settings.get_all_local_ignore_tracks()):
                         print(f'{i + 1}) {name}')
 
                     if len(il) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
 
                 case '2':
-                    name = input('Введи название трека (в виде: название - автор)\n> ')
+                    print(Utils.yellow('Введи название трека (в виде: название - автор)'))
+                    name = Utils.g_input('> ')
 
                     try:
                         self._settings.add_track_to_local_ignore(name)
 
-                        print(f'Трек "{name}" добавлен в игнор лист')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
-                        print(f'Трек "{name}" уже добавлен игнор лист')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
 
                 case '3':
-                    name = input('Введи название трека\n> ')
+                    print(Utils.yellow('Введи название трека'))
+                    name = Utils.g_input('> ')
 
                     try:
                         self._settings.delete_track_from_local_ignore(name)
-                        print(f'Трек "{name}" удален из игнор листа')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} удален из игнор листа{Utils.Colors.END}')
 
                     except SettingsStorage.NotFoundError:
-                        print(f'Трек "{name}" не найден в игнор листе')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} не найден в игнор листе{Utils.Colors.END}')
 
                 case 'b':
-                    print('Возврат в настройки')
+                    print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
 
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
     def _settings_server_ignore_list(self):
         os.system('cls')
-        print('Управление серверным игнор листом\n'
-              'Эти треки будут игнорироваться при поиске треков, которых нет в спотифай\n')
+        print(f'{Utils.cyan("Управление серверным игнор листом")}\n'
+              f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в спотифай")}\n')
 
-        print('[1] - Вывести текущий список треков\n'
-              '[2] - Добавить трек в игнор лист\n'
-              '[3] - Удалить трек из игнор листа\n\n'
-              '[b] - Назад')
+        print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
+              f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
+              f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     for i, name in enumerate(il := self._settings.get_all_server_ignore_tracks()):
                         print(f'{i + 1}) {name}')
 
                     if len(il) == 0:
-                        print('Список пуст')
+                        print(Utils.yellow('Список пуст'))
 
                 case '2':
-                    name = input('Введи название трека (в виде: название - автор)\n> ')
+                    print(Utils.yellow('Введи название трека (в виде: название - автор)'))
+                    name = Utils.g_input('> ')
 
                     try:
                         self._settings.add_track_to_server_ignore(name)
 
-                        print(f'Трек "{name}" добавлен в игнор лист')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
-                        print(f'Трек "{name}" уже добавлен игнор лист')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
 
                 case '3':
-                    name = input('Введи название трека\n> ')
+                    print(Utils.yellow('Введи название трека'))
+                    name = Utils.g_input('> ')
 
                     try:
                         self._settings.delete_track_from_server_ignore(name)
-                        print(f'Трек "{name}" удален из игнор листа')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} удален из игнор листа{Utils.Colors.END}')
 
                     except SettingsStorage.NotFoundError:
-                        print(f'Трек "{name}" не найден в игнор листе')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} не найден в игнор листе{Utils.Colors.END}')
 
                 case 'b':
-                    print('Возврат в настройки')
+                    print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
 
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
     def set_settings(self):
         _print_settings()
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     self._settings_set_threads()
                     _print_settings()
@@ -254,8 +258,8 @@ class SetSettings:
                     self._settings_server_ignore_list()
                     _print_settings()
                 case 'b':
-                    print('Возврат в меню')
+                    print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
