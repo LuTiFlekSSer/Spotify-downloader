@@ -6,6 +6,7 @@ import time
 import SpLogin
 import win32com.client
 import LocalTracks
+import Utils
 
 
 class TracksCompare:
@@ -15,10 +16,10 @@ class TracksCompare:
 
     def tracks_compare(self):
         os.system('cls')
-        print('Проверка отсутствующих треков на сервере\n')
+        print(Utils.cyan('Проверка отсутствующих треков на сервере\n'))
 
         if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
-            print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
+            print(Utils.red(f'{Utils.Colors.BLINK}Не задан путь к папке для синхронизации, задать сейчас?') + Utils.yellow(' (y - да, n - нет)'))
 
             while True:
                 match input('> '):
@@ -28,20 +29,20 @@ class TracksCompare:
                             directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
                             self._settings.change_setting('path_for_sync', directory)
 
-                            print(f'Путь изменен на: {directory}\n')
+                            print(f'{Utils.green("Путь изменен на:")} {directory}\n')
 
                             break
                         except Exception:
-                            print('Проверка отменена')
+                            print(Utils.red('Проверка отменена'))
                             time.sleep(1)
 
                             return
                     case 'n':
-                        print('Проверка отменена')
+                        print(Utils.green('Возврат в меню'))
                         time.sleep(1)
                         return
                     case _:
-                        print('Ошибка ввода')
+                        print(Utils.red('Ошибка ввода'))
 
         spl = self._spotify_login.spotify_login()
 
@@ -61,27 +62,29 @@ class TracksCompare:
         server_missing_tracks = comp.get_server_missing_tracks()
 
         if len(server_missing_tracks) == 0:
-            print('\nТреки на сервере синхронизированы\n')
+            print(Utils.green('\nТреки на сервере синхронизированы\n'))
         else:
-            print('\nСписок отсутствующих треков на сервере:\n')
+            print(Utils.yellow('\nСписок отсутствующих треков на сервере:\n'))
             for i, track in enumerate(server_missing_tracks):
                 print(f'{i + 1}) {track}')
         print()
-        print('[1] - Добавить треки в серверный игнор лист\n\n'
-              '[b] - назад')
+        print(f'{Utils.blue("[1]")} - Добавить треки в серверный игнор лист\n\n'
+              f'{Utils.purple("[b]")} - назад')
 
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
-                    name = input('Введи название трека\n> ')
+                    print('Введи название трека')
+                    name = Utils.g_input('> ')
+
                     try:
                         self._settings.add_track_to_server_ignore(name)
-                        print(f'Трек "{name}" добавлен в игнор лист')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
                     except SettingsStorage.AlreadyExistsError:
-                        print(f'Трек "{name}" уже добавлен в игнор лист')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
                 case 'b':
-                    print('Возврат в меню')
+                    print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
                 case _:
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))

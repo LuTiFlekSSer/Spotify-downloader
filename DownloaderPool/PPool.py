@@ -10,6 +10,7 @@ from pynput.keyboard import Listener, KeyCode
 import msvcrt
 from progress.bar import IncrementalBar
 from progress.spinner import PixelSpinner
+from CliUi import Utils
 
 
 class PlaylistPool:
@@ -66,7 +67,7 @@ class PlaylistPool:
         listener.start()
 
         bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
-        spinner = PixelSpinner('Отмена загрузки, ожидание запущенных загрузок ')
+        spinner = PixelSpinner(Utils.Colors.YELLOW + 'Отмена загрузки, ожидание запущенных загрузок ')
         bar.start()
         last_time = 0
 

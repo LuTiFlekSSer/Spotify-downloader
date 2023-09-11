@@ -19,30 +19,31 @@ class TracksSyncing:
         print(Utils.cyan('Синхронизация треков с аккаунтом\n'))
 
         if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
-            print('Не задан путь к папке для синхронизации, задать сейчас? (y - да, n - нет)')
+            print(Utils.red(f'{Utils.Colors.BLINK}Не задан путь к папке для синхронизации, задать сейчас?') + Utils.yellow(' (y - да, n - нет)'))
 
             while True:
-                match input('> '):
+                match Utils.g_input('> '):
                     case 'y':
 
                         try:
                             directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
                             self._settings.change_setting('path_for_sync', directory)
 
-                            print(f'Путь изменен на: {directory}\n')
+                            print(f'{Utils.green("Путь изменен на:")} {directory}\n')
 
                             break
                         except Exception:
-                            print('Синхронизация отменена')
+                            print(Utils.red('Синхронизация отменена'))
                             time.sleep(1)
 
                             return
                     case 'n':
-                        print('Синхронизация отменена')
+                        print(Utils.green('Возврат в меню'))
                         time.sleep(1)
+
                         return
                     case _:
-                        print('Ошибка ввода')
+                        print(Utils.red('Ошибка ввода'))
 
         spl = self._spotify_login.spotify_login()
 
@@ -53,7 +54,7 @@ class TracksSyncing:
         try:
             spt.start()
         except SpotifyTracks.TracksGetError:
-            print('Ошибка при получении треков из spotify')
+            print(Utils.red('Ошибка при получении треков из spotify'))
             time.sleep(1)
             return
 
@@ -69,80 +70,82 @@ class TracksSyncing:
             server_missing_tracks = comp.get_server_missing_tracks()
 
             if len(server_missing_tracks) == 0:
-                print('\nТреки на сервере синхронизированы\n')
+                print(Utils.green('\nТреки на сервере синхронизированы\n'))
+                time.sleep(1)
             else:
-                print('\nСписок отсутствующих треков на сервере:\n')
+                print(Utils.yellow('\nСписок отсутствующих треков на сервере:\n'))
                 for i, track in enumerate(server_missing_tracks):
                     print(f'{i + 1}) {track}')
                 print()
 
-                print('[1] - Продолжить синхронизацию треков\n'
-                      '[2] - Добавить треки в серверный игнор лист\n\n'
-                      '[b] - Назад')
+                print(f'{Utils.blue("[1]")} - Продолжить синхронизацию треков\n'
+                      f'{Utils.blue("[2]")} - Добавить треки в серверный игнор лист\n\n'
+                      f'{Utils.purple("[b]")} - Назад')
 
                 while True:
-                    match input('> '):
+                    match Utils.g_input('> '):
                         case '1':
                             break
 
                         case '2':
-                            name = input('Введи название трека\n> ')
+                            print('Введи название трека')
+                            name = Utils.g_input('> ')
 
                             try:
                                 self._settings.add_track_to_server_ignore(name)
-                                print(f'Трек "{name}" добавлен в игнор лист')
+                                print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                             except SettingsStorage.AlreadyExistsError:
-                                print(f'Трек "{name}" уже добавлен в игнор лист')
+                                print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
 
                         case 'b':
-                            print('Синхронизация прекращена')
+                            print(Utils.green('Возврат в меню'))
                             time.sleep(1)
                             return
 
                         case _:
-                            print('Ошибка ввода')
+                            print(Utils.red('Ошибка ввода'))
 
         local_missing_tracks = comp.get_local_missing_tracks()
 
         print()
         if len(local_missing_tracks) == 0:
-            print('Локальные треки синхронизированы')
+            print(Utils.green('Локальные треки синхронизированы'))
             time.sleep(1)
             return
 
-        print('Список отсутствующих локальных треков:\n')
+        print(Utils.yellow('Список отсутствующих локальных треков:\n'))
         for i, track in enumerate(local_missing_tracks):
             print(f'{i + 1}) {track}')
 
-        print('\n[1] - Скачать отсутствующие треки\n'
-              '[2] - Добавить треки в локальный игнор лист (новые треки будут сразу проигнорированы при загрузке)\n\n'
-              '[b] - Назад')
+        print(f'\n{Utils.blue("[1]")} - Скачать отсутствующие треки\n'
+              f'{Utils.blue("[2]")} - Добавить треки в локальный игнор лист (новые треки будут сразу проигнорированы при загрузке)\n\n'
+              f'{Utils.purple("[b]")} - Назад')
 
         new_tracks = False
         while True:
-            match input('> '):
+            match Utils.g_input('> '):
                 case '1':
                     break
 
                 case '2':
-                    name = input('Введи название трека\n> ')
+                    print('Введи название трека')
+                    name = Utils.g_input('> ')
 
                     try:
                         self._settings.add_track_to_local_ignore(name)
-                        print(f'Трек "{name}" добавлен в игнор лист')
+                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
                         new_tracks = True
 
                     except SettingsStorage.AlreadyExistsError:
-                        print(f'Трек "{name}" уже добавлен в игнор лист')
+                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
 
                 case 'b':
-                    print('Загрузка отменена')
+                    print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     return
                 case _:
-
-                    print('Ошибка ввода')
+                    print(Utils.red('Ошибка ввода'))
 
         if new_tracks:
             spt.refresh_track_list()

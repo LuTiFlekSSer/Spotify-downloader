@@ -98,7 +98,7 @@ class SetSettings:
                     break
 
                 case 'b':
-                    print(Utils.green('Возврат в меню'))
+                    print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
 
@@ -128,7 +128,7 @@ class SetSettings:
                     time.sleep(1)
                     break
                 case 'b':
-                    print(Utils.green('Отменено'))
+                    print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
                 case _:
