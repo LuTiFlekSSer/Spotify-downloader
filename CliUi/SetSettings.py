@@ -14,6 +14,7 @@ def _print_settings():
           f'{Utils.blue("[4]")} - Очистить данные для входа в аккаунт\n'
           f'{Utils.blue("[5]")} - Управление локальным игнор листом\n'
           f'{Utils.blue("[6]")} - Управление серверным игнор листом\n\n'
+          f'{Utils.purple("[c]")} - Очистка ввода\n'
           f'{Utils.purple("[b]")} - Назад\n', end='')
 
 
@@ -22,10 +23,14 @@ class SetSettings:
         self._settings = SettingsStorage.Settings()
 
     def _settings_set_threads(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Смена кол-ва потоков для загрузки треков")}\n\n'
-              f'{Utils.green("Текущее кол-во:")} {self._settings.get_setting("threads")}\n\n'
-              f'{Utils.purple("[b]")} - назад')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Смена кол-ва потоков для загрузки треков")}\n\n'
+                  f'{Utils.green("Текущее кол-во:")} {self._settings.get_setting("threads")}\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - назад')
+
+        print_menu()
 
         while True:
             print(Utils.yellow('Введи кол-во потоков'))
@@ -35,6 +40,10 @@ class SetSettings:
                 print(Utils.green('Возврат в настройки'))
                 time.sleep(1)
                 break
+
+            if threads == 'c':
+                print_menu()
+                continue
 
             if not threads.isnumeric() or threads == '0':
                 print(Utils.red('Ошибка ввода'))
@@ -46,12 +55,16 @@ class SetSettings:
             break
 
     def _settings_set_path(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Смена папки, в которой производится синхронизация треков")}\n\n'
-              f'{Utils.green("Текущее расположение:")} {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Смена папки, в которой производится синхронизация треков")}\n\n'
+                  f'{Utils.green("Текущее расположение:")} {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
 
-        print(f'{Utils.blue("[1]")} - Поменять расположение\n\n'
-              f'{Utils.purple("[b]")} - Назад')
+            print(f'{Utils.blue("[1]")} - Поменять расположение\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
 
         while True:
             match Utils.g_input('> '):
@@ -69,20 +82,28 @@ class SetSettings:
 
                     break
 
+                case 'c':
+                    print_menu()
+
                 case 'b':
                     print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
+
                 case _:
                     print(Utils.red('Ошибка ввода'))
 
     def _settings_set_auto_compare(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Автоматическое обнаружение отсуствующих треков на сервере")}\n\n'
-              f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Автоматическое обнаружение отсуствующих треков на сервере")}\n\n'
+                  f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
 
-        print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
-              f'{Utils.purple("[b]")} - Назад')
+            print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
 
         while True:
             match Utils.g_input('> '):
@@ -97,6 +118,9 @@ class SetSettings:
                     time.sleep(1)
                     break
 
+                case 'c':
+                    print_menu()
+
                 case 'b':
                     print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
@@ -106,10 +130,14 @@ class SetSettings:
                     print(Utils.red('Ошибка ввода'))
 
     def _settings_clear_login_data(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Очистка данных для входа в аккаунт")}\n\n'
-              f'{Utils.blue("[1]")} - Очистить\n\n'
-              f'{Utils.purple("[b]")} - Назад')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Очистка данных для входа в аккаунт")}\n\n'
+                  f'{Utils.blue("[1]")} - Очистить\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
 
         while True:
             match Utils.g_input('> '):
@@ -127,28 +155,37 @@ class SetSettings:
                     print(Utils.green('Очищено'))
                     time.sleep(1)
                     break
+
+                case 'c':
+                    print_menu()
+
                 case 'b':
                     print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
                     break
+
                 case _:
                     print(Utils.red('Ошибка ввода'))
 
     def _settings_local_ignore_list(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Управление локальным игнор листом")}\n'
-              f'{Utils.green("Эти треки будут игнорироваться при получении треков из спотифай")}\n')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Управление локальным игнор листом")}\n'
+                  f'{Utils.green("Эти треки будут игнорироваться при получении треков из спотифай")}\n')
 
-        print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
-              f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
-              f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
-              f'{Utils.purple("[b]")} - Назад')
+            print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
+                  f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
+                  f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
 
         while True:
             match Utils.g_input('> '):
                 case '1':
                     for i, name in enumerate(il := self._settings.get_all_local_ignore_tracks()):
-                        print(f'{i + 1}) {name}')
+                        print(f'{i + 1}) "{name}"')
 
                     if len(il) == 0:
                         print(Utils.yellow('Список пуст'))
@@ -176,6 +213,9 @@ class SetSettings:
                     except SettingsStorage.NotFoundError:
                         print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} не найден в игнор листе{Utils.Colors.END}')
 
+                case 'c':
+                    print_menu()
+
                 case 'b':
                     print(Utils.green('Возврат в настройки'))
                     time.sleep(1)
@@ -185,20 +225,24 @@ class SetSettings:
                     print(Utils.red('Ошибка ввода'))
 
     def _settings_server_ignore_list(self):
-        os.system('cls')
-        print(f'{Utils.cyan("Управление серверным игнор листом")}\n'
-              f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в спотифай")}\n')
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Управление серверным игнор листом")}\n'
+                  f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в спотифай")}\n')
 
-        print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
-              f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
-              f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
-              f'{Utils.purple("[b]")} - Назад')
+            print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
+                  f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
+                  f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
 
         while True:
             match Utils.g_input('> '):
                 case '1':
                     for i, name in enumerate(il := self._settings.get_all_server_ignore_tracks()):
-                        print(f'{i + 1}) {name}')
+                        print(f'{i + 1}) "{name}"')
 
                     if len(il) == 0:
                         print(Utils.yellow('Список пуст'))
@@ -225,6 +269,9 @@ class SetSettings:
 
                     except SettingsStorage.NotFoundError:
                         print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} не найден в игнор листе{Utils.Colors.END}')
+
+                case 'c':
+                    print_menu()
 
                 case 'b':
                     print(Utils.green('Возврат в настройки'))
@@ -256,6 +303,8 @@ class SetSettings:
                     _print_settings()
                 case '6':
                     self._settings_server_ignore_list()
+                    _print_settings()
+                case 'c':
                     _print_settings()
                 case 'b':
                     print(Utils.green('Возврат в меню'))

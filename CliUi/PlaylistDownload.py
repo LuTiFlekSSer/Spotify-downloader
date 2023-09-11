@@ -58,4 +58,4 @@ class PlaylistDownload:
             time.sleep(1)
             return
 
-        Utils.start_playlist_download([TrackDownloader.create_download_query(track, directory) for track in playlist])
+        Utils.start_playlist_download(Utils.cyan('Загрузка треков из плейлиста\n'), [TrackDownloader.create_download_query(track, directory) for track in playlist])

@@ -11,14 +11,16 @@ import msvcrt
 from progress.bar import IncrementalBar
 from progress.spinner import PixelSpinner
 from CliUi import Utils
+import os
 
 
 class PlaylistPool:
-    def __init__(self):
+    def __init__(self, header):
         self._settings = SettingsStorage.Settings()
 
         self._pool = ThreadPoolExecutor(int(self._settings.get_setting('threads')))
 
+        self._header = header
         self._pool_results = None
         self._cancelled = False
         self._pool_status = {
@@ -131,7 +133,8 @@ class PlaylistPool:
 
         self._cancelled = True
 
-        print(f'\r{" " * 80}\r', end='')
+        os.system('cls')
+        print(self._header)
 
         for task in self._pool_results:
             if not task[0].running():

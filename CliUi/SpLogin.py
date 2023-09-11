@@ -61,8 +61,9 @@ class SpLogin:
             spl = SpotifyLogin.Login()
             a_url = spl.get_authorization_url()
 
-            code = input(f'{Utils.yellow("Чтобы выполнить вход, необходимо перейти по ссылке и вставить полученный url, после перенаправления")}\n'
-                         f'{a_url}\n> ')
+            print(f'{Utils.yellow("Чтобы выполнить вход, необходимо перейти по ссылке и вставить полученный url, после перенаправления")}\n'
+                  f'{a_url}')
+            code = Utils.g_input('> ')
 
             try:
                 spl.login_with_authorization_code(code)

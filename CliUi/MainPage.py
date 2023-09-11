@@ -18,6 +18,7 @@ def _print_greeting():
           f'{Utils.blue("[3]")} - Скачать треки из плейлиста по ссылке\n'
           f'{Utils.blue("[4]")} - Скачать отдельные треки по ссылке\n'
           f'{Utils.blue("[5]")} - Настройки\n\n'
+          f'{Utils.purple("[c]")} - Очистка ввода\n'
           f'{Utils.purple("[x]")} - Выход\n', end='')
 
 
@@ -47,6 +48,8 @@ class MainPage:
                     _print_greeting()
                 case '5':
                     self._set_settings.set_settings()
+                    _print_greeting()
+                case 'c':
                     _print_greeting()
                 case 'x':
                     os.system('cls')

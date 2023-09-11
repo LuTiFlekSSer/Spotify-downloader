@@ -1,33 +1,78 @@
 import DownloaderPool
 import time
+import os
+import win32com.client
+import SettingsStorage
 
 
-def start_playlist_download(tracks):
+def set_sync_path(print_menu):
+    print(red(f'{Colors.BLINK}Не задан путь к папке для синхронизации, задать сейчас?') + yellow(' (y - да, n - нет)'))
+
+    settings = SettingsStorage.Settings()
+
+    while True:
+        match input('> '):
+            case 'y':
+
+                try:
+                    directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
+                    settings.change_setting('path_for_sync', directory)
+
+                    print(f'{green("Путь изменен на:")} {directory}\n')
+                    time.sleep(1)
+
+                    print_menu()
+
+                    break
+                except Exception:
+                    print(red('Проверка отменена'))
+                    time.sleep(1)
+
+                    return
+            case 'n':
+                print(green('Возврат в меню'))
+                time.sleep(1)
+                return
+            case _:
+                print(red('Ошибка ввода'))
+
+
+def start_playlist_download(header, tracks):
+    os.system('cls')
+    print(header)
+
     print(f'\n{purple("[b]")} - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
 
-    pp = DownloaderPool.PlaylistPool()
+    pp = DownloaderPool.PlaylistPool(header)
     pp.start(tracks)
 
-    if pp.cancelled():
-        print(red('Загрузка отменена'))
-    else:
-        print(green('Загрузка завершена'))
+    os.system('cls')
+    print(header)
 
     pp_status = pp.pool_status()
 
-    print(f'\nСтатистика по трекам:\n'
-          f'{green("Успешно загружено:")} {pp_status["ok"]["quantity"]}\n'
-          f'{yellow("Ошибка при изменении обложки:")} {pp_status["jpg_err"]["quantity"]}\n'
-          f'{red("Ошибка при загрузке:")} {pp_status["get_err"]["quantity"] + pp_status["api_err"]["quantity"]}\n'
-          f'{red("Не найдено:")} {pp_status["nf_err"]["quantity"]}\n'
-          f'{red("Отменено:")} {pp_status["cancelled"]["quantity"]}\n')
+    def print_results():
+        if pp.cancelled():
+            print(red('Загрузка отменена'))
+        else:
+            print(green('Загрузка завершена'))
 
-    print(f'\n{blue("[1]")} - Успешно загруженные треки\n'
-          f'{blue("[2]")} - Треки с ошибкой изменения обложки\n'
-          f'{blue("[3]")} - Треки с ошибкой при загрузке\n'
-          f'{blue("[4]")} - Не найденные треки\n'
-          f'{blue("[5]")} - Отмененне треки\n\n'
-          f'{purple("[b]")} - Назад')
+        print(f'\nСтатистика по трекам:\n'
+              f'{green("Успешно загружено:")} {pp_status["ok"]["quantity"]}\n'
+              f'{yellow("Ошибка при изменении обложки:")} {pp_status["jpg_err"]["quantity"]}\n'
+              f'{red("Ошибка при загрузке:")} {pp_status["get_err"]["quantity"] + pp_status["api_err"]["quantity"]}\n'
+              f'{red("Не найдено:")} {pp_status["nf_err"]["quantity"]}\n'
+              f'{red("Отменено:")} {pp_status["cancelled"]["quantity"]}\n')
+
+        print(f'\n{blue("[1]")} - Успешно загруженные треки\n'
+              f'{blue("[2]")} - Треки с ошибкой изменения обложки\n'
+              f'{blue("[3]")} - Треки с ошибкой при загрузке\n'
+              f'{blue("[4]")} - Не найденные треки\n'
+              f'{blue("[5]")} - Отмененне треки\n\n'
+              f'{purple("[c]")} - Очистка ввода\n'
+              f'{purple("[b]")} - Назад')
+
+    print_results()
 
     while True:
         match g_input('> '):
@@ -70,6 +115,11 @@ def start_playlist_download(tracks):
 
                 for i, track in enumerate(pp_status['cancelled']['list']):
                     print(f'{i + 1}) {track}')
+
+            case 'c':
+                os.system('cls')
+                print(header)
+                print_results()
 
             case 'b':
                 print(green('Возврат в меню'))

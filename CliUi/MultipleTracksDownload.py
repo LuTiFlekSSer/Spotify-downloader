@@ -11,7 +11,7 @@ class MultipleTracksDownload:
     def __init__(self):
         pass
 
-    def multiple_tracks_download(self):
+    def _print_menu(self):
         os.system('cls')
         print(f'{Utils.cyan("Загрузка отдельных треков")}\n\n'
               f'{Utils.blue("[1]")} - Стистика по трекам\n'
@@ -21,7 +21,11 @@ class MultipleTracksDownload:
               f'{Utils.blue("[5]")} - Треки с ошибкой при загрузке\n'
               f'{Utils.blue("[6]")} - Не найденные треки\n'
               f'{Utils.blue("[7]")} - Некорректные ссылки\n\n'
+              f'{Utils.purple("[c]")} - Очистка ввода\n'
               f'{Utils.purple("[b]")} - Назад')
+
+    def multiple_tracks_download(self):
+        self._print_menu()
 
         try:
             directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку для сохранения треков', 16, "").Self.path
@@ -93,20 +97,25 @@ class MultipleTracksDownload:
                     for i, track in enumerate(mtp_status['link_err']['list']):
                         print(f'{i + 1}) {track}')
 
+                case 'c':
+                    self._print_menu()
+
                 case 'b':
-                    spinner = PixelSpinner(Utils.Colors.YELLOW + 'Ожидание окончания загрузки треков ')
-                    t = time.time()
-                    spinner.next()
+                    if mtp.launched() != 0:
+                        spinner = PixelSpinner(Utils.Colors.YELLOW + 'Ожидание окончания загрузки треков ')
+                        t = time.time()
+                        spinner.next()
 
-                    while True:
-                        if time.time() - t >= 0.5:
-                            spinner.next()
-                            t = time.time()
+                        while True:
+                            if time.time() - t >= 0.5:
+                                spinner.next()
+                                t = time.time()
 
-                            if mtp.launched() == 0:
-                                break
+                                if mtp.launched() == 0:
+                                    break
 
-                    spinner.finish()
+                        spinner.finish()
+
                     print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
