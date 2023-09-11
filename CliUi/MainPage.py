@@ -1,4 +1,6 @@
 import os
+import time
+
 import TracksSyncing
 import TracksCompare
 import PlaylistDownload
@@ -59,6 +61,7 @@ class MainPage:
                                       r' | | |_ | |  | | |  | | |  | |  _ < \   / |  __|''\n'
                                       r' | |__| | |__| | |__| | |__| | |_) | | |  | |____''\n'
                                       r'  \_____|\____/ \____/|_____/|____/  |_|  |______|'))
+                    time.sleep(1)
                     break
                 case _:
                     print(Utils.red('Ошибка ввода'))
