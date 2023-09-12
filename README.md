@@ -1,8 +1,7 @@
-<h1 style="text-align: center;">Spotify-downloader</h1>
+<h1 align="center">Spotify-downloader</h1>
 
-___
 
-<div style="text-align: center;">
+<div align="center">
 
 ![Platform](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 
@@ -16,7 +15,6 @@ Spotify-downloader - это консольное приложение, кото�
 
 ## Возможности :sparkles:
 
-___
 
 * Синхронизация локальных и любимых треков
     * Можно загружать только отсутствующие треки на диске
@@ -28,7 +26,6 @@ ___
 
 ## Установка :wrench:
 
-___
 
 1. Необходимо загрузить программу из раздела с [релизами](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest)
 2. Запустить скачанный файл
@@ -47,7 +44,9 @@ P.S. Если не сделать действия из 3 и дальнейши�
 * В случае обнаружения проблем с программой, можно создать [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с соответствующим описанием ошибки и меткой `bug`
 * Предлагать улучшения можно в [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с меткой `enhancement`
 
-<div style="text-align: center;">
+___
+
+<div align="center">
 
 ![Thanks](https://i.ytimg.com/vi/Ui3HBTi6-_8/maxresdefault.jpg)
 
