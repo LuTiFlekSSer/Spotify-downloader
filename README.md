@@ -1,7 +1,54 @@
-# Spotify-downloader
-the loader of tracks from spotify
+<h1 style="text-align: center;">Spotify-downloader</h1>
 
-Приложение для загрузки треков и плейлистов из спотифай.
-Может синхронизировать любимые треки из аккаунта в выбранной директории.
+___
 
-Для работы программы необходимы client id, client secret и redirect uri из профиля разработчка spotify
+<div style="text-align: center;">
+
+![Platform](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+
+[![Last release](https://img.shields.io/github/v/release/LuTiFlekSSer/Spotify-downloader)](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest)
+![Downloads](https://img.shields.io/github/downloads/LuTiFlekSSer/Spotify-downloader/total)
+
+Spotify-downloader - это консольное приложение, которое позволяет скачивать музыку с сервиса Spotify,
+а также синхронизировать локальную папку с треками с любимыми треками в Spotify.
+
+</div>
+
+## Возможности :sparkles:
+
+___
+
+* Синхронизация локальных и любимых треков
+    * Можно загружать только отсутствующие треки на диске
+    * Можно проверять, какие треки были случайно удалены из любимых
+    * Можно добавлять треки в игнор листы, чтобы пропускать их при синхронизации
+* Загрузка треков из плейлистов
+* Загрузка отдельных треков по ссылке
+* Настраиваемое кол-во потоков для загрузки
+
+## Установка :wrench:
+
+___
+
+1. Необходимо загрузить программу из раздела с [релизами](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest)
+2. Запустить скачанный файл
+3. Чтобы работала синхронизация с аккаунтом, необходимо ввести `clinet id`, `client secret` и `redirect uri`, которые можно получить на [странице разработчика](https://developer.spotify.com/) Spotify:
+    1. Необходимо залогиниться на сайте со своего акканута Spotify
+    2. Перейти в раздел [Dashboard](https://developer.spotify.com/dashboard/)
+    3. [Создать](https://developer.spotify.com/dashboard/create) новое приложение и заполнить поля
+    4. Перейти на страничку созданного приложения и нажать **settings**, откуда можно скопировать необходимые данные
+4. Перейти в `[1]` пункт программы и указать путь к папке, которая будет использоваться для синхронизации
+5. Следовать дальнейшим инструкциям программы для ввода данных аккаунта
+
+P.S. Если не сделать действия из 3 и дальнейших пунтков, то будут работать только загрузка плейлистов и отдельных треков
+
+## Обратная связь :mailbox:
+
+* В случае обнаружения проблем с программой, можно создать [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с соответствующим описанием ошибки и меткой `bug`
+* Предлагать улучшения можно в [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с меткой `enhancement`
+
+<div style="text-align: center;">
+
+![Thanks](https://i.ytimg.com/vi/Ui3HBTi6-_8/maxresdefault.jpg)
+
+</div>

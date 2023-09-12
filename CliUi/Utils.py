@@ -23,16 +23,16 @@ def set_sync_path(print_menu):
 
                     print_menu()
 
-                    break
+                    return True
                 except Exception:
                     print(red('Проверка отменена'))
                     time.sleep(1)
 
-                    return
+                    return False
             case 'n':
                 print(green('Возврат в меню'))
                 time.sleep(1)
-                return
+                return False
             case _:
                 print(red('Ошибка ввода'))
 

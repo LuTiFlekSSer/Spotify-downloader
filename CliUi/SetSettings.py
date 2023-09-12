@@ -148,7 +148,7 @@ class SetSettings:
                     self._settings.change_setting('code', '')
 
                     try:
-                        os.remove('.cache')
+                        os.remove(self._settings.get_path() + '\\.cache')
                     except FileNotFoundError:
                         pass
 

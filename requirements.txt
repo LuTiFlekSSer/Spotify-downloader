@@ -1,0 +1,6 @@
+requests>=2.31.0
+progress>=1.6
+spotipy>=2.23.0
+pynput>=1.7.6
+eyed3>=0.9.7
+pywin32>=306

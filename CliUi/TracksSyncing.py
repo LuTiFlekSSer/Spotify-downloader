@@ -21,12 +21,15 @@ class TracksSyncing:
         print_menu()
 
         if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
-            Utils.set_sync_path(print_menu)
+            if not Utils.set_sync_path(print_menu):
+                return
 
         spl = self._spotify_login.spotify_login()
 
         if spl is None:
             return
+
+        print_menu()
 
         spt = SpotifyTracks.SpTracks(spl)
         try:

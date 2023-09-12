@@ -14,7 +14,7 @@ class SpLogin:
             spl.login_with_authorization_code(self._settings.get_setting('code'))
 
         except SpotifyLogin.LoginDataError:
-            print(Utils.red(f'{Utils.Colors.BLINK}Не заданы параметры для входа в аккаунт, задать сейчас?') + Utils.yellow('y - да, n - нет)'))
+            print(Utils.red(f'{Utils.Colors.BLINK}Не заданы параметры для входа в аккаунт, задать сейчас?') + Utils.yellow(' (y - да, n - нет)'))
 
             while True:
                 match Utils.g_input('> '):

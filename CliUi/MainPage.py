@@ -11,9 +11,9 @@ import Utils
 
 def _print_greeting():
     os.system('cls')
-    print(Utils.cyan('----------------------------------\n'
-                     '| ADSKAYA KOCHALKA WELCOMES YOU! |\n'
-                     '----------------------------------'))
+    print(Utils.cyan('------------------------------------\n'
+                     '| SPOTIFY DOWNLOADER WELCOMES YOU! |\n'
+                     '------------------------------------'))
     print(f'What do you want to do?\n\n'
           f'{Utils.blue("[1]")} - Синхронизировать треки с аккаунтом\n'
           f'{Utils.blue("[2]")} - Проверить отсутсвующие треки на сервере\n'
