@@ -2,7 +2,8 @@ import CliUi
 
 
 def main():
-    CliUi.Cli()
+    cli = CliUi.Cli()
+    cli.start()
 
 
 if __name__ == '__main__':

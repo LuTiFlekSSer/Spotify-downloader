@@ -150,3 +150,6 @@ class Settings:
             local_ignore_list.add(track[0])
 
         return local_ignore_list
+
+    def get_path(self):
+        return self._path

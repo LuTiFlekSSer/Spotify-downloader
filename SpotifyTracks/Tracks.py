@@ -4,8 +4,8 @@ __all__ = [
 
 from SpotifyTracks import Errors
 from SpotifyLogin import Login
-import tqdm
 from SettingsStorage import Settings
+from progress.bar import IncrementalBar
 
 
 class SpTracks:
@@ -45,7 +45,7 @@ class SpTracks:
         local_ignore_list = settings.get_all_local_ignore_tracks()
 
         try:
-            for offset in tqdm.trange(0, self._total, self._limit, desc='Чтение треков из spotify'):
+            for offset in IncrementalBar('Чтение треков из spotify', max=self._total, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(range(0, self._total, self._limit)):
                 for track in self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']:
                     name = track['track']['name'] + ' - '
 
