@@ -64,14 +64,8 @@ class TracksCompare:
         while True:
             match Utils.g_input('> '):
                 case '1':
-                    print('Введи название трека')
-                    name = Utils.g_input('> ')
-
-                    try:
-                        self._settings.add_track_to_server_ignore(name)
-                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
-                    except SettingsStorage.AlreadyExistsError:
-                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
+                    Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
+                    server_missing_tracks = comp.__init__(local_tracks, spotify_tracks, tracks_info).get_server_missing_tracks()
 
                 case 'c':
                     print_menu()
