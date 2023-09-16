@@ -102,7 +102,7 @@ class TracksSyncing:
 
         if len(local_missing_tracks) == 0:
             def print_local_menu():
-                print(Utils.green('Локальные треки синхронизированы\n'))
+                print(Utils.green('\nЛокальные треки синхронизированы\n'))
                 print(f'{Utils.purple("[c]")} - Очистка ввода\n'
                       f'{Utils.purple("[b]")} - Назад')
 

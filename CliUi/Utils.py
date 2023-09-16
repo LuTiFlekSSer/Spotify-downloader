@@ -130,6 +130,21 @@ def start_playlist_download(header, tracks):
                 print(red('Ошибка ввода'))
 
 
+def parse_numbers(numbers: str):
+    ranges = [list(map(int, number.split('-'))) for number in numbers.replace(' ', '').split(',')]
+
+    for i, r in enumerate(ranges):
+        for j, number in enumerate(r[:-1]):
+            if number >= r[j + 1]:
+                raise ValueError
+
+        if i < len(ranges) - 1:
+            if r[-1] >= ranges[i + 1][0]:
+                raise ValueError
+
+    return ranges
+
+
 class Colors:
     PURPLE = '\033[95m'
     BLUE = '\033[94m'
