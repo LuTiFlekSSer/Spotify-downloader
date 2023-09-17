@@ -2,6 +2,7 @@ import SettingsStorage
 import SpotifyLogin
 import time
 import Utils
+import pyperclip
 
 
 class SpLogin:
@@ -60,8 +61,9 @@ class SpLogin:
 
             spl = SpotifyLogin.Login()
             a_url = spl.get_authorization_url()
+            pyperclip.copy(a_url)
 
-            print(f'{Utils.yellow("Чтобы выполнить вход, необходимо перейти по ссылке и вставить полученный url, после перенаправления")}\n'
+            print(f'{Utils.yellow("Чтобы выполнить вход, необходимо перейти по ссылке и вставить полученный url, после перенаправления (скопировано в буфер обмена)")}\n'
                   f'{a_url}')
             code = Utils.g_input('> ')
 

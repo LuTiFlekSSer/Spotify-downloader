@@ -74,15 +74,15 @@ class TracksSyncing:
                         break
 
                     case '2':
-                        print('Введи название трека')
-                        name = Utils.g_input('> ')
+                        res = Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
 
-                        try:
-                            self._settings.add_track_to_server_ignore(name)
-                            print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
+                        if res:
+                            server_missing_tracks = comp.get_server_missing_tracks(refresh=True)
 
-                        except SettingsStorage.AlreadyExistsError:
-                            print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
+                            time.sleep(1)
+
+                            print_menu()
+                            print_server_menu()
 
                     case 'c':
                         print_menu()
@@ -102,7 +102,7 @@ class TracksSyncing:
 
         if len(local_missing_tracks) == 0:
             def print_local_menu():
-                print(Utils.green('Локальные треки синхронизированы\n'))
+                print(Utils.green('\nЛокальные треки синхронизированы\n'))
                 print(f'{Utils.purple("[c]")} - Очистка ввода\n'
                       f'{Utils.purple("[b]")} - Назад')
 
@@ -124,7 +124,7 @@ class TracksSyncing:
 
         def print_local_tracks():
             print(Utils.yellow('Список отсутствующих локальных треков:\n'))
-            for i, track in enumerate(local_missing_tracks):
+            for i, track in enumerate(sorted(local_missing_tracks)):
                 print(f'{i + 1}) {track}')
 
             print(f'\n{Utils.blue("[1]")} - Скачать отсутствующие треки\n'
@@ -134,23 +134,23 @@ class TracksSyncing:
 
         print_local_tracks()
 
-        new_tracks = False
         while True:
             match Utils.g_input('> '):
                 case '1':
                     break
 
                 case '2':
-                    print('Введи название трека')
-                    name = Utils.g_input('> ')
+                    res = Utils.add_tracks_to_ignore(sorted(local_missing_tracks), self._settings.add_track_to_local_ignore)
 
-                    try:
-                        self._settings.add_track_to_local_ignore(name)
-                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
-                        new_tracks = True
+                    if res:
+                        spt.refresh_track_list()
 
-                    except SettingsStorage.AlreadyExistsError:
-                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
+                        local_missing_tracks = comp.get_local_missing_tracks(refresh=True)
+
+                        time.sleep(1)
+
+                        print_menu()
+                        print_local_tracks()
 
                 case 'c':
                     print_menu()
@@ -163,12 +163,6 @@ class TracksSyncing:
 
                 case _:
                     print(Utils.red('Ошибка ввода'))
-
-        if new_tracks:
-            spt.refresh_track_list()
-
-            comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
-            local_missing_tracks = comp.get_local_missing_tracks()
 
         Utils.start_playlist_download(Utils.cyan('Синхронизация треков с аккаунтом\n'),
                                       [(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])

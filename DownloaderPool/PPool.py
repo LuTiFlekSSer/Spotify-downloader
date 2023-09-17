@@ -6,7 +6,7 @@ import time
 import TrackDownloader
 from concurrent.futures import ThreadPoolExecutor, CancelledError
 import SettingsStorage
-from pynput.keyboard import Listener, KeyCode
+import threading
 import msvcrt
 from progress.bar import IncrementalBar
 from progress.spinner import PixelSpinner
@@ -23,6 +23,7 @@ class PlaylistPool:
         self._header = header
         self._pool_results = None
         self._cancelled = False
+        self._stopper_on = True
         self._pool_status = {
             'ok':
                 {
@@ -65,8 +66,8 @@ class PlaylistPool:
         self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track), track[0]] for track in track_list]
         checked = [False for _ in track_list]
 
-        listener = Listener(on_release=self._stop)
-        listener.start()
+        stopper = threading.Thread(target=self._stop)
+        stopper.start()
 
         bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
         spinner = PixelSpinner(Utils.Colors.YELLOW + 'Отмена загрузки, ожидание запущенных загрузок ')
@@ -91,6 +92,9 @@ class PlaylistPool:
 
             if not self._cancelled:
                 bar.next()
+
+        self._stopper_on = False
+        stopper.join()
 
         bar.finish()
         spinner.finish()
@@ -125,10 +129,14 @@ class PlaylistPool:
                 self._pool_status['cancelled']['quantity'] += 1
                 self._pool_status['cancelled']['list'].append(task[1])
 
-        listener.stop()
+    def _stop(self):
+        while self._stopper_on:
+            if msvcrt.kbhit() and msvcrt.getch() == b'b':
+                break
 
-    def _stop(self, key):
-        if not isinstance(key, KeyCode) or key.vk != 66:
+            time.sleep(0.1)
+
+        else:
             return
 
         self._cancelled = True

@@ -1,3 +1,4 @@
+import string
 import DownloaderPool
 import time
 import os
@@ -128,6 +129,108 @@ def start_playlist_download(header, tracks):
 
             case _:
                 print(red('Ошибка ввода'))
+
+
+def _parse_numbers(numbers: str):
+    ranges = [list(map(int, number.split('-'))) for number in numbers.replace(' ', '').split(',')]
+
+    for i, r in enumerate(ranges):
+        for j, number in enumerate(r[:-1]):
+            if number >= r[j + 1]:
+                raise ValueError
+
+        if i < len(ranges) - 1:
+            if r[-1] >= ranges[i + 1][0]:
+                raise ValueError
+
+    return ranges
+
+
+def _cli_part_of_menu(tracks):
+    print(f'{yellow("Введи название (название - автор) или номера треков (например 1,2,3-10)")}\n\n'
+          f'{purple("[b]")} - Назад')
+
+    track_list = g_input('> ').strip()
+
+    if track_list == 'b':
+        print(green('Отмена ввода'))
+        return
+
+    if track_list == '':
+        print(red('Ошибка ввода'))
+        return
+
+    if set(track_list) - set(string.digits + ',-'):
+        return track_list
+
+    try:
+        numbers_range = _parse_numbers(track_list)
+
+        if numbers_range[0][0] <= 0 or numbers_range[-1][-1] > len(tracks):
+            raise ValueError
+
+    except ValueError:
+        print(red('Ошибка в веденных номерах'))
+        return
+
+    return numbers_range
+
+
+def add_tracks_to_ignore(tracks, add):
+    track_list = _cli_part_of_menu(tracks)
+
+    if track_list is None:
+        return False
+    elif isinstance(track_list, str):
+        try:
+            add(track_list)
+
+            print(f'{Colors.GREEN}Трек {Colors.END}"{track_list}"{Colors.GREEN} добавлен в игнор лист{Colors.END}')
+
+            return True
+
+        except SettingsStorage.AlreadyExistsError:
+            print(f'{Colors.RED}Трек {Colors.END}"{track_list}"{Colors.RED} уже был добавлен игнор лист{Colors.END}')
+
+            return False
+
+    for r in track_list:
+        for i in range(r[0], r[-1] + 1):
+            try:
+                add(tracks[i - 1])
+            except SettingsStorage.AlreadyExistsError:
+                print(f'{Colors.RED}Трек {Colors.END}"{tracks[i - 1]}"{Colors.RED} уже был добавлен игнор лист{Colors.END}')
+
+    print(green('Треки добавлены в игнор лист'))
+    return True
+
+
+def remove_tracks_from_ignore(tracks, remove):
+    track_list = _cli_part_of_menu(tracks)
+
+    if track_list is None:
+        return False
+    elif isinstance(track_list, str):
+        try:
+            remove(track_list)
+
+            print(f'{Colors.GREEN}Трек {Colors.END}"{track_list}"{Colors.GREEN} удален из игнор листа{Colors.END}')
+
+            return True
+
+        except SettingsStorage.NotFoundError:
+            print(f'{Colors.RED}Трек {Colors.END}"{track_list}"{Colors.RED} не найден в игнор листе{Colors.END}')
+
+            return False
+
+    for r in track_list:
+        for i in range(r[0], r[-1] + 1):
+            try:
+                remove(tracks[i - 1])
+            except SettingsStorage.AlreadyExistsError:
+                print(f'{Colors.RED}Трек {Colors.END}"{tracks[i - 1]}"{Colors.RED} не найден в игнор листе{Colors.END}')
+
+    print(green('Треки удалены из игнор листа'))
 
 
 class Colors:
