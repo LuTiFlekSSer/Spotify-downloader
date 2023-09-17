@@ -4,10 +4,13 @@ __all__ = [
     'create_download_query'
 ]
 
+import time
+
 import requests
 import eyed3
 import enum
 import SpotifyTracks
+from urllib.parse import urlparse
 
 
 class Status(enum.Enum):
@@ -58,21 +61,36 @@ class Downloader:
                 self._status = Status.NF_ERR
                 return
 
+            domains = [
+                'https://dll1.yt2api.com/dl?',
+                'https://dll2.yt2api.com/dl?',
+                'https://dll3.yt2api.com/dl?'
+            ]
+
+            link = urlparse(response['link']).query
+
             try:
-                track = requests.get(response['link']).content
+                for i, domain in enumerate(domains):
 
-                attempts = 0
+                    attempts = 0
 
-                while attempts < 5 and track.startswith(b'{"error":true'):
-                    track = requests.get(response['link']).content
-                    attempts += 1
+                    track = requests.get(domain + link).content
 
-                if track.startswith(b'{"error":true'):
-                    self._status = Status.GET_ERR
-                    return
+                    while attempts < 5 and track.startswith(b'{"error":true'):
+                        time.sleep(1)
+                        track = requests.get(domain + link).content
+                        attempts += 1
 
-                with open(f'{path}/{name}.mp3', 'wb') as file:
-                    file.write(track)
+                    if track.startswith(b'{"error":true'):
+                        if i == len(domains) - 1:
+                            self._status = Status.GET_ERR
+                            return
+                        else:
+                            continue
+
+                    with open(f'{path}/{name}.mp3', 'wb') as file:
+                        file.write(track)
+                        break
 
             except Exception:
                 self._status = Status.GET_ERR
