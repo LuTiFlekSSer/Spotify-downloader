@@ -1,4 +1,9 @@
-<h1 align="center">Spotify-downloader</h1>
+<h1 align="center">
+
+![Logo](icon.ico)  
+Spotify-downloader
+
+</h1>
 
 
 <div align="center">

@@ -77,7 +77,7 @@ class Downloader:
                     track = requests.get(domain + link).content
 
                     while attempts < 5 and track.startswith(b'{"error":true'):
-                        time.sleep(1)
+                        time.sleep(0.5)
                         track = requests.get(domain + link).content
                         attempts += 1
 
