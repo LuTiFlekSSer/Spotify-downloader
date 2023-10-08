@@ -5,7 +5,6 @@ __all__ = [
 ]
 
 import time
-
 import requests
 import eyed3
 import enum
@@ -51,34 +50,32 @@ class Downloader:
         try:
             response = requests.get(f'https://api.spotifydown.com/download/{track_info["id"]}', headers=Downloader.headers).json()
 
-            attempts = 0
-
-            while attempts < 3 and not response['success']:
-                response = requests.get(f'https://api.spotifydown.com/download/{track_info["id"]}', headers=Downloader.headers).json()
-                attempts += 1
-
             if not response['success']:
-                self._status = Status.NF_ERR
-                return
+                response = requests.get(f'https://api.spotifydown.com/downloadTest/{track_info["id"]}', headers=Downloader.headers).json()
 
-            domains = [
-                'https://dll1.yt2api.com/dl?',
-                'https://dll2.yt2api.com/dl?',
-                'https://dll3.yt2api.com/dl?'
-            ]
+                if not response['success']:
+                    self._status = Status.NF_ERR
+                    return
 
-            link = urlparse(response['link']).query
+            domains = ['']
+
+            if (link := urlparse(response['link']).query) != '':
+                domains = [
+                    'https://cors.spotifydown.com/https://dll1.yt2api.com/dl?',
+                    'https://cors.spotifydown.com/https://dll2.yt2api.com/dl?',
+                    'https://cors.spotifydown.com/https://dll3.yt2api.com/dl?'
+                ]
+            else:
+                link = response['link']
 
             try:
                 for i, domain in enumerate(domains):
-
                     attempts = 0
 
-                    track = requests.get(domain + link).content
+                    track = requests.get(domain + link, headers=Downloader.headers).content
 
                     while attempts < 5 and track.startswith(b'{"error":true'):
-                        time.sleep(0.5)
-                        track = requests.get(domain + link).content
+                        track = requests.get(domain + link, headers=Downloader.headers).content
                         attempts += 1
 
                     if track.startswith(b'{"error":true'):
@@ -100,19 +97,20 @@ class Downloader:
             self._status = Status.API_ERR
             return
 
-        track = eyed3.load(f'{path}/{name}.mp3')
+        if domains[0] != '':
+            track = eyed3.load(f'{path}/{name}.mp3')
 
-        try:
-            track.tag.images.set(3, requests.get(response['metadata']['cover']).content, 'image/jpeg')
-        except Exception:
-            self._status = Status.JPG_ERR
+            try:
+                track.tag.images.set(3, requests.get(response['metadata']['cover']).content, 'image/jpeg')
+            except Exception:
+                self._status = Status.JPG_ERR
 
-        track.tag.title = track_info['name']
-        track.tag.artist = '/'.join(track_info['artists'])
-        track.tag.album = track_info['album_name']
-        track.tag.release_date = track_info['release_date']
+            track.tag.title = track_info['name']
+            track.tag.artist = '/'.join(track_info['artists'])
+            track.tag.album = track_info['album_name']
+            track.tag.release_date = track_info['release_date']
 
-        track.tag.save()
+            track.tag.save()
 
     def status(self):
         return self._status
