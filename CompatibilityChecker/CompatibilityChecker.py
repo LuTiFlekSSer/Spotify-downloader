@@ -3,7 +3,7 @@ __all__ = [
 ]
 
 import SettingsStorage
-import version
+import Version
 
 
 class CompatibilityChecker:
@@ -26,7 +26,7 @@ class CompatibilityChecker:
         return False
 
     def need_db_update(self):
-        return self._compare_versions(version.__version__)
+        return self._compare_versions(Version.__version__)
 
     def update_db(self):
         self._update_to_1_2_0()

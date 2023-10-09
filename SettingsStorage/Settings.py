@@ -6,7 +6,7 @@ import sqlite3 as sql
 from SettingsStorage import Errors
 from os import path, getenv, mkdir
 from multiprocessing import cpu_count
-import version
+import Version
 
 
 class Settings:
@@ -43,7 +43,7 @@ class Settings:
         cur.execute(f"INSERT INTO app_settings VALUES ('client_secret', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('redirect_uri', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('code', '')")
-        cur.execute(f"INSERT INTO app_settings VALUES ('version', '{version.__version__}')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('version', '{Version.__version__}')")
 
     def get_setting(self, name):
         if not isinstance(name, str):
