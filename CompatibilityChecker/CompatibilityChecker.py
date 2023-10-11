@@ -4,6 +4,7 @@ __all__ = [
 
 import SettingsStorage
 import Version
+from CliUi import Utils
 
 
 class CompatibilityChecker:
@@ -19,20 +20,14 @@ class CompatibilityChecker:
 
         return ver
 
-    def _compare_versions(self, new_version):
-        if self._db_version.split('.') < new_version.split('.'):
-            return True
-
-        return False
-
     def need_db_update(self):
-        return self._compare_versions(Version.__version__)
+        return Utils.compare_versions(self._db_version, Version.__version__)
 
     def update_db(self):
         self._update_to_1_2_0()
 
     def _update_to_1_2_0(self):
-        if self._compare_versions('1.2.0'):
+        if Utils.compare_versions(self._db_version, '1.2.0'):
             self._settings.create_setting('version', '1.2.0')
 
             self._db_version = '1.2.0'

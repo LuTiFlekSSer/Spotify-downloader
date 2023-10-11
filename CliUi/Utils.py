@@ -38,6 +38,13 @@ def set_sync_path(print_menu):
                 print(red('Ошибка ввода'))
 
 
+def compare_versions(curr_version, new_version):
+    if curr_version.split('.') < new_version.split('.'):
+        return True
+
+    return False
+
+
 def start_playlist_download(header, tracks):
     os.system('cls')
     print(header)
