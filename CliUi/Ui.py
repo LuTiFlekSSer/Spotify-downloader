@@ -3,6 +3,8 @@ __all__ = [
 ]
 
 import MainPage
+import Update
+
 
 
 class Cli:

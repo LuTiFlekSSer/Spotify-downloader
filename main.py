@@ -1,13 +1,9 @@
 import CliUi
 import CompatibilityChecker
+import Updater
 
 
 def main():
-    cc = CompatibilityChecker.CompatibilityChecker()
-
-    if cc.need_db_update():
-        cc.update_db()
-
     cli = CliUi.Cli()
     cli.start()
 

@@ -29,5 +29,6 @@ class CompatibilityChecker:
     def _update_to_1_2_0(self):
         if Utils.compare_versions(self._db_version, '1.2.0'):
             self._settings.create_setting('version', '1.2.0')
+            self._settings.create_setting('auto_update', 'True')
 
             self._db_version = '1.2.0'

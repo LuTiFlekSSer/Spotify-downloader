@@ -44,6 +44,7 @@ class Settings:
         cur.execute(f"INSERT INTO app_settings VALUES ('redirect_uri', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('code', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('version', '{Version.__version__}')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('auto_update', 'True')")
 
     def get_setting(self, name):
         if not isinstance(name, str):
