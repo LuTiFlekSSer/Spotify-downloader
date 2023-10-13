@@ -33,13 +33,13 @@ def create_download_query(track, directory):
     return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
-def _get_track_info(track_info):
-    response = requests.get(f'https://api.spotifydown.com/downloadTest/{track_info["id"]}', headers=Downloader.headers).json()
+def _get_track_info(track_info, method='download'):
+    response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}', headers=Downloader.headers).json()
 
     attempts = 0
 
     while attempts < 3 and not response['success']:
-        response = requests.get(f'https://api.spotifydown.com/downloadTest/{track_info["id"]}', headers=Downloader.headers).json()
+        response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}', headers=Downloader.headers).json()
         attempts += 1
 
     return response
@@ -63,9 +63,10 @@ class Downloader:
 
     def _download_from_spoti(self, name, path, track_info):
         try:
-            response = _get_track_info(track_info)
+            response = _get_track_info(track_info, 'downloadTest')
 
             if not response['success']:
+                self._status = Status.NF_ERR
                 return False
 
             link = response['link']
@@ -100,6 +101,7 @@ class Downloader:
             response = _get_track_info(track_info)
 
             if not response['success']:
+                self._status = Status.NF_ERR
                 return False
 
             domains = [
