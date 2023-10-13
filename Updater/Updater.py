@@ -5,8 +5,10 @@ __all__ = [
 import Version
 import requests
 from CliUi import Utils
-import Errors
+from Updater import Errors
 import os
+import subprocess
+import progress
 
 
 class Updater:
@@ -22,7 +24,7 @@ class Updater:
             request = requests.get(self.latest_release_link)
 
             if request.status_code == 200 and not (request := request.json())['prerelease'] and not request['draft']:
-                latest_release = request.json()['tag_name']
+                latest_release = request['tag_name']
 
                 if Utils.compare_versions(self._curr_version, latest_release):
                     self._latest_release_exe = request['assets'][0]['browser_download_url']
@@ -45,4 +47,4 @@ class Updater:
             file.write(request)
 
     def install_update(self):
-        os.system(f'{os.getenv("TEMP")}\\{self._release_name} -U -pid {os.getgid()}')
+        subprocess.Popen(f'{os.getenv("TEMP")}\\{self._release_name} -U -pid {os.getpid()}', creationflags=subprocess.CREATE_NEW_CONSOLE)

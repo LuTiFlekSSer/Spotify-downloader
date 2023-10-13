@@ -1,6 +1,4 @@
 import CliUi
-import CompatibilityChecker
-import Updater
 
 
 def main():
