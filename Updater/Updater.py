@@ -68,6 +68,8 @@ class Updater:
             time.sleep(2)
 
             return
+        elif path.endswith('.py'):
+            path = path[:-3] + '.exe'
 
         subprocess.Popen(f'{os.getenv("TEMP")}\\{self._release_name} -U "{path}"',
                          creationflags=subprocess.CREATE_NEW_CONSOLE)
