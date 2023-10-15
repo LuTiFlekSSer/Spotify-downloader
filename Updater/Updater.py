@@ -41,11 +41,17 @@ class Updater:
             if request.status_code == 200 and not (request := request.json())['prerelease'] and not request['draft']:
                 latest_release = request['tag_name']
 
-                if Utils.compare_versions(self._curr_version, latest_release):
-                    self._latest_release_exe = request['assets'][0]['browser_download_url']
-                    self._release_name = request['assets'][0]['name']
+                try:
+                    if Utils.compare_versions(self._curr_version, latest_release):
+                        self._latest_release_exe = request['assets'][0]['browser_download_url']
+                        self._release_name = request['assets'][0]['name']
 
-                    return True
+                        return True
+                except ValueError:
+                    print(Utils.red('Ошибка при проверке обновлений'))
+                    time.sleep(1)
+
+                    return False
 
         except Exception:
             raise Errors.UpdateCheckError
