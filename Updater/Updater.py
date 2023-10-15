@@ -11,7 +11,7 @@ from CliUi import Utils
 from Updater import Errors
 import os
 import subprocess
-from progress.bar import Bar
+from progress.bar import IncrementalBar
 import sys
 import __main__
 import shutil
@@ -56,10 +56,19 @@ class Updater:
         if self._latest_release_exe is None:
             raise Errors.UpdateError
 
-        request = requests.get(self._latest_release_exe).content
+        request = requests.get(self._latest_release_exe, stream=True)
+
+        total_size = int(request.headers.get('content-length', 0)) / 1024
+
+        bar = IncrementalBar(Utils.Colors.END + 'Загрузка обновления', max=total_size, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
+        bar.start()
 
         with open(os.getenv('TEMP') + f'\\{self._release_name}', 'wb') as file:
-            file.write(request)
+            for data in request.iter_content(chunk_size=1024):
+                bar.next()
+                file.write(data)
+
+        bar.finish()
 
     def start_update(self):
         if (path := get_executable_path()) is None:

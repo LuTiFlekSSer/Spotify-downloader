@@ -7,6 +7,7 @@ import PlaylistDownload
 import MultipleTracksDownload
 import SetSettings
 import Utils
+import Version
 
 
 def _print_greeting():
@@ -14,6 +15,7 @@ def _print_greeting():
     print(Utils.cyan('------------------------------------\n'
                      '| SPOTIFY DOWNLOADER WELCOMES YOU! |\n'
                      '------------------------------------'))
+    print(f'Версия: {Version.__version__}\n')
     print(f'What do you want to do?\n\n'
           f'{Utils.blue("[1]")} - Синхронизировать треки с аккаунтом\n'
           f'{Utils.blue("[2]")} - Проверить отсутствующие треки на сервере\n'

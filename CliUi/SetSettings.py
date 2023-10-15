@@ -13,7 +13,8 @@ def _print_settings():
           f'{Utils.blue("[3]")} - Автоматически проверять отсутствующие треки на сервере при синхронизации\n'
           f'{Utils.blue("[4]")} - Очистить данные для входа в аккаунт\n'
           f'{Utils.blue("[5]")} - Управление локальным игнор листом\n'
-          f'{Utils.blue("[6]")} - Управление серверным игнор листом\n\n'
+          f'{Utils.blue("[6]")} - Управление серверным игнор листом\n'
+          f'{Utils.blue("[7]")} - Автоматическая проверка обновлений\n\n'
           f'{Utils.purple("[c]")} - Очистка ввода\n'
           f'{Utils.purple("[b]")} - Назад\n', end='')
 
@@ -96,7 +97,7 @@ class SetSettings:
     def _settings_set_auto_compare(self):
         def print_menu():
             os.system('cls')
-            print(f'{Utils.cyan("Автоматическое обнаружение отсуствующих треков на сервере")}\n\n'
+            print(f'{Utils.cyan("Автоматическое обнаружение отсутствующих треков на сервере")}\n\n'
                   f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_comp") == "True" else "Выключено"}')
 
             print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_comp") == "True" else "Включить"}\n\n'
@@ -143,7 +144,7 @@ class SetSettings:
             match Utils.g_input('> '):
                 case '1':
                     self._settings.change_setting('client_id', '')
-                    self._settings.change_setting('client_sedret', '')
+                    self._settings.change_setting('client_secret', '')
                     self._settings.change_setting('redirect_uri', '')
                     self._settings.change_setting('code', '')
 
@@ -171,7 +172,7 @@ class SetSettings:
         def print_menu():
             os.system('cls')
             print(f'{Utils.cyan("Управление локальным игнор листом")}\n'
-                  f'{Utils.green("Эти треки будут игнорироваться при получении треков из спотифай")}\n')
+                  f'{Utils.green("Эти треки будут игнорироваться при получении треков из spotify")}\n')
 
             print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
                   f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
@@ -226,7 +227,7 @@ class SetSettings:
         def print_menu():
             os.system('cls')
             print(f'{Utils.cyan("Управление серверным игнор листом")}\n'
-                  f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в спотифай")}\n')
+                  f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в spotify")}\n')
 
             print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
                   f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
@@ -277,6 +278,42 @@ class SetSettings:
                 case _:
                     print(Utils.red('Ошибка ввода'))
 
+    def _settings_auto_update(self):
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Автоматическая проверка обновлений")}\n\n'
+                  f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_update") == "True" else "Выключено"}')
+
+            print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_update") == "True" else "Включить"}\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
+
+        while True:
+            match Utils.g_input('> '):
+                case '1':
+                    if self._settings.get_setting("auto_update") == "True":
+                        self._settings.change_setting('auto_update', 'False')
+                        print(Utils.green('Выключено'))
+                    else:
+                        self._settings.change_setting('auto_update', 'True')
+                        print(Utils.green('Включено'))
+
+                    time.sleep(1)
+                    break
+
+                case 'c':
+                    print_menu()
+
+                case 'b':
+                    print(Utils.green('Возврат в настройки'))
+                    time.sleep(1)
+                    break
+
+                case _:
+                    print(Utils.red('Ошибка ввода'))
+
     def set_settings(self):
         _print_settings()
 
@@ -299,6 +336,9 @@ class SetSettings:
                     _print_settings()
                 case '6':
                     self._settings_server_ignore_list()
+                    _print_settings()
+                case '7':
+                    self._settings_auto_update()
                     _print_settings()
                 case 'c':
                     _print_settings()

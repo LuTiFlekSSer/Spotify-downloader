@@ -4,6 +4,7 @@ import time
 import os
 import win32com.client
 import SettingsStorage
+import re
 
 
 def set_sync_path(print_menu):
@@ -39,6 +40,11 @@ def set_sync_path(print_menu):
 
 
 def compare_versions(curr_version, new_version):
+    pattern = r'^\d+\.\d+\.\d+$'
+
+    if re.fullmatch(pattern, curr_version) is None or re.fullmatch(pattern, new_version) is None:
+        raise ValueError
+
     if curr_version.split('.') < new_version.split('.'):
         return True
 
@@ -76,7 +82,7 @@ def start_playlist_download(header, tracks):
               f'{blue("[2]")} - Треки с ошибкой изменения обложки\n'
               f'{blue("[3]")} - Треки с ошибкой при загрузке\n'
               f'{blue("[4]")} - Не найденные треки\n'
-              f'{blue("[5]")} - Отмененне треки\n\n'
+              f'{blue("[5]")} - Отмененные треки\n\n'
               f'{purple("[c]")} - Очистка ввода\n'
               f'{purple("[b]")} - Назад')
 

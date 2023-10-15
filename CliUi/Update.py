@@ -48,6 +48,12 @@ class Update:
                         match Utils.g_input('> '):
                             case 'y':
                                 updater.download_update()
+
+                                _print_greeting()
+
+                                print(Utils.green('Загрузка завершена'))
+                                time.sleep(1)
+
                                 updater.start_update()
                                 return True
                             case 'n':
