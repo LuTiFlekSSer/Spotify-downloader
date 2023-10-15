@@ -109,7 +109,7 @@ class Downloader:
                 return False
 
             domains = [
-                'https://cors.spotifydown.com/https://dll1.yt2api.com/dl?',
+                'https://cors.spotifydown.com/https://srv1.yt2api.com/dl?',
                 'https://cors.spotifydown.com/https://dll2.yt2api.com/dl?',
                 'https://cors.spotifydown.com/https://dll3.yt2api.com/dl?'
             ]
