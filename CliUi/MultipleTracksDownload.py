@@ -14,7 +14,7 @@ class MultipleTracksDownload:
     def _print_menu(self):
         os.system('cls')
         print(f'{Utils.cyan("Загрузка отдельных треков")}\n\n'
-              f'{Utils.blue("[1]")} - Стистика по трекам\n'
+              f'{Utils.blue("[1]")} - Статистика по трекам\n'
               f'{Utils.blue("[2]")} - Успешно загруженные треки\n'
               f'{Utils.blue("[3]")} - Запущенные загрузки\n'
               f'{Utils.blue("[4]")} - Треки с ошибкой изменения обложки\n'

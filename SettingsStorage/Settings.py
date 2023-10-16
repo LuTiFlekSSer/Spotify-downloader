@@ -6,6 +6,7 @@ import sqlite3 as sql
 from SettingsStorage import Errors
 from os import path, getenv, mkdir
 from multiprocessing import cpu_count
+import Version
 
 
 class Settings:
@@ -42,6 +43,8 @@ class Settings:
         cur.execute(f"INSERT INTO app_settings VALUES ('client_secret', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('redirect_uri', '')")
         cur.execute(f"INSERT INTO app_settings VALUES ('code', '')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('version', '{Version.__version__}')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('auto_update', 'True')")
 
     def get_setting(self, name):
         if not isinstance(name, str):
@@ -64,6 +67,19 @@ class Settings:
         cur = self._data.cursor()
 
         cur.execute(f"UPDATE app_settings SET value = '{value}' WHERE name = '{name}'")
+
+        self._data.commit()
+
+    def create_setting(self, name, value):
+        if not (isinstance(name, str) and isinstance(value, str)):
+            raise TypeError
+
+        cur = self._data.cursor()
+
+        try:
+            cur.execute(f"INSERT INTO app_settings VALUES ('{name}', '{value}')")
+        except sql.IntegrityError:
+            raise Errors.AlreadyExistsError
 
         self._data.commit()
 
