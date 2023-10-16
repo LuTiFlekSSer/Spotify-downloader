@@ -78,17 +78,17 @@ class Downloader:
             try:
                 attempts = 0
 
-                track = requests.get(link, headers=Downloader.headers).content
+                track = requests.get(link, headers=Downloader.headers)
 
-                while attempts < 5 and track.startswith(b'{"error":true'):
-                    track = requests.get(link, headers=Downloader.headers).content
+                while attempts < 5 and track.status_code != 200:
+                    track = requests.get(link, headers=Downloader.headers)
                     attempts += 1
 
-                if track.startswith(b'{"error":true'):
+                if track.status_code != 200:
                     return False
 
                 with open(f'{path}/{name}.mp3', 'wb') as file:
-                    file.write(track)
+                    file.write(track.content)
 
             except Exception:
                 self._status = Status.GET_ERR
