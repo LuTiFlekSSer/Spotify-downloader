@@ -109,9 +109,9 @@ class Downloader:
                 return False
 
             domains = [
-                'https://cors.spotifydown.com/https://srv1.yt2api.com/dl?',
-                'https://cors.spotifydown.com/https://dll2.yt2api.com/dl?',
-                'https://cors.spotifydown.com/https://dll3.yt2api.com/dl?'
+                'https://cdn1.snapredd.app/api/stream?',
+                'https://cdn2.snapredd.app/api/stream?',
+                'https://cdn3.snapredd.app/api/stream?'
             ]
 
             query = urlparse(response['link']).query
