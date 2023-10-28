@@ -5,7 +5,7 @@ __all__ = [
 import TrackDownloader
 from concurrent.futures import ThreadPoolExecutor
 import SettingsStorage
-
+import os
 from urllib.parse import urlparse
 import requests
 
@@ -90,6 +90,11 @@ class MultipleTracksPool:
             return
 
         query = TrackDownloader.create_download_query(track, self._directory)
+
+        if os.path.isfile(f'{self._directory}\\{query[0]}.mp3') and self._settings.get_setting('overwrite_tracks') == 'False':
+            self._pool_status['ok']['quantity'] += 1
+            self._pool_status['ok']['list'].append(query[0])
+            return
 
         self._pool_status['launched']['quantity'] += 1
         self._pool_status['launched']['list'].add(query[0])
