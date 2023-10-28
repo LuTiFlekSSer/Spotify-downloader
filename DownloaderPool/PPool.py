@@ -66,13 +66,14 @@ class PlaylistPool:
         self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track), track[0]] for track in track_list]
         checked = [False for _ in track_list]
 
-        stopper = threading.Thread(target=self._stop)
-        stopper.start()
-
         bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
         spinner = PixelSpinner(Utils.Colors.YELLOW + 'Отмена загрузки, ожидание запущенных загрузок ')
         bar.start()
         last_time = 0
+
+        self._stopper_on = True
+        stopper = threading.Thread(target=self._stop)
+        stopper.start()
 
         for _ in track_list:
             i = 0
@@ -134,21 +135,25 @@ class PlaylistPool:
     def _stop(self):
         while self._stopper_on:
             if msvcrt.kbhit() and msvcrt.getch() == b'b':
+                self._cancelled = True
+
+                os.system('cls')
+                print(self._header)
+
+                for task in self._pool_results:
+                    if not task[0].running():
+                        task[0].cancel()
+
                 break
 
             time.sleep(0.1)
 
-        else:
-            return
+    def clear_tracks_with_error(self):
+        for error in ['get_err', 'jpg_err', 'nf_err', 'tag_err', 'cancelled']:
+            self._pool_status[error]['quantity'] = 0
+            self._pool_status[error]['list'].clear()
 
-        self._cancelled = True
-
-        os.system('cls')
-        print(self._header)
-
-        for task in self._pool_results:
-            if not task[0].running():
-                task[0].cancel()
+        self._cancelled = False
 
     def cancelled(self):
         return self._cancelled

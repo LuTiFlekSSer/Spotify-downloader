@@ -52,16 +52,22 @@ def compare_versions(curr_version, new_version):
 
 
 def start_playlist_download(header, tracks):
-    os.system('cls')
-    print(header)
-
-    print(f'\n{purple("[b]")} - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
-
     pp = DownloaderPool.PlaylistPool(header)
-    pp.start(tracks)
 
-    os.system('cls')
-    print(header)
+    def start():
+        os.system('cls')
+        print(header)
+
+        print(f'\n{purple("[b]")} - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+
+        pp.start(tracks)
+
+        os.system('cls')
+        print(header)
+
+        return pp
+
+    pp = start()
 
     pp_status = pp.pool_status()
 
@@ -80,11 +86,12 @@ def start_playlist_download(header, tracks):
               f'{red("Отменено:")} {pp_status["cancelled"]["quantity"]}\n')
 
         print(f'\n{blue("[1]")} - Успешно загруженные треки\n'
-              f'{blue("[2]")} - Треки с ошибкой изменении обложки\n'
-              f'{blue("[3]")} - Треки с ошибкой изменении метаданных\n'
+              f'{blue("[2]")} - Треки с ошибкой изменения обложки\n'
+              f'{blue("[3]")} - Треки с ошибкой изменения метаданных\n'
               f'{blue("[4]")} - Треки с ошибкой при загрузке\n'
               f'{blue("[5]")} - Не найденные треки\n'
               f'{blue("[6]")} - Отмененные треки\n\n'
+              f'{purple("[r]")} - Перезапустить неудачные загрузки\n'
               f'{purple("[c]")} - Очистка ввода\n'
               f'{purple("[b]")} - Назад')
 
@@ -139,6 +146,22 @@ def start_playlist_download(header, tracks):
 
                 for i, track in enumerate(pp_status['cancelled']['list']):
                     print(f'{i + 1}) {track}')
+
+            case 'r':
+                tracks = [track for track in tracks if track[0] not in pp_status['ok']['list']]
+
+                if len(tracks) == 0:
+                    print(yellow('Неудачных загрузок нет'))
+                    continue
+
+                pp.clear_tracks_with_error()
+                pp = start()
+
+                pp_status = pp.pool_status()
+
+                os.system('cls')
+                print(header)
+                print_results()
 
             case 'c':
                 os.system('cls')
