@@ -37,12 +37,6 @@ class PlaylistPool:
                     'list': []
                 },
 
-            'api_err':
-                {
-                    'quantity': 0,
-                    'list': []
-                },
-
             'get_err':
                 {
                     'quantity': 0,
@@ -59,7 +53,13 @@ class PlaylistPool:
                 {
                     'quantity': 0,
                     'list': []
-                }
+                },
+
+            'tag_err':
+                {
+                    'quantity': 0,
+                    'list': []
+                },
         }
 
     def start(self, track_list):
@@ -111,11 +111,7 @@ class PlaylistPool:
                         self._pool_status['ok']['quantity'] += 1
                         self._pool_status['ok']['list'].append(task[1])
 
-                    case TrackDownloader.Status.API_ERR:
-                        self._pool_status['api_err']['quantity'] += 1
-                        self._pool_status['api_err']['list'].append(task[1])
-
-                    case TrackDownloader.Status.GET_ERR:
+                    case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
                         self._pool_status['get_err']['quantity'] += 1
                         self._pool_status['get_err']['list'].append(task[1])
 
@@ -126,6 +122,10 @@ class PlaylistPool:
                     case TrackDownloader.Status.NF_ERR:
                         self._pool_status['nf_err']['quantity'] += 1
                         self._pool_status['nf_err']['list'].append(task[1])
+
+                    case TrackDownloader.Status.TAG_ERR:
+                        self._pool_status['tag_err']['quantity'] += 1
+                        self._pool_status['tag_err']['list'].append(task[1])
 
             except CancelledError:
                 self._pool_status['cancelled']['quantity'] += 1

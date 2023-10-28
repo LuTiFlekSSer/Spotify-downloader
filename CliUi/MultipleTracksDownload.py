@@ -17,10 +17,11 @@ class MultipleTracksDownload:
               f'{Utils.blue("[1]")} - Статистика по трекам\n'
               f'{Utils.blue("[2]")} - Успешно загруженные треки\n'
               f'{Utils.blue("[3]")} - Запущенные загрузки\n'
-              f'{Utils.blue("[4]")} - Треки с ошибкой изменения обложки\n'
-              f'{Utils.blue("[5]")} - Треки с ошибкой при загрузке\n'
-              f'{Utils.blue("[6]")} - Не найденные треки\n'
-              f'{Utils.blue("[7]")} - Некорректные ссылки\n\n'
+              f'{Utils.blue("[4]")} - Треки с ошибкой изменении обложки\n'
+              f'{Utils.blue("[5]")} - Треки с ошибкой изменении метаданных\n'
+              f'{Utils.blue("[6]")} - Треки с ошибкой при загрузке\n'
+              f'{Utils.blue("[7]")} - Не найденные треки\n'
+              f'{Utils.blue("[8]")} - Некорректные ссылки\n\n'
               f'{Utils.purple("[c]")} - Очистка ввода\n'
               f'{Utils.purple("[b]")} - Назад')
 
@@ -45,6 +46,7 @@ class MultipleTracksDownload:
                     print(f'{Utils.green("Успешно загружено:")} {mtp_status["ok"]["quantity"]}\n'
                           f'{Utils.blue("Запущенные загрузки:")} {mtp_status["launched"]["quantity"]}\n'
                           f'{Utils.yellow("Ошибка при изменении обложки:")} {mtp_status["jpg_err"]["quantity"]}\n'
+                          f'{Utils.yellow("Ошибка при изменении метаданных:")} {mtp_status["tag_err"]["quantity"]}\n'
                           f'{Utils.red("Ошибка при загрузке:")} {mtp_status["get_err"]["quantity"]}\n'
                           f'{Utils.red("Не найдено:")} {mtp_status["nf_err"]["quantity"]}\n'
                           f'{Utils.red("Некорректные ссылки:")} {mtp_status["link_err"]["quantity"]}')
@@ -65,14 +67,6 @@ class MultipleTracksDownload:
                     for i, track in enumerate(mtp_status['launched']['list']):
                         print(f'{i + 1}) {track}')
 
-                case '5':
-                    if len(mtp_status['get_err']['list']) == 0:
-                        print(Utils.yellow('Список пуст'))
-                        continue
-
-                    for i, track in enumerate(mtp_status['get_err']['list']):
-                        print(f'{i + 1}) {track}')
-
                 case '4':
                     if len(mtp_status['jpg_err']['list']) == 0:
                         print(Utils.yellow('Список пуст'))
@@ -81,7 +75,23 @@ class MultipleTracksDownload:
                     for i, track in enumerate(mtp_status['jpg_err']['list']):
                         print(f'{i + 1}) {track}')
 
+                case '5':
+                    if len(mtp_status['tag_err']['list']) == 0:
+                        print(Utils.yellow('Список пуст'))
+                        continue
+
+                    for i, track in enumerate(mtp_status['tag_err']['list']):
+                        print(f'{i + 1}) {track}')
+
                 case '6':
+                    if len(mtp_status['get_err']['list']) == 0:
+                        print(Utils.yellow('Список пуст'))
+                        continue
+
+                    for i, track in enumerate(mtp_status['get_err']['list']):
+                        print(f'{i + 1}) {track}')
+
+                case '7':
                     if len(mtp_status['nf_err']['list']) == 0:
                         print(Utils.yellow('Список пуст'))
                         continue
@@ -89,7 +99,7 @@ class MultipleTracksDownload:
                     for i, track in enumerate(mtp_status['nf_err']['list']):
                         print(f'{i + 1}) {track}')
 
-                case '7':
+                case '8':
                     if len(mtp_status['link_err']['list']) == 0:
                         print(Utils.yellow('Список пуст'))
                         continue

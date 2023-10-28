@@ -54,7 +54,13 @@ class MultipleTracksPool:
                 {
                     'quantity': 0,
                     'list': []
-                }
+                },
+
+            'tag_err':
+                {
+                    'quantity': 0,
+                    'list': []
+                },
         }
 
     def add(self, link):
@@ -97,20 +103,26 @@ class MultipleTracksPool:
         return self._pool_status
 
     def _download(self, *args):
-        result = TrackDownloader.Downloader(*args).status()
+        match TrackDownloader.Downloader(*args).status():
+            case TrackDownloader.Status.OK:
+                self._pool_status['ok']['quantity'] += 1
+                self._pool_status['ok']['list'].append(args[0])
 
-        if result == TrackDownloader.Status.OK:
-            self._pool_status['ok']['quantity'] += 1
-            self._pool_status['ok']['list'].append(args[0])
-        elif result == TrackDownloader.Status.GET_ERR or result == TrackDownloader.Status.API_ERR:
-            self._pool_status['get_err']['quantity'] += 1
-            self._pool_status['get_err']['list'].append(args[0])
-        elif result == TrackDownloader.Status.JPG_ERR:
-            self._pool_status['jpg_err']['quantity'] += 1
-            self._pool_status['jpg_err']['list'].append(args[0])
-        elif result == TrackDownloader.Status.NF_ERR:
-            self._pool_status['nf_err']['quantity'] += 1
-            self._pool_status['nf_err']['list'].append(args[0])
+            case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
+                self._pool_status['get_err']['quantity'] += 1
+                self._pool_status['get_err']['list'].append(args[0])
+
+            case TrackDownloader.Status.JPG_ERR:
+                self._pool_status['jpg_err']['quantity'] += 1
+                self._pool_status['jpg_err']['list'].append(args[0])
+
+            case TrackDownloader.Status.NF_ERR:
+                self._pool_status['nf_err']['quantity'] += 1
+                self._pool_status['nf_err']['list'].append(args[0])
+
+            case TrackDownloader.Status.TAG_ERR:
+                self._pool_status['tag_err']['quantity'] += 1
+                self._pool_status['tag_err']['list'].append(args[0])
 
         self._pool_status['launched']['quantity'] -= 1
         self._pool_status['launched']['list'].remove(args[0])

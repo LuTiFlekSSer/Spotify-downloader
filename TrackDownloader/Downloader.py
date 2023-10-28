@@ -12,6 +12,8 @@ import enum
 import SpotifyTracks
 from urllib.parse import urlparse
 
+eyed3.log.setLevel("ERROR")
+
 
 class Status(enum.Enum):
     OK = 0
@@ -19,6 +21,7 @@ class Status(enum.Enum):
     GET_ERR = 2
     JPG_ERR = 3
     NF_ERR = 4
+    TAG_ERR = 5
 
 
 def create_download_query(track, directory):
@@ -167,7 +170,16 @@ class Downloader:
         track.tag.album = track_info['album_name']
         track.tag.release_date = track_info['release_date']
 
-        track.tag.save()
+        attempts = 0
+
+        while attempts < 3:
+            try:
+                track.tag.save()
+                break
+            except Exception:
+                attempts += 1
+        else:
+            self._status = Status.TAG_ERR
 
         return True
 
