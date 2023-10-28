@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import os
-
+import SettingsStorage
 import requests
 import eyed3
 import enum
@@ -62,6 +62,9 @@ class Downloader:
             raise TypeError
 
         self._status = Status.OK
+
+        if os.path.isfile(f'{path}\\{name}.mp3') and SettingsStorage.Settings().get_setting('overwrite_tracks') == 'False':
+            return
 
         self._download_from_y2api(name, path, track_info)
 
