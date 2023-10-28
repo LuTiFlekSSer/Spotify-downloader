@@ -22,6 +22,7 @@ class MultipleTracksDownload:
               f'{Utils.blue("[6]")} - Треки с ошибкой при загрузке\n'
               f'{Utils.blue("[7]")} - Не найденные треки\n'
               f'{Utils.blue("[8]")} - Некорректные ссылки\n\n'
+              f'{Utils.purple("[r]")} - Перезапустить неудачные загрузки\n'
               f'{Utils.purple("[c]")} - Очистка ввода\n'
               f'{Utils.purple("[b]")} - Назад')
 
@@ -73,7 +74,7 @@ class MultipleTracksDownload:
                         continue
 
                     for i, track in enumerate(mtp_status['jpg_err']['list']):
-                        print(f'{i + 1}) {track}')
+                        print(f'{i + 1}) {track["name"]}')
 
                 case '5':
                     if len(mtp_status['tag_err']['list']) == 0:
@@ -81,7 +82,7 @@ class MultipleTracksDownload:
                         continue
 
                     for i, track in enumerate(mtp_status['tag_err']['list']):
-                        print(f'{i + 1}) {track}')
+                        print(f'{i + 1}) {track["name"]}')
 
                 case '6':
                     if len(mtp_status['get_err']['list']) == 0:
@@ -89,7 +90,7 @@ class MultipleTracksDownload:
                         continue
 
                     for i, track in enumerate(mtp_status['get_err']['list']):
-                        print(f'{i + 1}) {track}')
+                        print(f'{i + 1}) {track["name"]}')
 
                 case '7':
                     if len(mtp_status['nf_err']['list']) == 0:
@@ -97,7 +98,7 @@ class MultipleTracksDownload:
                         continue
 
                     for i, track in enumerate(mtp_status['nf_err']['list']):
-                        print(f'{i + 1}) {track}')
+                        print(f'{i + 1}) {track["name"]}')
 
                 case '8':
                     if len(mtp_status['link_err']['list']) == 0:
@@ -106,6 +107,33 @@ class MultipleTracksDownload:
 
                     for i, track in enumerate(mtp_status['link_err']['list']):
                         print(f'{i + 1}) {track}')
+
+                case 'r':
+                    links = []
+
+                    for error_type in ['jpg_err', 'tag_err', 'get_err', 'nf_err']:
+                        if mtp_status[error_type]['quantity'] == 0:
+                            continue
+
+                        track_buffer = mtp_status[error_type]['list'].copy()
+
+                        mtp_status[error_type]['list'].clear()
+                        mtp_status[error_type]['quantity'] -= len(track_buffer)
+
+                        for track in track_buffer:
+                            links.append(track['link'])
+
+                    if mtp_status['link_err']['quantity'] != 0:
+                        track_buffer = mtp_status['link_err']['list'].copy()
+
+                        mtp_status['link_err']['list'].clear()
+                        mtp_status['link_err']['quantity'] -= len(track_buffer)
+
+                        for track in track_buffer:
+                            links.append(track)
+
+                    for link in links:
+                        mtp.add(link)
 
                 case 'c':
                     self._print_menu()
@@ -129,6 +157,7 @@ class MultipleTracksDownload:
                     print(Utils.green('Возврат в меню'))
                     time.sleep(1)
                     break
+
                 case _:
                     if urlparse(link).scheme:
                         mtp.add(link)

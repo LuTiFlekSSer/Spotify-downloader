@@ -94,7 +94,7 @@ class MultipleTracksPool:
         self._pool_status['launched']['quantity'] += 1
         self._pool_status['launched']['list'].add(query[0])
 
-        self._pool.submit(self._download, *query)
+        self._pool.submit(self._download, link, *query)
 
     def launched(self):
         return self._pool_status['launched']['quantity']
@@ -102,7 +102,7 @@ class MultipleTracksPool:
     def pool_status(self):
         return self._pool_status
 
-    def _download(self, *args):
+    def _download(self, link, *args):
         match TrackDownloader.Downloader(*args).status():
             case TrackDownloader.Status.OK:
                 self._pool_status['ok']['quantity'] += 1
@@ -110,19 +110,39 @@ class MultipleTracksPool:
 
             case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
                 self._pool_status['get_err']['quantity'] += 1
-                self._pool_status['get_err']['list'].append(args[0])
+                self._pool_status['get_err']['list'].append(
+                    {
+                        'name': args[0],
+                        'link': link
+                    }
+                )
 
             case TrackDownloader.Status.JPG_ERR:
                 self._pool_status['jpg_err']['quantity'] += 1
-                self._pool_status['jpg_err']['list'].append(args[0])
+                self._pool_status['jpg_err']['list'].append(
+                    {
+                        'name': args[0],
+                        'link': link
+                    }
+                )
 
             case TrackDownloader.Status.NF_ERR:
                 self._pool_status['nf_err']['quantity'] += 1
-                self._pool_status['nf_err']['list'].append(args[0])
+                self._pool_status['nf_err']['list'].append(
+                    {
+                        'name': args[0],
+                        'link': link
+                    }
+                )
 
             case TrackDownloader.Status.TAG_ERR:
                 self._pool_status['tag_err']['quantity'] += 1
-                self._pool_status['tag_err']['list'].append(args[0])
+                self._pool_status['tag_err']['list'].append(
+                    {
+                        'name': args[0],
+                        'link': link
+                    }
+                )
 
         self._pool_status['launched']['quantity'] -= 1
         self._pool_status['launched']['list'].remove(args[0])
