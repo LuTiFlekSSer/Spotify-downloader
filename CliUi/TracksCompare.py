@@ -33,7 +33,7 @@ class TracksCompare:
 
         spt = SpotifyTracks.SpTracks(spl)
         spt.start()
-        spotify_tracks = spt.get_spotify_tracks()
+        spotify_tracks = spt.get_spotify_tracks()  # TODO переделать
         tracks_info = spt.get_tracks_info()
 
         lct = LocalTracks.LcTracks()

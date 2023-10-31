@@ -50,7 +50,7 @@ def _get_track_info(track_info, method='download'):
     return response
 
 
-class Downloader:
+class Downloader:  # TODO сделать запись id в тэг
     headers = {
         'authority': 'api.spotifydown.com',
         'origin': 'https://spotifydown.com',
@@ -64,47 +64,9 @@ class Downloader:
         self._status = Status.OK
 
         if os.path.isfile(f'{path}\\{name}.mp3') and SettingsStorage.Settings().get_setting('overwrite_tracks') == 'False':
-            return
+            return  # TODO менять id, если его нет или он другой
 
         self._download_from_y2api(name, path, track_info)
-
-        if self._status == Status.NF_ERR:
-            self._download_from_spoti(name, path, track_info)
-
-    def _download_from_spoti(self, name, path, track_info):
-        try:
-            response = _get_track_info(track_info, 'downloadTest')
-
-            if not response['success']:
-                self._status = Status.NF_ERR
-                return False
-
-            link = response['link']
-
-            try:
-                attempts = 0
-
-                track = requests.get(link, headers=Downloader.headers)
-
-                while attempts < 5 and track.status_code != 200:
-                    track = requests.get(link, headers=Downloader.headers)
-                    attempts += 1
-
-                if track.status_code != 200:
-                    return False
-
-                with open(f'{path}/{name}.mp3', 'wb') as file:
-                    file.write(track.content)
-
-            except Exception:
-                self._status = Status.GET_ERR
-                return False
-
-        except Exception:
-            self._status = Status.API_ERR
-            return False
-
-        return True
 
     def _download_from_y2api(self, name, path, track_info):
         try:

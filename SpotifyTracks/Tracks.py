@@ -63,7 +63,7 @@ class SpTracks:
                         'album_name': track['track']['album']['name'],
                         'release_date': track['track']['album']['release_date'][:4]
                     }
-                    self._spotify_tracks.add(name.translate(str.maketrans(SpTracks.dict_for_replace)))
+                    self._spotify_tracks.add((name.translate(str.maketrans(SpTracks.dict_for_replace)), track['track']['id']))
 
         except Exception:
             raise Errors.TracksGetError

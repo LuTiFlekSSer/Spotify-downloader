@@ -6,6 +6,7 @@ from SettingsStorage import Settings
 from os import listdir
 from LocalTracks import Errors
 from progress.bar import IncrementalBar
+import eyed3
 
 
 class LcTracks:
@@ -31,7 +32,14 @@ class LcTracks:
 
         for track in IncrementalBar('Чтение треков с диска', max=len(tracks), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(tracks):
             if track.endswith('.mp3'):
-                self._local_tracks.add(track[:-4])
+                track_id = eyed3.load(track).tag.user_text_frames.get('track_id')
+
+                if track_id is None:
+                    track_id = 'None'
+                else:
+                    track_id = track_id.text
+
+                self._local_tracks.add((track[:-4], track_id))
 
     def get_numbers_of_tracks(self):
         return len(self._local_tracks)

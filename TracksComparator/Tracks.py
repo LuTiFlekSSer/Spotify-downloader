@@ -2,7 +2,10 @@ __all__ = [
     'Comparator'
 ]
 
+import os
 import SettingsStorage
+import eyed3
+import time
 
 
 class Comparator:
@@ -17,16 +20,81 @@ class Comparator:
         self._local_missing_tracks = None
         self._server_missing_tracks = None
 
+        self._settings = SettingsStorage.Settings()
+
         self._refresh()
+
+    def _get_missing_set_for_local_tracks(self):
+        local_name_to_id = {name: track_id for name, track_id in self._local_tracks}
+
+        server_id_to_name = {track_id: name for name, track_id in self._spotify_tracks}
+
+        tracks = {name for name, _ in self._spotify_tracks}
+
+        for name, track_id in local_name_to_id.items():
+            if name in tracks:
+                tracks.remove(name)
+                server_id_to_name.pop(self._tracks_info[name]['id'])
+
+                if track_id == 'None' or track_id != self._tracks_info[name]['id']:
+                    attempts = 0
+
+                    while attempts < 3:
+                        try:
+                            track = eyed3.load(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3')
+
+                            track.tag.user_text_frames.set(self._tracks_info[name]['id'], 'track_id')
+
+                            track.tag.save()
+
+                            break
+                        except Exception:
+                            time.sleep(0.1)
+                            attempts += 1
+
+            elif track_id != 'None' and track_id in server_id_to_name:
+                tracks.remove(server_id_to_name[track_id])
+
+                if name != server_id_to_name[track_id]:
+                    attempts = 0
+
+                    while attempts < 3:
+                        try:
+                            track = eyed3.load(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3')
+
+                            track.tag.title = self._tracks_info[server_id_to_name[track_id]]['name']
+                            track.tag.artist = '/'.join(self._tracks_info[server_id_to_name[track_id]]['artists'])
+
+                            track.tag.save()
+
+                            break
+                        except Exception:
+                            time.sleep(0.1)
+                            attempts += 1
+
+                    attempts = 0
+
+                    while attempts < 3:
+                        try:
+                            os.rename(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3',
+                                      f'{self._settings.get_setting("path_for_sync")}\\{server_id_to_name[track_id]}.mp3')
+
+                            break
+                        except Exception:
+                            time.sleep(0.1)
+                            attempts += 1
+
+                server_id_to_name.pop(track_id)
+
+        return tracks
 
     def _refresh(self):
         self._local_missing_tracks = {}
 
-        for track in self._spotify_tracks - self._local_tracks:
+        for track in self._get_missing_set_for_local_tracks():
             self._local_missing_tracks[track] = self._tracks_info[track]
 
-        settings = SettingsStorage.Settings()
-        self._server_missing_tracks = self._local_tracks - self._spotify_tracks - settings.get_all_server_ignore_tracks()
+        self._server_missing_tracks = self._local_tracks - self._spotify_tracks - self._settings.get_all_server_ignore_tracks()  # TODO переделать
 
     def get_local_missing_tracks(self, refresh=False):
         if refresh:
