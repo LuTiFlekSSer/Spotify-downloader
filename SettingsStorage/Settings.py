@@ -9,6 +9,11 @@ from multiprocessing import cpu_count
 import Version
 
 
+# TODO Добавить таблицу: название трека - id
+# TODO Функция: Получить словарь название -> id
+# TODO Функция: Поменять id трека
+# TODO Функция: Добавить трек в таблицу треков
+# TODO Функция: Удалить трек из таблицы треков
 class Settings:
     def __init__(self):
         settings_exists = False

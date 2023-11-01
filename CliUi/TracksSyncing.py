@@ -39,7 +39,7 @@ class TracksSyncing:
             time.sleep(1)
             return
 
-        spotify_tracks = spt.get_spotify_tracks()  # TODO переделать
+        spotify_tracks = spt.get_spotify_tracks()
         tracks_info = spt.get_tracks_info()
 
         lct = LocalTracks.LcTracks()

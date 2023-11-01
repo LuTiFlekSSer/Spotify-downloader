@@ -5,6 +5,8 @@ __all__ = [
 ]
 
 import os
+import time
+
 import SettingsStorage
 import requests
 import eyed3
@@ -50,21 +52,41 @@ def _get_track_info(track_info, method='download'):
     return response
 
 
-class Downloader:  # TODO сделать запись id в тэг
+class Downloader:
     headers = {
         'authority': 'api.spotifydown.com',
         'origin': 'https://spotifydown.com',
         'referer': 'https://spotifydown.com/'
     }
 
-    def __init__(self, name, path, track_info):
+    def __init__(self, name, path, track_info):  # TODO флажок тру, если режим синхронизации
         if not isinstance(name, str) or not isinstance(path, str) or not isinstance(track_info, dict):
             raise TypeError
 
         self._status = Status.OK
 
         if os.path.isfile(f'{path}\\{name}.mp3') and SettingsStorage.Settings().get_setting('overwrite_tracks') == 'False':
-            return  # TODO менять id, если его нет или он другой
+            attempts = 0
+
+            while attempts < 3:
+                try:
+                    track = eyed3.load(f'{path}\\{name}.mp3')
+
+                    if track.tag.user_text_frames.get('track_id') is None or track.tag.user_text_frames.get('track_id').text != track_info['id']:
+                        track.tag.user_text_frames.set(track_info['id'], 'track_id')  # TODO менять в таблице, если режим синхронизации
+
+                        track.tag.save()
+
+                        break
+
+                    else:
+                        break
+
+                except Exception:
+                    attempts += 1
+                    time.sleep(0.1)
+
+            return
 
         self._download_from_y2api(name, path, track_info)
 
@@ -134,6 +156,7 @@ class Downloader:  # TODO сделать запись id в тэг
         track.tag.artist = '/'.join(track_info['artists'])
         track.tag.album = track_info['album_name']
         track.tag.release_date = track_info['release_date']
+        track.tag.user_text_frames.set(track_info['id'], 'track_id')  # TODO менять в таблице, если режим синхронизации
 
         attempts = 0
 

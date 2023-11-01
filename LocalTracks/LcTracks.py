@@ -32,14 +32,15 @@ class LcTracks:
 
         for track in IncrementalBar('Чтение треков с диска', max=len(tracks), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(tracks):
             if track.endswith('.mp3'):
-                track_id = eyed3.load(track).tag.user_text_frames.get('track_id')
-
+                track_id = eyed3.load(f'{self._directory}\\{track}').tag.user_text_frames.get('track_id')  # TODO Брать id из таблицы
+                # TODO новые добавлять в таблицу
                 if track_id is None:
                     track_id = 'None'
                 else:
                     track_id = track_id.text
 
                 self._local_tracks.add((track[:-4], track_id))
+        # TODO удалить из таблицы треки, которые не встретились
 
     def get_numbers_of_tracks(self):
         return len(self._local_tracks)

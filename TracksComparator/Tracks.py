@@ -36,14 +36,14 @@ class Comparator:
                 tracks.remove(name)
                 server_id_to_name.pop(self._tracks_info[name]['id'])
 
-                if track_id == 'None' or track_id != self._tracks_info[name]['id']:
+                if track_id == 'None' or track_id != self._tracks_info[name]['id']:  # TODO Если другой id в таблице
                     attempts = 0
 
                     while attempts < 3:
                         try:
                             track = eyed3.load(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3')
 
-                            track.tag.user_text_frames.set(self._tracks_info[name]['id'], 'track_id')
+                            track.tag.user_text_frames.set(self._tracks_info[name]['id'], 'track_id')  # TODO Сохранять в таблицу
 
                             track.tag.save()
 
@@ -77,16 +77,26 @@ class Comparator:
                     while attempts < 3:
                         try:
                             os.rename(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3',
-                                      f'{self._settings.get_setting("path_for_sync")}\\{server_id_to_name[track_id]}.mp3')
+                                      f'{self._settings.get_setting("path_for_sync")}\\{server_id_to_name[track_id]}.mp3')  # TODO переименовать трек в таблице
 
                             break
                         except Exception:
                             time.sleep(0.1)
                             attempts += 1
 
+                    self._local_tracks.remove((name, track_id))
+                    self._local_tracks.add((server_id_to_name[track_id], track_id))
+
                 server_id_to_name.pop(track_id)
 
         return tracks
+
+    def _get_missing_set_for_server_tracks(self):
+        local_tracks = {name for name, _ in self._local_tracks}
+
+        server_tracks = {name for name, _ in self._spotify_tracks}
+
+        return local_tracks - server_tracks - self._settings.get_all_server_ignore_tracks()
 
     def _refresh(self):
         self._local_missing_tracks = {}
@@ -94,7 +104,7 @@ class Comparator:
         for track in self._get_missing_set_for_local_tracks():
             self._local_missing_tracks[track] = self._tracks_info[track]
 
-        self._server_missing_tracks = self._local_tracks - self._spotify_tracks - self._settings.get_all_server_ignore_tracks()  # TODO переделать
+        self._server_missing_tracks = self._get_missing_set_for_server_tracks()
 
     def get_local_missing_tracks(self, refresh=False):
         if refresh:
