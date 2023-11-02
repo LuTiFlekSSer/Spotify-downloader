@@ -81,6 +81,7 @@ class PlaylistPool:
 
             while True:
                 time.sleep(0.01)
+                bar.update()
 
                 if not checked[i] and (self._pool_results[i][0].done()):
                     checked[i] = True
