@@ -15,11 +15,12 @@ import os
 
 
 class PlaylistPool:
-    def __init__(self, header):
+    def __init__(self, header, sync=False):
         self._settings = SettingsStorage.Settings()
 
         self._pool = ThreadPoolExecutor(int(self._settings.get_setting('threads')))
 
+        self._sync = sync
         self._header = header
         self._pool_results = None
         self._cancelled = False
@@ -63,7 +64,7 @@ class PlaylistPool:
         }
 
     def start(self, track_list):
-        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track), track[0]] for track in track_list]
+        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track, self._sync), track[0]] for track in track_list]
         checked = [False for _ in track_list]
 
         bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')

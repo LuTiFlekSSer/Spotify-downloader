@@ -14,8 +14,8 @@ class LcTracks:
         if directory is not None and not isinstance(directory, str):
             raise TypeError
 
-        settings = Settings()
-        self._directory = settings.get_setting('path_for_sync')
+        self._settings = Settings()
+        self._directory = self._settings.get_setting('path_for_sync')
 
         if directory is not None:
             self._directory = directory
@@ -30,17 +30,25 @@ class LcTracks:
 
         self._local_tracks.clear()
 
+        local_tracks_db = self._settings.get_local_tracks_db()
+
         for track in IncrementalBar('Чтение треков с диска', max=len(tracks), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(tracks):
             if track.endswith('.mp3'):
-                track_id = eyed3.load(f'{self._directory}\\{track}').tag.user_text_frames.get('track_id')  # TODO Брать id из таблицы
-                # TODO новые добавлять в таблицу
-                if track_id is None:
-                    track_id = 'None'
+                if (name := track[:-4]) in local_tracks_db:
+                    track_id = local_tracks_db[name]
+
+                    local_tracks_db.pop(name)
                 else:
-                    track_id = track_id.text
+                    track_id = 'None'
+
+                    self._settings.add_track_to_local_tracks(name, track_id)
 
                 self._local_tracks.add((track[:-4], track_id))
-        # TODO удалить из таблицы треки, которые не встретились
+
+        for name in local_tracks_db:
+            self._settings.delete_local_track(name)
+
+        self._settings.save()
 
     def get_numbers_of_tracks(self):
         return len(self._local_tracks)

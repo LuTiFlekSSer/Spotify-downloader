@@ -7,7 +7,7 @@ import Version
 from CliUi import Utils
 
 
-class CompatibilityChecker:  # TODO Добавить создание таблицы с треками
+class CompatibilityChecker:
     def __init__(self):
         self._settings = SettingsStorage.Settings()
         self._db_version = self._get_db_version()

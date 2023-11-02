@@ -9,11 +9,6 @@ from multiprocessing import cpu_count
 import Version
 
 
-# TODO Добавить таблицу: название трека - id
-# TODO Функция: Получить словарь название -> id
-# TODO Функция: Поменять id трека
-# TODO Функция: Добавить трек в таблицу треков
-# TODO Функция: Удалить трек из таблицы треков
 class Settings:
     def __init__(self):
         settings_exists = False
@@ -32,6 +27,7 @@ class Settings:
         cur.execute("CREATE TABLE IF NOT EXISTS server_ignore ('name' TEXT PRIMARY KEY);")
         cur.execute("CREATE TABLE IF NOT EXISTS local_ignore ('name' TEXT PRIMARY KEY);")
         cur.execute("CREATE TABLE IF NOT EXISTS app_settings ('name' TEXT PRIMARY KEY, 'value' TEXT);")
+        cur.execute("CREATE TABLE IF NOT EXISTS tracks_id ('name' TEXT PRIMARY KEY, 'track_id' TEXT);")
 
         if not settings_exists:
             self._set_base_settings()
@@ -58,7 +54,7 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"SELECT value FROM app_settings WHERE name = '{name}'")
+        cur.execute(f"SELECT value FROM app_settings WHERE name = ?", (name,))
         value = cur.fetchall()
 
         if len(value) == 0:
@@ -72,7 +68,7 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"UPDATE app_settings SET value = '{value}' WHERE name = '{name}'")
+        cur.execute(f"UPDATE app_settings SET value = ? WHERE name = ?", (value, name))
 
         self._data.commit()
 
@@ -83,7 +79,7 @@ class Settings:
         cur = self._data.cursor()
 
         try:
-            cur.execute(f"INSERT INTO app_settings VALUES ('{name}', '{value}')")
+            cur.execute(f"INSERT INTO app_settings VALUES (?, ?)", (name, value))
         except sql.IntegrityError:
             raise Errors.AlreadyExistsError
 
@@ -96,11 +92,9 @@ class Settings:
         cur = self._data.cursor()
 
         try:
-            cur.execute(f"INSERT INTO server_ignore VALUES ('{name}')")
+            cur.execute(f"INSERT INTO server_ignore VALUES (?)", (name,))
         except sql.IntegrityError:
             raise Errors.AlreadyExistsError
-
-        self._data.commit()
 
     def delete_track_from_server_ignore(self, name):
         if not isinstance(name, str):
@@ -108,15 +102,13 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"SELECT * FROM server_ignore WHERE name = '{name}'")
+        cur.execute(f"SELECT * FROM server_ignore WHERE name = ?", (name,))
         result = cur.fetchall()
 
         if len(result) != 0:
-            cur.execute(f"DELETE FROM server_ignore WHERE name = '{name}'")
+            cur.execute(f"DELETE FROM server_ignore WHERE name = ?", (name,))
         else:
             raise Errors.NotFoundError
-
-        self._data.commit()
 
     def get_all_server_ignore_tracks(self):
         cur = self._data.cursor()
@@ -138,11 +130,9 @@ class Settings:
         cur = self._data.cursor()
 
         try:
-            cur.execute(f"INSERT INTO local_ignore VALUES ('{name}')")
+            cur.execute(f"INSERT INTO local_ignore VALUES (?)", (name,))
         except sql.IntegrityError:
             raise Errors.AlreadyExistsError
-
-        self._data.commit()
 
     def delete_track_from_local_ignore(self, name):
         if not isinstance(name, str):
@@ -150,15 +140,13 @@ class Settings:
 
         cur = self._data.cursor()
 
-        cur.execute(f"SELECT * FROM local_ignore WHERE name = '{name}'")
+        cur.execute(f"SELECT * FROM local_ignore WHERE name = ?", (name,))
         result = cur.fetchall()
 
         if len(result) != 0:
-            cur.execute(f"DELETE FROM local_ignore WHERE name = '{name}'")
+            cur.execute(f"DELETE FROM local_ignore WHERE name = ?", (name,))
         else:
             raise Errors.NotFoundError
-
-        self._data.commit()
 
     def get_all_local_ignore_tracks(self):
         cur = self._data.cursor()
@@ -175,3 +163,40 @@ class Settings:
 
     def get_path(self):
         return self._path
+
+    def get_local_tracks_db(self):
+        cur = self._data.cursor()
+
+        cur.execute("SELECT * FROM tracks_id")
+
+        result = cur.fetchall()
+
+        return dict(result)
+
+    def change_local_track_id(self, name, new_id):
+        cur = self._data.cursor()
+
+        cur.execute(f"UPDATE tracks_id SET track_id = ? WHERE name = ?", (new_id, name))
+
+    def add_track_to_local_tracks(self, name, track_id):
+        cur = self._data.cursor()
+
+        try:
+            cur.execute(f"INSERT INTO tracks_id VALUES (?,?)", (name, track_id))
+
+        except sql.IntegrityError:
+            raise Errors.AlreadyExistsError
+
+    def save(self):
+        self._data.commit()
+
+    def delete_local_track(self, name):
+        cur = self._data.cursor()
+
+        cur.execute(f"SELECT * FROM tracks_id WHERE name = ?", (name,))
+        result = cur.fetchall()
+
+        if len(result) != 0:
+            cur.execute(f"DELETE FROM tracks_id WHERE name = ?", (name,))
+        else:
+            raise Errors.NotFoundError

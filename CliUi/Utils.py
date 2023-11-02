@@ -51,8 +51,8 @@ def compare_versions(curr_version, new_version):
     return False
 
 
-def start_playlist_download(header, tracks):
-    pp = DownloaderPool.PlaylistPool(header)
+def start_playlist_download(header, tracks, sync=False):
+    pp = DownloaderPool.PlaylistPool(header, sync)
 
     def start():
         os.system('cls')

@@ -59,38 +59,25 @@ class Downloader:
         'referer': 'https://spotifydown.com/'
     }
 
-    def __init__(self, name, path, track_info):  # TODO флажок тру, если режим синхронизации
+    def __init__(self, name, path, track_info, sync=False):
         if not isinstance(name, str) or not isinstance(path, str) or not isinstance(track_info, dict):
             raise TypeError
 
         self._status = Status.OK
 
-        if os.path.isfile(f'{path}\\{name}.mp3') and SettingsStorage.Settings().get_setting('overwrite_tracks') == 'False':
-            attempts = 0
+        self._settings = SettingsStorage.Settings()
+        if os.path.isfile(f'{path}\\{name}.mp3') and self._settings.get_setting('overwrite_tracks') == 'False':
+            if (sync and
+                    (self._settings.get_local_tracks_db()[name] == 'None' or self._settings.get_local_tracks_db()[name] != track_info['id'])):
+                self._settings.change_local_track_id(name, track_info['id'])
 
-            while attempts < 3:
-                try:
-                    track = eyed3.load(f'{path}\\{name}.mp3')
-
-                    if track.tag.user_text_frames.get('track_id') is None or track.tag.user_text_frames.get('track_id').text != track_info['id']:
-                        track.tag.user_text_frames.set(track_info['id'], 'track_id')  # TODO менять в таблице, если режим синхронизации
-
-                        track.tag.save()
-
-                        break
-
-                    else:
-                        break
-
-                except Exception:
-                    attempts += 1
-                    time.sleep(0.1)
+                self._settings.save()
 
             return
 
-        self._download_from_y2api(name, path, track_info)
+        self._download_from_y2api(name, path, track_info, sync)
 
-    def _download_from_y2api(self, name, path, track_info):
+    def _download_from_y2api(self, name, path, track_info, sync):
         try:
             response = _get_track_info(track_info)
 
@@ -156,7 +143,10 @@ class Downloader:
         track.tag.artist = '/'.join(track_info['artists'])
         track.tag.album = track_info['album_name']
         track.tag.release_date = track_info['release_date']
-        track.tag.user_text_frames.set(track_info['id'], 'track_id')  # TODO менять в таблице, если режим синхронизации
+        if sync:
+            self._settings.add_track_to_local_tracks(name, track_info['id'])
+
+            self._settings.save()
 
         attempts = 0
 

@@ -205,6 +205,8 @@ class SetSettings:
                     try:
                         self._settings.add_track_to_local_ignore(name)
 
+                        self._settings.save()
+
                         print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
@@ -212,6 +214,8 @@ class SetSettings:
 
                 case '3':
                     Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_local_ignore_tracks()), self._settings.delete_track_from_local_ignore)
+
+                    self._settings.save()
 
                 case 'c':
                     print_menu()
@@ -260,6 +264,8 @@ class SetSettings:
                     try:
                         self._settings.add_track_to_server_ignore(name)
 
+                        self._settings.save()
+
                         print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
@@ -267,6 +273,8 @@ class SetSettings:
 
                 case '3':
                     Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_server_ignore_tracks()), self._settings.delete_track_from_server_ignore)
+
+                    self._settings.save()
 
                 case 'c':
                     print_menu()

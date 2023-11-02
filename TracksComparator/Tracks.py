@@ -36,21 +36,8 @@ class Comparator:
                 tracks.remove(name)
                 server_id_to_name.pop(self._tracks_info[name]['id'])
 
-                if track_id == 'None' or track_id != self._tracks_info[name]['id']:  # TODO Если другой id в таблице
-                    attempts = 0
-
-                    while attempts < 3:
-                        try:
-                            track = eyed3.load(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3')
-
-                            track.tag.user_text_frames.set(self._tracks_info[name]['id'], 'track_id')  # TODO Сохранять в таблицу
-
-                            track.tag.save()
-
-                            break
-                        except Exception:
-                            time.sleep(0.1)
-                            attempts += 1
+                if track_id == 'None' or track_id != self._tracks_info[name]['id']:
+                    self._settings.change_local_track_id(name, self._tracks_info[name]['id'])
 
             elif track_id != 'None' and track_id in server_id_to_name:
                 tracks.remove(server_id_to_name[track_id])
@@ -77,17 +64,22 @@ class Comparator:
                     while attempts < 3:
                         try:
                             os.rename(f'{self._settings.get_setting("path_for_sync")}\\{name}.mp3',
-                                      f'{self._settings.get_setting("path_for_sync")}\\{server_id_to_name[track_id]}.mp3')  # TODO переименовать трек в таблице
+                                      f'{self._settings.get_setting("path_for_sync")}\\{server_id_to_name[track_id]}.mp3')
 
                             break
                         except Exception:
                             time.sleep(0.1)
                             attempts += 1
 
+                    self._settings.delete_local_track(name)
+                    self._settings.add_track_to_local_tracks(server_id_to_name[track_id], track_id)
+
                     self._local_tracks.remove((name, track_id))
                     self._local_tracks.add((server_id_to_name[track_id], track_id))
 
                 server_id_to_name.pop(track_id)
+
+        self._settings.save()
 
         return tracks
 

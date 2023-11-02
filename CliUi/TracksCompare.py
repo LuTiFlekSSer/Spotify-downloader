@@ -67,6 +67,8 @@ class TracksCompare:
                     res = Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
 
                     if res:
+                        self._settings.save()
+
                         server_missing_tracks = comp.get_server_missing_tracks(refresh=True)
 
                         time.sleep(1)
