@@ -1,9 +1,19 @@
 import CliUi
+import ErrorSaver
+from CliUi import Utils
 
 
 def main():
     cli = CliUi.Cli()
-    cli.start()  # TODO сделать сохранение ошибки в файл, если прога вылетела
+    try:
+        cli.start()
+    except Exception:
+        es = ErrorSaver.ErrorSaver()
+
+        path = es.save_log()
+
+        print(Utils.red(f'{Utils.Colors.BLINK}Произошла ошибка во время работы программы\n'
+                        f'Подробности в файле: "{path}"'))
 
 
 if __name__ == '__main__':
