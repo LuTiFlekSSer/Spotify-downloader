@@ -35,7 +35,7 @@ class TracksSyncing:
         try:
             spt.start()
         except SpotifyTracks.TracksGetError:
-            print(Utils.red('Ошибка при получении треков из spotify'))
+            print(Utils.red('\nОшибка при получении треков из spotify'))
             time.sleep(1)
             return
 
