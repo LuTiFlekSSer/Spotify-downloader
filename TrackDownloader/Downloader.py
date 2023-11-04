@@ -5,12 +5,16 @@ __all__ = [
 ]
 
 import os
+import time
 
+import SettingsStorage
 import requests
 import eyed3
 import enum
 import SpotifyTracks
 from urllib.parse import urlparse
+
+eyed3.log.setLevel("ERROR")
 
 
 class Status(enum.Enum):
@@ -19,6 +23,7 @@ class Status(enum.Enum):
     GET_ERR = 2
     JPG_ERR = 3
     NF_ERR = 4
+    TAG_ERR = 5
 
 
 def create_download_query(track, directory):
@@ -54,53 +59,25 @@ class Downloader:
         'referer': 'https://spotifydown.com/'
     }
 
-    def __init__(self, name, path, track_info):
+    def __init__(self, name, path, track_info, sync=False):
         if not isinstance(name, str) or not isinstance(path, str) or not isinstance(track_info, dict):
             raise TypeError
 
         self._status = Status.OK
 
-        self._download_from_y2api(name, path, track_info)
+        self._settings = SettingsStorage.Settings()
+        if os.path.isfile(f'{path}\\{name}.mp3') and self._settings.get_setting('overwrite_tracks') == 'False':
+            if (sync and
+                    (self._settings.get_local_tracks_db()[name] == 'None' or self._settings.get_local_tracks_db()[name] != track_info['id'])):
+                self._settings.change_local_track_id(name, track_info['id'])
 
-        if self._status == Status.NF_ERR:
-            self._download_from_spoti(name, path, track_info)
+                self._settings.save()
 
-    def _download_from_spoti(self, name, path, track_info):
-        try:
-            response = _get_track_info(track_info, 'downloadTest')
+            return
 
-            if not response['success']:
-                self._status = Status.NF_ERR
-                return False
+        self._download_from_y2api(name, path, track_info, sync)
 
-            link = response['link']
-
-            try:
-                attempts = 0
-
-                track = requests.get(link, headers=Downloader.headers)
-
-                while attempts < 5 and track.status_code != 200:
-                    track = requests.get(link, headers=Downloader.headers)
-                    attempts += 1
-
-                if track.status_code != 200:
-                    return False
-
-                with open(f'{path}/{name}.mp3', 'wb') as file:
-                    file.write(track.content)
-
-            except Exception:
-                self._status = Status.GET_ERR
-                return False
-
-        except Exception:
-            self._status = Status.API_ERR
-            return False
-
-        return True
-
-    def _download_from_y2api(self, name, path, track_info):
+    def _download_from_y2api(self, name, path, track_info, sync):
         try:
             response = _get_track_info(track_info)
 
@@ -166,8 +143,21 @@ class Downloader:
         track.tag.artist = '/'.join(track_info['artists'])
         track.tag.album = track_info['album_name']
         track.tag.release_date = track_info['release_date']
+        if sync:
+            self._settings.add_track_to_local_tracks(name, track_info['id'])
 
-        track.tag.save()
+            self._settings.save()
+
+        attempts = 0
+
+        while attempts < 3:
+            try:
+                track.tag.save()
+                break
+            except Exception:
+                attempts += 1
+        else:
+            self._status = Status.TAG_ERR
 
         return True
 

@@ -15,11 +15,12 @@ import os
 
 
 class PlaylistPool:
-    def __init__(self, header):
+    def __init__(self, header, sync=False):
         self._settings = SettingsStorage.Settings()
 
         self._pool = ThreadPoolExecutor(int(self._settings.get_setting('threads')))
 
+        self._sync = sync
         self._header = header
         self._pool_results = None
         self._cancelled = False
@@ -32,12 +33,6 @@ class PlaylistPool:
                 },
 
             'cancelled':
-                {
-                    'quantity': 0,
-                    'list': []
-                },
-
-            'api_err':
                 {
                     'quantity': 0,
                     'list': []
@@ -59,26 +54,34 @@ class PlaylistPool:
                 {
                     'quantity': 0,
                     'list': []
-                }
+                },
+
+            'tag_err':
+                {
+                    'quantity': 0,
+                    'list': []
+                },
         }
 
     def start(self, track_list):
-        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track), track[0]] for track in track_list]
+        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track, self._sync), track[0]] for track in track_list]
         checked = [False for _ in track_list]
-
-        stopper = threading.Thread(target=self._stop)
-        stopper.start()
 
         bar = IncrementalBar('Загрузка треков', max=len(track_list), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
         spinner = PixelSpinner(Utils.Colors.YELLOW + 'Отмена загрузки, ожидание запущенных загрузок ')
         bar.start()
         last_time = 0
 
+        self._stopper_on = True
+        stopper = threading.Thread(target=self._stop)
+        stopper.start()
+
         for _ in track_list:
             i = 0
 
             while True:
                 time.sleep(0.01)
+                bar.update()
 
                 if not checked[i] and (self._pool_results[i][0].done()):
                     checked[i] = True
@@ -111,11 +114,7 @@ class PlaylistPool:
                         self._pool_status['ok']['quantity'] += 1
                         self._pool_status['ok']['list'].append(task[1])
 
-                    case TrackDownloader.Status.API_ERR:
-                        self._pool_status['api_err']['quantity'] += 1
-                        self._pool_status['api_err']['list'].append(task[1])
-
-                    case TrackDownloader.Status.GET_ERR:
+                    case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
                         self._pool_status['get_err']['quantity'] += 1
                         self._pool_status['get_err']['list'].append(task[1])
 
@@ -127,6 +126,10 @@ class PlaylistPool:
                         self._pool_status['nf_err']['quantity'] += 1
                         self._pool_status['nf_err']['list'].append(task[1])
 
+                    case TrackDownloader.Status.TAG_ERR:
+                        self._pool_status['tag_err']['quantity'] += 1
+                        self._pool_status['tag_err']['list'].append(task[1])
+
             except CancelledError:
                 self._pool_status['cancelled']['quantity'] += 1
                 self._pool_status['cancelled']['list'].append(task[1])
@@ -134,21 +137,25 @@ class PlaylistPool:
     def _stop(self):
         while self._stopper_on:
             if msvcrt.kbhit() and msvcrt.getch() == b'b':
+                self._cancelled = True
+
+                os.system('cls')
+                print(self._header)
+
+                for task in self._pool_results:
+                    if not task[0].running():
+                        task[0].cancel()
+
                 break
 
             time.sleep(0.1)
 
-        else:
-            return
+    def clear_tracks_with_error(self):
+        for error in ['get_err', 'jpg_err', 'nf_err', 'tag_err', 'cancelled']:
+            self._pool_status[error]['quantity'] = 0
+            self._pool_status[error]['list'].clear()
 
-        self._cancelled = True
-
-        os.system('cls')
-        print(self._header)
-
-        for task in self._pool_results:
-            if not task[0].running():
-                task[0].cancel()
+        self._cancelled = False
 
     def cancelled(self):
         return self._cancelled

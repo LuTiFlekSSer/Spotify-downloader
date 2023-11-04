@@ -35,7 +35,7 @@ class TracksSyncing:
         try:
             spt.start()
         except SpotifyTracks.TracksGetError:
-            print(Utils.red('Ошибка при получении треков из spotify'))
+            print(Utils.red('\nОшибка при получении треков из spotify'))
             time.sleep(1)
             return
 
@@ -77,6 +77,8 @@ class TracksSyncing:
                         res = Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
 
                         if res:
+                            self._settings.save()
+
                             server_missing_tracks = comp.get_server_missing_tracks(refresh=True)
 
                             time.sleep(1)
@@ -143,6 +145,8 @@ class TracksSyncing:
                     res = Utils.add_tracks_to_ignore(sorted(local_missing_tracks), self._settings.add_track_to_local_ignore)
 
                     if res:
+                        self._settings.save()
+
                         spt.refresh_track_list()
 
                         local_missing_tracks = comp.get_local_missing_tracks(refresh=True)
@@ -165,4 +169,5 @@ class TracksSyncing:
                     print(Utils.red('Ошибка ввода'))
 
         Utils.start_playlist_download(Utils.cyan('Синхронизация треков с аккаунтом\n'),
-                                      [(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks])
+                                      [(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks],
+                                      True)

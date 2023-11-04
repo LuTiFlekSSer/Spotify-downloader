@@ -14,7 +14,8 @@ def _print_settings():
           f'{Utils.blue("[4]")} - Очистить данные для входа в аккаунт\n'
           f'{Utils.blue("[5]")} - Управление локальным игнор листом\n'
           f'{Utils.blue("[6]")} - Управление серверным игнор листом\n'
-          f'{Utils.blue("[7]")} - Автоматическая проверка обновлений\n\n'
+          f'{Utils.blue("[7]")} - Автоматическая проверка обновлений\n'
+          f'{Utils.blue("[8]")} - Перезапись существующих треков при загрузке\n\n'
           f'{Utils.purple("[c]")} - Очистка ввода\n'
           f'{Utils.purple("[b]")} - Назад\n', end='')
 
@@ -204,6 +205,8 @@ class SetSettings:
                     try:
                         self._settings.add_track_to_local_ignore(name)
 
+                        self._settings.save()
+
                         print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
@@ -211,6 +214,8 @@ class SetSettings:
 
                 case '3':
                     Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_local_ignore_tracks()), self._settings.delete_track_from_local_ignore)
+
+                    self._settings.save()
 
                 case 'c':
                     print_menu()
@@ -259,6 +264,8 @@ class SetSettings:
                     try:
                         self._settings.add_track_to_server_ignore(name)
 
+                        self._settings.save()
+
                         print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
 
                     except SettingsStorage.AlreadyExistsError:
@@ -266,6 +273,8 @@ class SetSettings:
 
                 case '3':
                     Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_server_ignore_tracks()), self._settings.delete_track_from_server_ignore)
+
+                    self._settings.save()
 
                 case 'c':
                     print_menu()
@@ -314,6 +323,42 @@ class SetSettings:
                 case _:
                     print(Utils.red('Ошибка ввода'))
 
+    def _settings_overwrite_tracks(self):
+        def print_menu():
+            os.system('cls')
+            print(f'{Utils.cyan("Перезапись существующих треков при загрузке")}\n\n'
+                  f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("overwrite_tracks") == "True" else "Выключено"}')
+
+            print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("overwrite_tracks") == "True" else "Включить"}\n\n'
+                  f'{Utils.purple("[c]")} - Очистка ввода\n'
+                  f'{Utils.purple("[b]")} - Назад')
+
+        print_menu()
+
+        while True:
+            match Utils.g_input('> '):
+                case '1':
+                    if self._settings.get_setting("overwrite_tracks") == "True":
+                        self._settings.change_setting('overwrite_tracks', 'False')
+                        print(Utils.green('Выключено'))
+                    else:
+                        self._settings.change_setting('overwrite_tracks', 'True')
+                        print(Utils.green('Включено'))
+
+                    time.sleep(1)
+                    break
+
+                case 'c':
+                    print_menu()
+
+                case 'b':
+                    print(Utils.green('Возврат в настройки'))
+                    time.sleep(1)
+                    break
+
+                case _:
+                    print(Utils.red('Ошибка ввода'))
+
     def set_settings(self):
         _print_settings()
 
@@ -339,6 +384,9 @@ class SetSettings:
                     _print_settings()
                 case '7':
                     self._settings_auto_update()
+                    _print_settings()
+                case '8':
+                    self._settings_overwrite_tracks()
                     _print_settings()
                 case 'c':
                     _print_settings()

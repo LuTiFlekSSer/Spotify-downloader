@@ -64,8 +64,14 @@ class TracksCompare:
         while True:
             match Utils.g_input('> '):
                 case '1':
-                    Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
-                    server_missing_tracks = comp.__init__(local_tracks, spotify_tracks, tracks_info).get_server_missing_tracks()
+                    res = Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
+
+                    if res:
+                        self._settings.save()
+
+                        server_missing_tracks = comp.get_server_missing_tracks(refresh=True)
+
+                        time.sleep(1)
 
                 case 'c':
                     print_menu()

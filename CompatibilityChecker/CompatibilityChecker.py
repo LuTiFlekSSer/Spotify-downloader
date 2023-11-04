@@ -25,6 +25,17 @@ class CompatibilityChecker:
 
     def update_db(self):
         self._update_to_1_2_0()
+        self._update_to_1_2_2()
+
+        if self.need_db_update():
+            self._settings.change_setting('version', Version.__version__)
+
+    def _update_to_1_2_2(self):
+        if Utils.compare_versions(self._db_version, '1.2.2'):
+            self._settings.change_setting('version', '1.2.2')
+            self._settings.create_setting('overwrite_tracks', 'False')
+
+            self._db_version = '1.2.2'
 
     def _update_to_1_2_0(self):
         if Utils.compare_versions(self._db_version, '1.2.0'):

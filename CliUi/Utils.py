@@ -51,17 +51,23 @@ def compare_versions(curr_version, new_version):
     return False
 
 
-def start_playlist_download(header, tracks):
-    os.system('cls')
-    print(header)
+def start_playlist_download(header, tracks, sync=False):
+    pp = DownloaderPool.PlaylistPool(header, sync)
 
-    print(f'\n{purple("[b]")} - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
+    def start():
+        os.system('cls')
+        print(header)
 
-    pp = DownloaderPool.PlaylistPool(header)
-    pp.start(tracks)
+        print(f'\n{purple("[b]")} - Для отмены загрузки (запущенные потоки не будут остановлены)\n')
 
-    os.system('cls')
-    print(header)
+        pp.start(tracks)
+
+        os.system('cls')
+        print(header)
+
+        return pp
+
+    pp = start()
 
     pp_status = pp.pool_status()
 
@@ -74,15 +80,18 @@ def start_playlist_download(header, tracks):
         print(f'\nСтатистика по трекам:\n'
               f'{green("Успешно загружено:")} {pp_status["ok"]["quantity"]}\n'
               f'{yellow("Ошибка при изменении обложки:")} {pp_status["jpg_err"]["quantity"]}\n'
-              f'{red("Ошибка при загрузке:")} {pp_status["get_err"]["quantity"] + pp_status["api_err"]["quantity"]}\n'
+              f'{yellow("Ошибка при изменении метаданных:")} {pp_status["jpg_err"]["quantity"]}\n'
+              f'{red("Ошибка при загрузке:")} {pp_status["get_err"]["quantity"]}\n'
               f'{red("Не найдено:")} {pp_status["nf_err"]["quantity"]}\n'
               f'{red("Отменено:")} {pp_status["cancelled"]["quantity"]}\n')
 
         print(f'\n{blue("[1]")} - Успешно загруженные треки\n'
               f'{blue("[2]")} - Треки с ошибкой изменения обложки\n'
-              f'{blue("[3]")} - Треки с ошибкой при загрузке\n'
-              f'{blue("[4]")} - Не найденные треки\n'
-              f'{blue("[5]")} - Отмененные треки\n\n'
+              f'{blue("[3]")} - Треки с ошибкой изменения метаданных\n'
+              f'{blue("[4]")} - Треки с ошибкой при загрузке\n'
+              f'{blue("[5]")} - Не найденные треки\n'
+              f'{blue("[6]")} - Отмененные треки\n\n'
+              f'{purple("[r]")} - Перезапустить неудачные загрузки\n'
               f'{purple("[c]")} - Очистка ввода\n'
               f'{purple("[b]")} - Назад')
 
@@ -98,14 +107,6 @@ def start_playlist_download(header, tracks):
                 for i, track in enumerate(pp_status['ok']['list']):
                     print(f'{i + 1}) {track}')
 
-            case '3':
-                if len(pp_status['get_err']['list'] + pp_status['api_err']['list']) == 0:
-                    print(yellow('Список пуст'))
-                    continue
-
-                for i, track in enumerate(pp_status['get_err']['list'] + pp_status['api_err']['list']):
-                    print(f'{i + 1}) {track}')
-
             case '2':
                 if len(pp_status['jpg_err']['list']) == 0:
                     print(yellow('Список пуст'))
@@ -114,7 +115,23 @@ def start_playlist_download(header, tracks):
                 for i, track in enumerate(pp_status['jpg_err']['list']):
                     print(f'{i + 1}) {track}')
 
+            case '3':
+                if len(pp_status['tag_err']['list']) == 0:
+                    print(yellow('Список пуст'))
+                    continue
+
+                for i, track in enumerate(pp_status['tag_err']['list']):
+                    print(f'{i + 1}) {track}')
+
             case '4':
+                if len(pp_status['get_err']['list']) == 0:
+                    print(yellow('Список пуст'))
+                    continue
+
+                for i, track in enumerate(pp_status['get_err']['list']):
+                    print(f'{i + 1}) {track}')
+
+            case '5':
                 if len(pp_status['nf_err']['list']) == 0:
                     print(yellow('Список пуст'))
                     continue
@@ -122,13 +139,29 @@ def start_playlist_download(header, tracks):
                 for i, track in enumerate(pp_status['nf_err']['list']):
                     print(f'{i + 1}) {track}')
 
-            case '5':
+            case '6':
                 if len(pp_status['cancelled']['list']) == 0:
                     print(yellow('Список пуст'))
                     continue
 
                 for i, track in enumerate(pp_status['cancelled']['list']):
                     print(f'{i + 1}) {track}')
+
+            case 'r':
+                tracks = [track for track in tracks if track[0] not in pp_status['ok']['list']]
+
+                if len(tracks) == 0:
+                    print(yellow('Неудачных загрузок нет'))
+                    continue
+
+                pp.clear_tracks_with_error()
+                pp = start()
+
+                pp_status = pp.pool_status()
+
+                os.system('cls')
+                print(header)
+                print_results()
 
             case 'c':
                 os.system('cls')
