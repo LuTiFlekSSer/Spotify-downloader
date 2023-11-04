@@ -16,6 +16,7 @@ def main():
         os.system('cls')
         print(Utils.red(f'{Utils.Colors.BLINK}Произошла ошибка во время работы программы\n'
                         f'Подробности в файле: "{path}"'))
+        input('\nНажмите Enter для выхода')
 
 
 if __name__ == '__main__':
