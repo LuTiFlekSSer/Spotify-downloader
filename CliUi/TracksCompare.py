@@ -24,6 +24,9 @@ class TracksCompare:
             if not Utils.set_sync_path(print_menu):
                 return
 
+        lct = LocalTracks.LcTracks()
+        local_tracks = lct.get_local_tracks()
+
         spl = self._spotify_login.spotify_login()
 
         if spl is None:
@@ -33,11 +36,9 @@ class TracksCompare:
 
         spt = SpotifyTracks.SpTracks(spl)
         spt.start()
+
         spotify_tracks = spt.get_spotify_tracks()
         tracks_info = spt.get_tracks_info()
-
-        lct = LocalTracks.LcTracks()
-        local_tracks = lct.get_local_tracks()
 
         comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
 

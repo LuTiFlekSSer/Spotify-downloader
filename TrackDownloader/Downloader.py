@@ -6,7 +6,6 @@ __all__ = [
 
 import os
 import time
-
 import SettingsStorage
 import requests
 import eyed3
@@ -100,7 +99,10 @@ class Downloader:
                     track = requests.get(domain + query, headers=Downloader.headers)
 
                     while attempts < 5 and track.status_code != 200:
-                        track = requests.get(domain + query, headers=Downloader.headers)
+                        header = Downloader.headers.copy()
+                        header['authority'] = urlparse(domain).hostname
+
+                        track = requests.get(domain + query, headers=header)
                         attempts += 1
 
                     if track.status_code != 200:
@@ -155,6 +157,7 @@ class Downloader:
                 track.tag.save()
                 break
             except Exception:
+                time.sleep(0.1)
                 attempts += 1
         else:
             self._status = Status.TAG_ERR
