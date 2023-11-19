@@ -6,7 +6,6 @@ __all__ = [
 
 import os
 import time
-
 import SettingsStorage
 import requests
 import eyed3
@@ -45,7 +44,7 @@ def _get_track_info(track_info, method='download'):
 
     attempts = 0
 
-    while attempts < 3 and not response['success']:
+    while attempts < 3 and not (response['success'] and 'link' in response):
         response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}', headers=Downloader.headers).json()
         attempts += 1
 
@@ -86,9 +85,9 @@ class Downloader:
                 return False
 
             domains = [
-                'https://cdn1.snapredd.app/api/stream?',
-                'https://cdn2.snapredd.app/api/stream?',
-                'https://cdn3.snapredd.app/api/stream?'
+                'https://cdn1.tik.live/api/stream?',
+                'https://cdn2.tik.live/api/stream?',
+                'https://cdn3.tik.live/api/stream?'
             ]
 
             query = urlparse(response['link']).query
@@ -97,10 +96,13 @@ class Downloader:
                 for i, domain in enumerate(domains):
                     attempts = 0
 
-                    track = requests.get(domain + query, headers=Downloader.headers)
+                    header = Downloader.headers.copy()
+                    header['authority'] = urlparse(domain).hostname
+
+                    track = requests.get(domain + query, headers=header)
 
                     while attempts < 5 and track.status_code != 200:
-                        track = requests.get(domain + query, headers=Downloader.headers)
+                        track = requests.get(domain + query, headers=header)
                         attempts += 1
 
                     if track.status_code != 200:
@@ -155,6 +157,7 @@ class Downloader:
                 track.tag.save()
                 break
             except Exception:
+                time.sleep(0.1)
                 attempts += 1
         else:
             self._status = Status.TAG_ERR

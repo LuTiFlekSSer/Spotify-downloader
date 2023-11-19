@@ -6,7 +6,6 @@ from SettingsStorage import Settings
 from os import listdir
 from LocalTracks import Errors
 from progress.bar import IncrementalBar
-import eyed3
 
 
 class LcTracks:
