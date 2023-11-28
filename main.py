@@ -1,11 +1,11 @@
-import CliUi
+import Ui
 import ErrorSaver
-from CliUi import Utils
+from Ui import Utils
 import os
 
 
 def main():
-    cli = CliUi.Ui()
+    cli = Ui.Ui()
     try:
         cli.start()
     except Exception:

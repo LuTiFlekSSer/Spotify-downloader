@@ -7,7 +7,7 @@ import time
 
 import Version
 import requests
-from CliUi import Utils
+from Ui import Utils
 from Updater import Errors
 import os
 import subprocess

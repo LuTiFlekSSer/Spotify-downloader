@@ -1,4 +1,4 @@
 import sys
 
-sys.path.append('./CliUi')
+sys.path.append('./Ui')
 from .Ui import *

@@ -4,7 +4,7 @@ __all__ = [
 
 import SettingsStorage
 import Version
-from CliUi import Utils
+from Ui import Utils
 
 
 class CompatibilityChecker:

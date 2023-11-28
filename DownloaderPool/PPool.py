@@ -10,7 +10,7 @@ import threading
 import msvcrt
 from progress.bar import IncrementalBar
 from progress.spinner import PixelSpinner
-from CliUi import Utils
+from Ui import Utils
 import os
 
 
