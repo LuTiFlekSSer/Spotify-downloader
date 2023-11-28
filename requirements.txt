@@ -4,3 +4,5 @@ spotipy>=2.23.0
 eyed3>=0.9.7
 pywin32>=306
 pyperclip>=1.8.2
+customtkinter>=5.2.1
+Pillow>=10.1.0

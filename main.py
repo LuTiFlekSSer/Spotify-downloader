@@ -5,7 +5,7 @@ import os
 
 
 def main():
-    cli = CliUi.Cli()
+    cli = CliUi.Ui()
     try:
         cli.start()
     except Exception:

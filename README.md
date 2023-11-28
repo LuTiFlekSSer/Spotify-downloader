@@ -13,7 +13,7 @@ Spotify-downloader
 [![Last release](https://img.shields.io/github/v/release/LuTiFlekSSer/Spotify-downloader)](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest "Скачать")
 ![Downloads](https://img.shields.io/github/downloads/LuTiFlekSSer/Spotify-downloader/total "Не кликабельно")
 
-Spotify-downloader - это консольное приложение, которое позволяет скачивать музыку с сервиса Spotify,
+Spotify-downloader - это приложение, которое позволяет скачивать музыку с сервиса Spotify,
 а также синхронизировать локальную папку с треками с любимыми треками в Spotify.
 
 </div>
