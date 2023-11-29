@@ -57,6 +57,9 @@ class Ui(ctk.CTk):
         self._logo.pack(anchor=ctk.CENTER, expand=True)
 
     def _delete_splash_screen(self):
+        while not self.winfo_ismapped():
+            time.sleep(0.2)
+
         start_time = time.time()
 
         if self._update.start():  # todo сначала просто чекнуть, есть ли обнова
@@ -77,5 +80,5 @@ class Ui(ctk.CTk):
         # self._main_page.main_page()
 
         self.after(0, self._create_splash_screen)
-        self.after(100, self._delete_splash_screen)
+        self.after(200, self._delete_splash_screen)
         self.mainloop()
