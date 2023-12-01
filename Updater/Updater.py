@@ -30,6 +30,7 @@ class Updater:
     latest_release_link = 'https://api.github.com/repos/LuTiFlekSSer/Spotify-downloader/releases/latest'
 
     def __init__(self):
+        self._total_size = None
         self._curr_version = Version.__version__
         self._latest_release_exe = None
         self._release_name = None
@@ -48,15 +49,15 @@ class Updater:
 
                         return True
                 except ValueError:
-                    print(Utils.red('Ошибка при проверке обновлений'))
-                    time.sleep(1)
-
-                    return False
+                    raise Errors.UpdateCheckError
 
         except Exception:
             raise Errors.UpdateCheckError
 
         return False
+
+    def get_total_size(self):
+        return self._total_size
 
     def download_update(self):
         if self._latest_release_exe is None:
@@ -64,32 +65,34 @@ class Updater:
 
         request = requests.get(self._latest_release_exe, stream=True)
 
-        total_size = int(request.headers.get('content-length', 0)) / 1024
+        self._total_size = int(request.headers.get('content-length', 0)) / 1024
 
-        bar = IncrementalBar(Utils.Colors.END + 'Загрузка обновления', max=total_size, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
+        bar = IncrementalBar(Utils.Colors.END + 'Загрузка обновления', max=self._total_size, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
         bar.start()
 
         with open(os.getenv('TEMP') + f'\\{self._release_name}', 'wb') as file:
             for data in request.iter_content(chunk_size=1024):
-                bar.next()
                 file.write(data)
+
+                yield ...
 
         bar.finish()
 
     def start_update(self):
         if (path := get_executable_path()) is None:
-            print(Utils.red('Не удалось получить путь до текущего файла'))
+            raise Errors.UpdateError
 
-            time.sleep(2)
-
-            return
         elif path.endswith('.py'):
             path = path[:-3] + '.exe'
 
-        subprocess.Popen(f'{os.getenv("TEMP")}\\{self._release_name} -U "{path}"',
-                         creationflags=subprocess.CREATE_NEW_CONSOLE)
+        try:
+            subprocess.Popen(f'{os.getenv("TEMP")}\\{self._release_name} -U "{path}"',
+                             creationflags=subprocess.CREATE_NEW_CONSOLE)
+        except Exception:
+            raise Errors.UpdateError
 
-    def install_update(self, path_to_exe):
+    @staticmethod
+    def install_update(path_to_exe):
         attempts = 0
 
         while attempts < 3:
