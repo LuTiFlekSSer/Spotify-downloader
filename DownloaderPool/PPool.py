@@ -20,6 +20,8 @@ class PlaylistPool:
 
         self._pool = ThreadPoolExecutor(int(self._settings.get_setting('threads')))
 
+        self._lock = threading.Lock()
+
         self._sync = sync
         self._header = header
         self._pool_results = None
@@ -83,9 +85,11 @@ class PlaylistPool:
                 time.sleep(0.01)
                 bar.update()
 
+                self._lock.acquire()
                 if not checked[i] and (self._pool_results[i][0].done()):
                     checked[i] = True
                     break
+                self._lock.release()
 
                 i += 1
                 if i == len(track_list):
@@ -142,9 +146,11 @@ class PlaylistPool:
                 os.system('cls')
                 print(self._header)
 
+                self._lock.acquire()
                 for task in self._pool_results:
                     if not task[0].running():
                         task[0].cancel()
+                self._lock.release()
 
                 break
 

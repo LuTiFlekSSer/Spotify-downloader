@@ -1,0 +1,12 @@
+{
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "strings": {
+    "test_string": {
+      "en": "test",
+      "ru": "тест"
+    }
+  }
+}

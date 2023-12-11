@@ -28,7 +28,6 @@ class Settings:
         cur.execute("CREATE TABLE IF NOT EXISTS local_ignore ('name' TEXT PRIMARY KEY);")
         cur.execute("CREATE TABLE IF NOT EXISTS app_settings ('name' TEXT PRIMARY KEY, 'value' TEXT);")
         cur.execute("CREATE TABLE IF NOT EXISTS tracks_id ('name' TEXT PRIMARY KEY, 'track_id' TEXT);")
-        cur.execute("CREATE TABLE IF NOT EXISTS locales ('string_name' TEXT PRIMARY KEY, 'ru' TEXT,'en' TEXT);")
 
         if not settings_exists:
             self._set_base_settings()
