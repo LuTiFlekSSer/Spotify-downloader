@@ -5,6 +5,22 @@ import os
 import win32com.client
 import SettingsStorage
 import re
+import sys
+
+
+# todo заменить все принты
+
+def map_value(curr_value, max_value):
+    return curr_value / max_value
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 def set_sync_path(print_menu):
@@ -279,7 +295,7 @@ def remove_tracks_from_ignore(tracks, remove):
     print(green('Треки удалены из игнор листа'))
 
 
-class Colors:
+class Colors:  # todo удалить цвета
     PURPLE = '\033[95m'
     BLUE = '\033[94m'
     CYAN = '\033[96m'

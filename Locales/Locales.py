@@ -4,10 +4,11 @@ __all__ = [
 
 import json
 from Locales import Errors
+from Ui import Utils
 
 
 class Locales:
-    with open('Locales/locales.json', encoding='utf-8') as file:
+    with open(Utils.resource_path('Locales/locales.json'), encoding='utf-8') as file:
         _locales = json.load(file)
 
     _language = None

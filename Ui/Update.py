@@ -8,116 +8,194 @@ import time
 import Utils
 import SettingsStorage
 import subprocess
-from progress.spinner import PixelSpinner
 import threading
-import os
+import customtkinter as ctk
+import Locales
+from CTkMessagebox import CTkMessagebox
+from PIL import ImageTk, Image
 
 
-def _print_greeting():
-    os.system('cls')
-    print(Utils.cyan('------------------------------------\n'
-                     '| SPOTIFY DOWNLOADER WELCOMES YOU! |\n'
-                     '------------------------------------'))
+class Update(ctk.CTkFrame):
+    def __init__(self, master, callback):
+        super().__init__(master)
+        self._locales = Locales.Locales()
 
+        self._callback = callback
 
-class Update:
-    def __init__(self):
         self._cc = CompatibilityChecker.CompatibilityChecker()
-
         self._updater = Updater.Updater()
 
-        self._stop_spinner = False
+        self._ss = SettingsStorage.Settings()
+        self._db_check()
 
-    def start(self):
+        self._progress_bar = ctk.CTkProgressBar(self, determinate_speed=0.1)
+        self._progress_bar.set(0)
+        self._update_title = ctk.CTkLabel(self, text=self._locales.get_string('update_title'), font=('Arial', 20, 'bold'))
+        self._button_frame = ctk.CTkFrame(self, fg_color=ctk.CTkFrame(self)['bg'])
+        self._button_yes = ctk.CTkButton(
+            self._button_frame,
+            text=self._locales.get_string('yes'),
+            command=self._download,
+            fg_color='green',
+            hover_color='dark green'
+        )
+        self._button_no = ctk.CTkButton(
+            self._button_frame,
+            text=self._locales.get_string('no'),
+            fg_color='red',
+            command=lambda: self._callback(False),
+            hover_color='dark red'
+        )
+        self._logo = ctk.CTkCanvas(self, width=100, height=100, highlightthickness=0, bg=self._button_frame['bg'])
+
+        logo = Image.open(Utils.resource_path('icon.ico')).resize((100, 100))
+        self._logo_image = ImageTk.PhotoImage(logo)
+        self._logo.create_image(0, 0, anchor=ctk.NW, image=self._logo_image)
+
+        self._logo.pack(anchor='center', pady=(70, 10))
+        self._update_title.pack(anchor='center', pady=10)
+        self._button_frame.pack(anchor='center', pady=20)
+        self._button_no.pack(side='left', padx=10)
+        self._button_yes.pack(side='right', padx=10)
+
+    def _db_check(self):
         if self._cc.need_db_update():
             self._cc.update_db()
 
-        updater = Updater.Updater()
+        Locales.Locales.set_language(self._ss.get_setting('language'))
 
-        ss = SettingsStorage.Settings()
-
-        if ss.get_setting('auto_update') == 'True':
-            try:
-                if updater.need_app_update():
-                    _print_greeting()
-
-                    print(Utils.green('Обнаружено обновление'))
-                    print('Скачать?', Utils.yellow('(да - y, нет - n)'))
-
-                    while True:
-                        match Utils.g_input('> '):
-                            case 'y':
-                                updater.download_update()
-
-                                _print_greeting()
-
-                                print(Utils.green('Загрузка завершена'))
-                                time.sleep(1)
-
-                                updater.start_update()
-                                return True
-                            case 'n':
-                                print(Utils.green('Загрузка отменена'))
-                                time.sleep(1)
-                                break
-                            case _:
-                                print(Utils.red('Ошибка ввода'))
-
-            except Updater.UpdateCheckError:
-                print(Utils.red('Ошибка при проверке обновлений'))
-                time.sleep(1)
-
-            except Updater.UpdateError:
-                print(Utils.red('Ошибка при обновлении'))
-                time.sleep(1)
-
-            except Exception as ex:
-                print(Utils.red('Ошибка при загрузке обновления'), ex)
-                time.sleep(1)
-
-        return False
-
-    def install(self, path_to_exe):
-        _print_greeting()
-
-        t = threading.Thread(target=self._spinner)
-        t.start()
-        time.sleep(2)
+    def update_check(self):
+        if self._ss.get_setting('auto_update') == 'False':
+            return False
 
         try:
-            self._updater.install_update(path_to_exe)
-        except Updater.UpdateError:
-            self._stop_spinner = True
-            t.join()
-            _print_greeting()
+            result = False
 
-            print(Utils.red('Ошибка при установке обновления\n'))
-            print(f'Возможно, поможет ручная замена файла:\n'
-                  f'{Utils.yellow(path_to_exe)}\n'
-                  f'На файл обновления:\n'
-                  f'{Utils.yellow(Updater.get_executable_path())}')
+            def _check():
+                nonlocal result
 
-            input('\nНажми Enter для выхода')
+                result = self._updater.need_app_update()
+
+            check_thread = threading.Thread(target=_check)
+            check_thread.start()
+
+            while check_thread.is_alive():
+                self.update()
+                time.sleep(0.01)
+
+            return result
+
+        except Exception:
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('update_check_error'),
+                icon='cancel',
+                topmost=False
+            ).get()
+
+            return False
+
+    def _download(self):
+        self._button_frame.destroy()
+        self._progress_bar.pack(anchor='center', pady=10)
+        self._update_title.configure(text=self._locales.get_string('downloading_update'))
+
+        progress_value = 0
+
+        def _start_download():
+            nonlocal progress_value
+
+            try:
+                self._updater.start_download()
+
+                total_size = self._updater.get_total_size()
+                for i in self._updater.download_update():
+                    progress_value = Utils.map_value(i, total_size)
+
+            except Exception:
+                CTkMessagebox(
+                    title=self._locales.get_string('error'),
+                    message=self._locales.get_string('update_download_error'),
+                    icon='cancel',
+                    topmost=False
+                ).get()
+
+                return self._callback(False)
+
+        download_thread = threading.Thread(target=_start_download)
+        download_thread.start()
+
+        while download_thread.is_alive():
+            self._progress_bar.set(progress_value)
+            self.update()
+
+            time.sleep(0.01)
+
+        try:
+            self._updater.start_update()
+        except Exception:
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('update_install_error'),
+                icon='cancel',
+                topmost=False
+            ).get()
+
+            return self._callback(False)
+
+        return self._callback(True)
+
+    def install(self, path_to_exe=None):
+        self._button_frame.destroy()
+        self._update_title.configure(text=self._locales.get_string('installing_update'))
+
+        if path_to_exe is None:
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('update_install_error'),
+                icon='cancel',
+                topmost=False
+            ).get()
 
             return
 
-        self._stop_spinner = True
-        t.join()
+        self._progress_bar.configure(mode='indeterminate')
+        self._progress_bar.pack(anchor='center', pady=10)
+        self._progress_bar.start()
 
-        _print_greeting()
+        result = False
 
-        print(Utils.green('Обновление установлено'))
-        time.sleep(1)
+        def _install():
+            nonlocal result
 
-        subprocess.Popen(path_to_exe, creationflags=subprocess.CREATE_NEW_CONSOLE)
+            try:
+                time.sleep(2)
 
-    def _spinner(self):
-        spinner = PixelSpinner(Utils.Colors.YELLOW + 'Установка обновления ')
+                self._updater.install_update(path_to_exe)
+                result = True
 
-        spinner.start()
+            except Exception:
+                CTkMessagebox(
+                    title=self._locales.get_string('error'),
+                    message=self._locales.get_string('update_install_error'),
+                    icon='cancel',
+                    topmost=False
+                ).get()
 
-        while not self._stop_spinner:
-            time.sleep(0.5)
-            spinner.next()
+        install_thread = threading.Thread(target=_install)
+        install_thread.start()
 
-        spinner.finish()
+        while install_thread.is_alive():
+            if result:
+                self._update_title.configure(text=self._locales.get_string('update_installed'))
+
+                self._progress_bar.stop()
+                self._progress_bar.destroy()
+
+                break
+
+            self.update()
+            time.sleep(0.01)
+
+        if result:
+            subprocess.Popen(path_to_exe, creationflags=subprocess.CREATE_NEW_CONSOLE)

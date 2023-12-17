@@ -4,9 +4,45 @@
     "en"
   ],
   "strings": {
-    "test_string": {
-      "en": "test",
-      "ru": "тест"
+    "yes": {
+      "en": "Yes",
+      "ru": "Да"
+    },
+    "no": {
+      "en": "No",
+      "ru": "Нет"
+    },
+    "update_title": {
+      "ru": "Обнаружено обновление\nСкачать?",
+      "en": "An update has been detected\nDownload it?"
+    },
+    "error": {
+      "ru": "Ошибка",
+      "en": "Error"
+    },
+    "update_check_error": {
+      "ru": "Ошибка при проверке обновлений",
+      "en": "Error checking for updates"
+    },
+    "update_download_error": {
+      "ru": "Ошибка при загрузке обновления",
+      "en": "Error downloading the update"
+    },
+    "downloading_update": {
+      "ru": "Загрузка обновления",
+      "en": "Downloading the update"
+    },
+    "installing_update": {
+      "ru": "Установка обновления",
+      "en": "Installing the update"
+    },
+    "update_installed": {
+      "ru": "Обновление установлено",
+      "en": "The update is installed"
+    },
+    "update_install_error": {
+      "ru": "Ошибка при установке обновления",
+      "en": "Error installing the update"
     }
   }
 }
