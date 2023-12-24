@@ -97,7 +97,7 @@ class Ui(ctk.CTk):
         self.overrideredirect(False)
         self.wm_attributes('-topmost', False)
 
-        if need_update or self._args.F is None:
+        if need_update:
             self._update.pack(fill='both', expand=True, anchor='c')
 
             if force:
