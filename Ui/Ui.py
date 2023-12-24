@@ -82,7 +82,12 @@ class Ui(ctk.CTk):
 
         start_time = time.time()
 
-        need_update = self._update.update_check()
+        if self._args.F is not None:
+            force = True
+        else:
+            force = False
+
+        need_update = self._update.update_check(force)
 
         if (time_left := time.time() - start_time) < 1.5:
             time.sleep((1500 - int(time_left * 1000)) / 1000)
@@ -92,10 +97,10 @@ class Ui(ctk.CTk):
         self.overrideredirect(False)
         self.wm_attributes('-topmost', False)
 
-        if need_update:
+        if need_update or self._args.F is None:
             self._update.pack(fill='both', expand=True, anchor='c')
 
-            if self._args.F is not None:
+            if force:
                 self._update.download()
         else:
             self._create_menu_bar()

@@ -64,8 +64,8 @@ class Update(ctk.CTkFrame):
 
         Locales.Locales.set_language(self._ss.get_setting('language'))
 
-    def update_check(self):
-        if self._ss.get_setting('auto_update') == 'False':
+    def update_check(self, force=False):
+        if self._ss.get_setting('auto_update') == 'False' and force is False:
             return False
 
         try:
