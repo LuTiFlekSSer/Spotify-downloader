@@ -6,12 +6,22 @@ import win32com.client
 import SettingsStorage
 import re
 import sys
+import __main__
 
 
 # todo заменить все принты
 
 def map_value(curr_value, max_value):
     return curr_value / max_value
+
+
+def get_executable_path():
+    if getattr(sys, 'frozen', False):
+        return sys.executable
+    elif __file__:
+        return os.path.abspath(__main__.__file__)
+    else:
+        return None
 
 
 def resource_path(relative_path):

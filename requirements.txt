@@ -6,3 +6,4 @@ pyperclip>=1.8.2
 customtkinter>=5.2.1
 Pillow>=10.1.0
 CTkMessagebox>=2.5
+CTkMenuBar>=0.3

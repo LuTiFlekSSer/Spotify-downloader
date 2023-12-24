@@ -2,6 +2,7 @@ __all__ = [
     'Ui'
 ]
 
+import os
 import MainPage
 import Update
 import argparse
@@ -9,6 +10,11 @@ import customtkinter as ctk
 from PIL import ImageTk, Image
 import time
 from Ui import Utils
+import CTkMenuBar
+import Locales
+import subprocess
+import SettingsStorage
+from CTkMessagebox import CTkMessagebox
 
 
 class Ui(ctk.CTk):
@@ -26,20 +32,21 @@ class Ui(ctk.CTk):
 
         self._create_splash_screen()
 
-        self._main_page = MainPage.MainPage()
-        self._update = Update.Update(self, self._update_callback)
-
         parser = argparse.ArgumentParser()
         parser.add_argument('-U', type=str, help='Path to previous executable file')
+        parser.add_argument('-F', help='Force update app')
         self._args = parser.parse_args()
+
+        self._main_page = MainPage.MainPage(self)
+        self._update = Update.Update(self, self._update_callback)
+        self._locales = Locales.Locales()
 
     def _update_callback(self, need_exit):
         if need_exit:
             self.quit()
         else:
             self._update.destroy()
-
-        self.resizable(True, True)
+            self._create_menu_bar()
 
     def _pos_for_window(self):
         ws = self.winfo_screenwidth()
@@ -87,8 +94,81 @@ class Ui(ctk.CTk):
 
         if need_update:
             self._update.pack(fill='both', expand=True, anchor='c')
+
+            if self._args.F is not None:
+                self._update.download()
         else:
-            self.resizable(True, True)
+            self._create_menu_bar()
+
+    def _create_menu_bar(self):
+        self.resizable(True, True)
+
+        self._menu_bar = CTkMenuBar.CTkMenuBar(self, bg_color=self.cget('bg'))
+        self._menu_separator = ctk.CTkFrame(master=self, height=2, border_width=0)
+        self._menu_separator.pack(fill='x', anchor='n', expand=True)
+        self._file_button = self._menu_bar.add_cascade(self._locales.get_string('menu_file'))
+
+        self._file_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self._file_button)
+        self._file_dropdown.add_option(option=self._locales.get_string('open_sync_dir'), command=self._open_sync_folder)
+        self._file_dropdown.add_separator()
+        self._file_dropdown.add_option(option=self._locales.get_string('open_settings'))
+        self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)
+        self._file_dropdown.add_separator()
+        self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self.quit)
+
+    def _check_for_updates(self):
+        result = self._update.update_check()
+
+        if result:
+            result = CTkMessagebox(
+                title=self._locales.get_string('update?'),
+                message=self._locales.get_string('update_title'),
+                icon='question',
+                option_1=self._locales.get_string('yes'),
+                option_2=self._locales.get_string('no'),
+                topmost=False
+            ).get()
+
+            if result == self._locales.get_string('yes'):
+                path = Utils.get_executable_path()
+
+                if path.endswith('.py'):
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('run_as_script_error'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
+
+                    return
+
+                subprocess.Popen(
+                    f'{path} -F 1',
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+
+                self.quit()
+        else:
+            CTkMessagebox(
+                title=self._locales.get_string('check'),
+                message=self._locales.get_string('last_update_installed'),
+                icon='check',
+                topmost=False
+            ).get()
+
+    def _open_sync_folder(self):
+        ss = SettingsStorage.Settings()
+        path = ss.get_setting('path_for_sync')
+
+        if path == '' or not os.path.exists(path):
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('sync_dir_error'),
+                icon='cancel',
+                topmost=False
+            ).get()
+        else:
+            subprocess.Popen(f'explorer "{path}"')
 
     def _install_update(self):
         while not self.winfo_ismapped():
@@ -110,8 +190,6 @@ class Ui(ctk.CTk):
             self.mainloop()
 
             return
-
-        # self._main_page.main_page()
 
         self.after(200, self._delete_splash_screen)
         self.mainloop()

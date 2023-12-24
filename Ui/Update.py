@@ -35,7 +35,7 @@ class Update(ctk.CTkFrame):
         self._button_yes = ctk.CTkButton(
             self._button_frame,
             text=self._locales.get_string('yes'),
-            command=self._download,
+            command=self.download,
             fg_color='green',
             hover_color='dark green'
         )
@@ -74,7 +74,10 @@ class Update(ctk.CTkFrame):
             def _check():
                 nonlocal result
 
-                result = self._updater.need_app_update()
+                try:
+                    result = self._updater.need_app_update()
+                except Updater.UpdateCheckError:
+                    result = False
 
             check_thread = threading.Thread(target=_check)
             check_thread.start()
@@ -95,7 +98,7 @@ class Update(ctk.CTkFrame):
 
             return False
 
-    def _download(self):
+    def download(self):
         self._button_frame.destroy()
         self._progress_bar.pack(anchor='center', pady=10)
         self._update_title.configure(text=self._locales.get_string('downloading_update'))

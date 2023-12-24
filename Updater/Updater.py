@@ -1,6 +1,5 @@
 __all__ = [
     'Updater',
-    'get_executable_path'
 ]
 
 import time
@@ -11,18 +10,7 @@ from Ui import Utils
 from Updater import Errors
 import os
 import subprocess
-import sys
-import __main__
 import shutil
-
-
-def get_executable_path():
-    if getattr(sys, 'frozen', False):
-        return sys.executable
-    elif __file__:
-        return os.path.abspath(__main__.__file__)
-    else:
-        return None
 
 
 class Updater:
@@ -84,7 +72,7 @@ class Updater:
                 yield i
 
     def start_update(self):
-        if (path := get_executable_path()) is None:
+        if (path := Utils.get_executable_path()) is None:
             raise Errors.UpdateError
 
         elif path.endswith('.py'):
@@ -104,7 +92,7 @@ class Updater:
 
         while attempts < 3:
             try:
-                shutil.copy(get_executable_path(), path_to_exe)
+                shutil.copy(Utils.get_executable_path(), path_to_exe)
                 break
             except Exception:
                 time.sleep(2)

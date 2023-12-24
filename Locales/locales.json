@@ -43,6 +43,50 @@
     "update_install_error": {
       "ru": "Ошибка при установке обновления",
       "en": "Error installing the update"
+    },
+    "menu_file": {
+      "ru": "Файл",
+      "en": "File"
+    },
+    "language": {
+      "ru": "Язык",
+      "en": "Language"
+    },
+    "open_sync_dir": {
+      "ru": "Открыть синхронизируемую папку",
+      "en": "Open the sync folder"
+    },
+    "open_settings": {
+      "ru": "Настройки",
+      "en": "Settings"
+    },
+    "check_for_updates": {
+      "ru": "Проверить обновления",
+      "en": "Check for updates"
+    },
+    "exit": {
+      "ru": "Выход",
+      "en": "Exit"
+    },
+    "sync_dir_error": {
+      "ru": "Ошибка в пути к синхронизируемой папке",
+      "en": "Error in the path to the sync folder"
+    },
+    "last_update_installed": {
+      "ru": "Уже установлена последняя версия",
+      "en": "The latest version is already installed"
+    },
+    "check": {
+      "ru": "Проверка",
+      "en": "Check"
+    },
+    "update?": {
+      "ru": "Обновить?",
+      "en": "Update?"
+    },
+    "run_as_script_error": {
+      "ru": "Работает только при запуске exe-файла",
+      "en": "Only works when running the exe file"
     }
   }
 }
