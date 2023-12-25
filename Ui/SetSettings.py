@@ -28,6 +28,7 @@ class SetSettings(ctk.CTkFrame):
     def __init__(self, master, callback):
         super().__init__(master)
 
+        self._new_directory = None
         self._locales = Locales.Locales()
         self._settings = SettingsStorage.Settings()
 
@@ -53,7 +54,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_set_threads
         )
         self._set_sync_dir_button = ctk.CTkButton(
             self._buttons_container,
@@ -62,7 +64,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_set_path
         )
         self._set_auto_compare_button = ctk.CTkButton(
             self._buttons_container,
@@ -171,7 +174,7 @@ class SetSettings(ctk.CTkFrame):
             self._thread_frame_title.configure(state='disabled')
             self._current_threads = ctk.CTkLabel(
                 self._thread_frame,
-                text=f'{self._locales.get_string("current_threads")}: {self._settings.get_setting("threads")}'
+                text=f'{self._locales.get_string("current_threads")} {self._settings.get_setting("threads")}'
             )
             self._input_threads_frame = ctk.CTkFrame(self._thread_frame, fg_color=self._thread_frame.cget('fg_color'))
 
@@ -205,7 +208,7 @@ class SetSettings(ctk.CTkFrame):
                 self._settings.change_setting('threads', threads)
                 self._thread_input.delete(0, 'end')
                 self._apply_threads_button.configure(state='disabled')
-                self._current_threads.configure(text=f'{self._locales.get_string("current_threads")}: {self._settings.get_setting("threads")}')
+                self._current_threads.configure(text=f'{self._locales.get_string("current_threads")} {self._settings.get_setting("threads")}')
 
             def _cancel():
                 self._thread_input.delete(0, 'end')
@@ -244,6 +247,132 @@ class SetSettings(ctk.CTkFrame):
         return
 
     def _settings_set_path(self):
+        if not hasattr(self, '_path_frame'):
+            self._path_frame = ctk.CTkFrame(self)
+
+            self._path_frame_title = ctk.CTkTextbox(
+                self._path_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=51,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._path_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._path_frame_title.insert('end', self._locales.get_string('set_path_title'))
+            self._path_frame_title.configure(state='disabled')
+
+            self._current_path_frame = ctk.CTkFrame(self._path_frame, fg_color=self._path_frame.cget('fg_color'))
+            self._current_path_title = ctk.CTkLabel(
+                self._current_path_frame,
+                text=f'{self._locales.get_string("current_path")}',
+            )
+            self._current_path = ctk.CTkTextbox(
+                self._current_path_frame,
+                height=25,
+                fg_color=self._thread_frame.cget('fg_color'),
+                wrap='none'
+            )
+            self._current_path.insert('end', f'"{self._settings.get_setting("path_for_sync")}"')
+            self._current_path.configure(state='disabled')
+
+            self._new_path_frame = ctk.CTkFrame(self._path_frame, fg_color=self._path_frame.cget('fg_color'))
+            self._new_path_title = ctk.CTkLabel(
+                self._new_path_frame,
+                text=f'{self._locales.get_string("new_path")}'
+            )
+            self._new_path = ctk.CTkTextbox(
+                self._new_path_frame,
+                height=25,
+                fg_color=self._thread_frame.cget('fg_color'),
+                wrap='none'
+            )
+            self._new_path.insert('end', f'{self._locales.get_string("not_specified")}')
+            self._new_path.configure(state='disabled')
+
+            def _select_path():
+                try:
+                    self._new_directory = (win32com.client.Dispatch('Shell.Application').
+                                           BrowseForFolder(0, self._locales.get_string('choose_folder'), 16, "").Self.path)
+
+                    self._new_path.configure(state='normal')
+                    self._new_path.delete('0.0', 'end')
+                    self._new_path.insert('end', f'"{self._new_directory}"')
+                    self._new_path.configure(state='disabled')
+
+                    self._apply_path_button.configure(state='normal')
+                except Exception:
+                    pass
+
+            self._input_path_button = ctk.CTkButton(
+                self._path_frame,
+                text=self._locales.get_string('input_path'),
+                command=_select_path
+            )
+
+            def _set_path():
+                self._settings.change_setting('path_for_sync', self._new_directory)
+
+                self._new_path.configure(state='normal')
+                self._new_path.delete('0.0', 'end')
+                self._new_path.insert('end', f'{self._locales.get_string("not_specified")}')
+                self._new_path.configure(state='disabled')
+
+                self._apply_path_button.configure(state='disabled')
+
+                self._current_path.configure(state='normal')
+                self._current_path.delete('0.0', 'end')
+                self._current_path.insert('end', f'"{self._settings.get_setting("path_for_sync")}"')
+                self._current_path.configure(state='disabled')
+
+            def _cancel():
+                self._new_path.configure(state='normal')
+                self._new_path.delete('0.0', 'end')
+                self._new_path.insert('end', f'{self._locales.get_string("not_specified")}')
+                self._new_path.configure(state='disabled')
+
+                self._apply_path_button.configure(state='disabled')
+
+            self._confirm_path_frame = ctk.CTkFrame(self._path_frame, fg_color=self._path_frame.cget('fg_color'))
+            self._apply_path_button = ctk.CTkButton(
+                self._confirm_path_frame,
+                text=self._locales.get_string('apply'),
+                state='disabled',
+                command=_set_path
+            )
+            self._cancel_path_button = ctk.CTkButton(
+                self._confirm_path_frame,
+                text=self._locales.get_string('cancel'),
+                command=_cancel
+            )
+
+            self._path_frame.grid_columnconfigure(0, weight=1)
+            self._path_frame.grid_rowconfigure(4, weight=1)
+            self._current_path_frame.grid_columnconfigure(1, weight=1)
+            self._new_path_frame.grid_columnconfigure(1, weight=1)
+
+            self._path_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+
+            self._current_path_title.grid(row=0, column=0, sticky='w', padx=(5, 0))
+            self._current_path.grid(row=0, column=1, sticky='we')
+            self._current_path_frame.grid(row=1, column=0, sticky='we')
+
+            self._new_path_title.grid(row=0, column=0, sticky='w', padx=(5, 0))
+            self._new_path.grid(row=0, column=1, sticky='we')
+            self._new_path_frame.grid(row=2, column=0, sticky='we')
+
+            self._input_path_button.grid(row=3, column=0, sticky='w', padx=5, pady=5)
+            self._apply_path_button.grid(row=0, column=0, padx=5, pady=5)
+            self._cancel_path_button.grid(row=0, column=1, padx=5, pady=5)
+            self._confirm_path_frame.grid(row=4, column=0, sticky='se', padx=5, pady=5)
+
+        self._current_frame.grid_forget()
+        self._path_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._path_frame
+        return
+
         def print_menu():
             os.system('cls')
             print(f'{Utils.cyan("Смена папки, в которой производится синхронизация треков")}\n\n'

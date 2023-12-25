@@ -145,8 +145,8 @@
       "en": "Change the number of threads for downloading tracks"
     },
     "current_threads": {
-      "ru": "Текущее количество потоков",
-      "en": "Current number of threads"
+      "ru": "Текущее количество потоков:",
+      "en": "Current number of threads:"
     },
     "new_threads": {
       "ru": "Новое количество потоков:",
@@ -163,6 +163,30 @@
     "no_value_error": {
       "ru": "Не указано значение",
       "en": "No value specified"
+    },
+    "set_path_title": {
+      "ru": "Смена папки, в которой производится синхронизация треков",
+      "en": "Changing the folder in which tracks are synchronized"
+    },
+    "current_path": {
+      "ru": "Текущая папка:",
+      "en": "Current folder:"
+    },
+    "new_path": {
+      "ru": "Новая папка:",
+      "en": "New folder:"
+    },
+    "input_path": {
+      "ru": "Выбрать папку",
+      "en": "Select folder"
+    },
+    "not_specified": {
+      "ru": "Не задано",
+      "en": "Not specified"
+    },
+    "choose_folder": {
+      "ru": "Выбери папку",
+      "en": "Choose folder"
     }
   }
 }
