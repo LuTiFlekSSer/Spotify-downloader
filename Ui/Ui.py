@@ -15,19 +15,22 @@ import Locales
 import subprocess
 import SettingsStorage
 from CTkMessagebox import CTkMessagebox
+from Ui import SetSettings
 
 
 class Ui(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self._window_width = 600
+        ctk.set_appearance_mode('Dark')
+
+        self._window_width = 640
         self._window_height = 400
 
         self.minsize(self._window_width, self._window_height)
         self.title('Spotify downloader')
         self.geometry(self._pos_for_window())
-        self.iconbitmap(Utils.resource_path('icon.ico'))
+        self.iconbitmap(Utils.resource_path('icons/icon.ico'))
         self.resizable(False, False)
 
         self._create_splash_screen()
@@ -37,7 +40,6 @@ class Ui(ctk.CTk):
         parser.add_argument('-F', help='Force update app')
         self._args = parser.parse_args()
 
-        self._main_page = MainPage.MainPage(self)
         self._update = Update.Update(self, self._update_callback)
         self._locales = Locales.Locales()
 
@@ -70,7 +72,7 @@ class Ui(ctk.CTk):
         self.wm_attributes('-transparentcolor', '#FFFFFE')
         self._logo = ctk.CTkCanvas(self, width=logo_width, height=logo_height, highlightthickness=0, bg='#FFFFFE')
 
-        logo = Image.open(Utils.resource_path('icon.ico')).resize((logo_width, logo_height))
+        logo = Image.open(Utils.resource_path('icons/icon.ico')).resize((logo_width, logo_height))
         self._logo_image = ImageTk.PhotoImage(logo)
         self._logo.create_image(0, 0, anchor=ctk.NW, image=self._logo_image)
 
@@ -109,17 +111,32 @@ class Ui(ctk.CTk):
         self.resizable(True, True)
 
         self._menu_bar = CTkMenuBar.CTkMenuBar(self, bg_color=self.cget('bg'))
-        self._menu_separator = ctk.CTkFrame(master=self, height=2, border_width=0)
-        self._menu_separator.pack(fill='x', anchor='n', expand=True)
         self._file_button = self._menu_bar.add_cascade(self._locales.get_string('menu_file'))
 
         self._file_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self._file_button)
         self._file_dropdown.add_option(option=self._locales.get_string('open_sync_dir'), command=self._open_sync_folder)
         self._file_dropdown.add_separator()
-        self._file_dropdown.add_option(option=self._locales.get_string('open_settings'))
-        self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)
+        self._file_dropdown.add_option(option=self._locales.get_string('open_settings'), command=self._open_settings)  # todo чекать, не запущен ли режим в mainpage
+        self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)  # todo чекать, не запущен ли режим в mainpage
         self._file_dropdown.add_separator()
         self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self.quit)
+
+        self._main_page = MainPage.MainPage(self)
+        self._main_page.pack(fill='both', expand=True)
+
+    def _open_settings(self):
+        if not hasattr(self, '_set_settings'):
+            self._set_settings = SetSettings.SetSettings(self, self._close_settings)
+
+        if self._set_settings.winfo_ismapped():
+            return
+
+        self._main_page.pack_forget()
+        self._set_settings.pack(fill='both', expand=True)
+
+    def _close_settings(self):
+        self._set_settings.pack_forget()
+        self._main_page.pack(fill='both', expand=True)
 
     def _check_for_updates(self):
         result = self._update.update_check()

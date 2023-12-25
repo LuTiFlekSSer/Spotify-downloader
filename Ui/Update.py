@@ -48,7 +48,7 @@ class Update(ctk.CTkFrame):
         )
         self._logo = ctk.CTkCanvas(self, width=100, height=100, highlightthickness=0, bg=self._button_frame['bg'])
 
-        logo = Image.open(Utils.resource_path('icon.ico')).resize((100, 100))
+        logo = Image.open(Utils.resource_path('icons/icon.ico')).resize((100, 100))
         self._logo_image = ImageTk.PhotoImage(logo)
         self._logo.create_image(0, 0, anchor=ctk.NW, image=self._logo_image)
 

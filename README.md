@@ -1,6 +1,6 @@
 <h1 align="center">
 
-![Logo](icon.ico)  
+![Logo](icons/icon.ico)  
 Spotify-downloader
 
 </h1>

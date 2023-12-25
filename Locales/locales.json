@@ -87,6 +87,82 @@
     "run_as_script_error": {
       "ru": "Работает только при запуске exe-файла",
       "en": "Only works when running the exe file"
+    },
+    "sync_tracks": {
+      "ru": "Синхронизировать\nтреки",
+      "en": "Sync\ntracks"
+    },
+    "check_tracks": {
+      "ru": "Проверить\nтреки",
+      "en": "Check\ntracks"
+    },
+    "download_playlist": {
+      "ru": "Скачать\nплейлист",
+      "en": "Download\nplaylist"
+    },
+    "download_tracks": {
+      "ru": "Скачать\nтреки",
+      "en": "Download\ntracks"
+    },
+    "settings": {
+      "ru": "Настройки",
+      "en": "Settings"
+    },
+    "set_threads": {
+      "ru": "Количество потоков",
+      "en": "Number of threads"
+    },
+    "set_sync_dir": {
+      "ru": "Синхронизируемая папка",
+      "en": "Sync folder"
+    },
+    "set_auto_tracks_compare": {
+      "ru": "Проверка треков в spotify",
+      "en": "Check of tracks in spotify"
+    },
+    "clear_data": {
+      "ru": "Очистить данные авторизации",
+      "en": "Clear authorization data"
+    },
+    "local_ignore": {
+      "ru": "Локальный игнор лист",
+      "en": "Local ignore list"
+    },
+    "server_ignore": {
+      "ru": "Серверный игнор лист",
+      "en": "Server ignore list"
+    },
+    "auto_check_update": {
+      "ru": "Проверка обновлений",
+      "en": "Update check"
+    },
+    "rewrite_tracks": {
+      "ru": "Перезапись треков",
+      "en": "Rewrite tracks"
+    },
+    "set_threads_title": {
+      "ru": "Поменять количество потоков для загрузки треков",
+      "en": "Change the number of threads for downloading tracks"
+    },
+    "current_threads": {
+      "ru": "Текущее количество потоков",
+      "en": "Current number of threads"
+    },
+    "new_threads": {
+      "ru": "Новое количество потоков:",
+      "en": "New number of threads:"
+    },
+    "apply": {
+      "ru": "Применить",
+      "en": "Apply"
+    },
+    "cancel": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "no_value_error": {
+      "ru": "Не указано значение",
+      "en": "No value specified"
     }
   }
 }
