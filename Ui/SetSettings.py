@@ -153,6 +153,7 @@ class SetSettings(ctk.CTkFrame):
         self._buttons_container.grid(row=1, column=0, sticky='nsw', pady=5, padx=5)
 
         self._current_frame = None
+        self._current_button = None
         self._settings_set_threads()
 
     def _settings_set_threads(self):
@@ -242,8 +243,13 @@ class SetSettings(ctk.CTkFrame):
         if self._current_frame is not None:
             self._current_frame.grid_forget()
 
+        if self._current_button is not None:
+            self._current_button.configure(fg_color='transparent')
+
+        self._set_threads_button.configure(fg_color=('gray75', 'gray25'))
         self._thread_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
         self._current_frame = self._thread_frame
+        self._current_button = self._set_threads_button
         return
 
     def _settings_set_path(self):
@@ -369,47 +375,12 @@ class SetSettings(ctk.CTkFrame):
             self._confirm_path_frame.grid(row=4, column=0, sticky='se', padx=5, pady=5)
 
         self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._set_sync_dir_button.configure(fg_color=('gray75', 'gray25'))
         self._path_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
         self._current_frame = self._path_frame
-        return
-
-        def print_menu():
-            os.system('cls')
-            print(f'{Utils.cyan("Смена папки, в которой производится синхронизация треков")}\n\n'
-                  f'{Utils.green("Текущее расположение:")} {"Не задано" if (directory := self._settings.get_setting("path_for_sync")) == "" else directory}')
-
-            print(f'{Utils.blue("[1]")} - Поменять расположение\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
-
-        print_menu()
-
-        while True:
-            match Utils.g_input('> '):
-                case '1':
-                    try:
-                        directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
-                        self._settings.change_setting('path_for_sync', directory)
-
-                        print(f'{Utils.green("Путь изменен на:")} {directory}')
-                        time.sleep(1)
-
-                    except Exception:
-                        print(Utils.red('Отменено'))
-                        time.sleep(1)
-
-                    break
-
-                case 'c':
-                    print_menu()
-
-                case 'b':
-                    print(Utils.green('Возврат в настройки'))
-                    time.sleep(1)
-                    break
-
-                case _:
-                    print(Utils.red('Ошибка ввода'))
+        self._current_button = self._set_sync_dir_button
 
     def _settings_set_auto_compare(self):
         def print_menu():
