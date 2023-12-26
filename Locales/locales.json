@@ -187,6 +187,18 @@
     "choose_folder": {
       "ru": "Выбери папку",
       "en": "Choose folder"
+    },
+    "set_auto_compare_title": {
+      "ru": "Проверка отсутствующих треков в spotify при синхронизации",
+      "en": "Checking for missing tracks in spotify when syncing"
+    },
+    "on": {
+      "ru": "Включено",
+      "en": "On"
+    },
+    "off": {
+      "ru": "Выключено",
+      "en": "Off"
     }
   }
 }
