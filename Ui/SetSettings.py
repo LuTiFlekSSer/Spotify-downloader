@@ -69,7 +69,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_clear_login_data
         )
         self._local_ignore_button = ctk.CTkButton(
             self._buttons_container,
@@ -447,18 +448,34 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._set_auto_compare_button
 
     def _settings_clear_login_data(self):
-        def print_menu():
-            os.system('cls')
-            print(f'{Utils.cyan("Очистка данных для входа в аккаунт")}\n\n'
-                  f'{Utils.blue("[1]")} - Очистить\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
+        if not hasattr(self, '_clear_login_frame'):
+            self._clear_login_frame = ctk.CTkFrame(self)
 
-        print_menu()
+            self._clear_login_frame_title = ctk.CTkTextbox(
+                self._clear_login_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=51,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._clear_login_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._clear_login_frame_title.insert('end', self._locales.get_string('clear_login_data_title'))
+            self._clear_login_frame_title.configure(state='disabled')
 
-        while True:
-            match Utils.g_input('> '):
-                case '1':
+            def _clear_login_data():
+                result = CTkMessagebox(
+                    title=self._locales.get_string('clear?'),
+                    message=self._locales.get_string('clear_login_data'),
+                    icon='question',
+                    option_1=self._locales.get_string('yes'),
+                    option_2=self._locales.get_string('no'),
+                    topmost=False
+                ).get()
+
+                if result == self._locales.get_string('yes'):
                     self._settings.change_setting('client_id', '')
                     self._settings.change_setting('client_secret', '')
                     self._settings.change_setting('redirect_uri', '')
@@ -469,20 +486,31 @@ class SetSettings(ctk.CTkFrame):
                     except FileNotFoundError:
                         pass
 
-                    print(Utils.green('Очищено'))
-                    time.sleep(1)
-                    break
+                    CTkMessagebox(
+                        title=self._locales.get_string('clear_title'),
+                        message=self._locales.get_string('data_cleared'),
+                        icon='check',
+                        topmost=False
+                    ).get()
 
-                case 'c':
-                    print_menu()
+            self._clear_login_data_button = ctk.CTkButton(
+                self._clear_login_frame,
+                text=self._locales.get_string('clear'),
+                command=_clear_login_data
+            )
 
-                case 'b':
-                    print(Utils.green('Возврат в настройки'))
-                    time.sleep(1)
-                    break
+            self._clear_login_frame.grid_columnconfigure(0, weight=1)
 
-                case _:
-                    print(Utils.red('Ошибка ввода'))
+            self._clear_login_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+            self._clear_login_data_button.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+        self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._clear_data_button.configure(fg_color=('gray75', 'gray25'))
+        self._clear_login_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._clear_login_frame
+        self._current_button = self._clear_data_button
 
     def _settings_local_ignore_list(self):
         def print_menu():
