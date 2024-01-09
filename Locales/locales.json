@@ -199,6 +199,70 @@
     "off": {
       "ru": "Выключено",
       "en": "Off"
+    },
+    "clear_login_data_title": {
+      "ru": "Очистка данных для входа в аккаунт",
+      "en": "Clearing login data"
+    },
+    "clear": {
+      "ru": "Очистить",
+      "en": "Clear"
+    },
+    "clear?": {
+      "ru": "Очистить?",
+      "en": "Clear?"
+    },
+    "clear_login_data": {
+      "ru": "Очистить данные авторизации?",
+      "en": "Clear authorization data?"
+    },
+    "data_cleared": {
+      "ru": "Данные авторизации очищены",
+      "en": "Authorization data cleared"
+    },
+    "clear_title": {
+      "ru": "Очищено",
+      "en": "Cleared"
+    },
+    "local_ignore_title": {
+      "ru": "Локальный игнор лист",
+      "en": "Local ignore list"
+    },
+    "local_ignore_description": {
+      "ru": "Эти треки будут игнорироваться при получении треков из Spotify",
+      "en": "These tracks will be ignored when getting tracks from Spotify"
+    },
+    "title": {
+      "ru": "Название",
+      "en": "Title"
+    },
+    "delete": {
+      "ru": "Удалить",
+      "en": "Delete"
+    },
+    "add": {
+      "ru": "Добавить",
+      "en": "Add"
+    },
+    "local_ignore_hint": {
+      "ru": "Название трека (название - исполнитель) или номер (1, 2-5) (для удаления):",
+      "en": "Track title (title - artist) or number (1, 2-5) (for deletion):"
+    },
+    "already_exists": {
+      "ru": "Трек уже находится в игнор листе",
+      "en": "The track is already in the ignore list"
+    },
+    "input_error": {
+      "ru": "Ошибка ввода",
+      "en": "Input error"
+    },
+    "index_error": {
+      "ru": "Ошибка в введенных номерах треков",
+      "en": "Error in the entered track numbers"
+    },
+    "not_found_error": {
+      "ru": "Трек не найден",
+      "en": "Track not found"
     }
   }
 }
