@@ -691,64 +691,6 @@ class SetSettings(ctk.CTkFrame):
         self._current_frame = self._local_ignore_frame
         self._current_button = self._local_ignore_button
 
-        # def print_menu():
-        #     os.system('cls')
-        #     print(f'{Utils.cyan("Управление локальным игнор листом")}\n'
-        #           f'{Utils.green("Эти треки будут игнорироваться при получении треков из spotify")}\n')
-        #
-        #     print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
-        #           f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
-        #           f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
-        #           f'{Utils.purple("[c]")} - Очистка ввода\n'
-        #           f'{Utils.purple("[b]")} - Назад')
-        #
-        # print_menu()
-        #
-        # while True:
-        #     match Utils.g_input('> '):
-        #         case '1':
-        #             for i, name in enumerate(il := sorted(self._settings.get_all_local_ignore_tracks())):
-        #                 print(f'{i + 1}) "{name}"')
-        #
-        #             if len(il) == 0:
-        #                 print(Utils.yellow('Список пуст'))
-        #
-        #         case '2':
-        #             print(Utils.yellow('Введи название трека\n\n'
-        #                                f'{Utils.purple("[b]")} - Назад'))
-        #
-        #             name = Utils.g_input('> ')
-        #
-        #             if name == 'b':
-        #                 print(Utils.green('Отмена ввода'))
-        #                 continue
-        #
-        #             try:
-        #                 self._settings.add_track_to_local_ignore(name)
-        #
-        #                 self._settings.save()
-        #
-        #                 print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
-        #
-        #             except SettingsStorage.AlreadyExistsError:
-        #                 print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
-        #
-        #         case '3':
-        #             Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_local_ignore_tracks()), self._settings.delete_track_from_local_ignore)
-        #
-        #             self._settings.save()
-        #
-        #         case 'c':
-        #             print_menu()
-        #
-        #         case 'b':
-        #             print(Utils.green('Возврат в настройки'))
-        #             time.sleep(1)
-        #             break
-        #
-        #         case _:
-        #             print(Utils.red('Ошибка ввода'))
-
     def _settings_server_ignore_list(self):
         def print_menu():
             os.system('cls')
