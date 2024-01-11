@@ -90,7 +90,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_server_ignore_list
         )
         self._update_check_button = ctk.CTkButton(
             self._buttons_container,
@@ -592,8 +593,8 @@ class SetSettings(ctk.CTkFrame):
 
                 if track_name == '':
                     CTkMessagebox(
-                        title=Locales.Locales.get_string('error'),
-                        message=Locales.Locales.get_string('input_error'),
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('input_error'),
                         icon='cancel',
                         topmost=False
                     ).get()
@@ -633,24 +634,24 @@ class SetSettings(ctk.CTkFrame):
 
                 except ValueError:
                     CTkMessagebox(
-                        title=Locales.Locales.get_string('error'),
-                        message=Locales.Locales.get_string('input_error'),
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('input_error'),
                         icon='cancel',
                         topmost=False
                     ).get()
 
                 except IndexError:
                     CTkMessagebox(
-                        title=Locales.Locales.get_string('error'),
-                        message=Locales.Locales.get_string('index_error'),
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('index_error'),
                         icon='cancel',
                         topmost=False
                     ).get()
 
                 except SettingsStorage.NotFoundError:
                     CTkMessagebox(
-                        title=Locales.Locales.get_string('error'),
-                        message=Locales.Locales.get_string('not_found_error'),
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('not_found_error'),
                         icon='cancel',
                         topmost=False
                     ).get()
@@ -692,63 +693,181 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._local_ignore_button
 
     def _settings_server_ignore_list(self):
-        def print_menu():
-            os.system('cls')
-            print(f'{Utils.cyan("Управление серверным игнор листом")}\n'
-                  f'{Utils.green("Эти треки будут игнорироваться при поиске треков, которых нет в spotify")}\n')
+        def _get_values():
+            return ([['№', self._locales.get_string('title')]] +
+                    [[i + 1, track] for i, track in enumerate(sorted(self._settings.get_all_server_ignore_tracks()))])
 
-            print(f'{Utils.blue("[1]")} - Вывести текущий список треков\n'
-                  f'{Utils.blue("[2]")} - Добавить трек в игнор лист\n'
-                  f'{Utils.blue("[3]")} - Удалить трек из игнор листа\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
+        def _update_table():
+            self._server_ignore_table.delete_rows(range(len(self._server_ignore_table.get())))
 
-        print_menu()
+            for value in _get_values():
+                self._server_ignore_table.add_row(value, width=10)
 
-        while True:
-            match Utils.g_input('> '):
-                case '1':
-                    for i, name in enumerate(il := sorted(self._settings.get_all_server_ignore_tracks())):
-                        print(f'{i + 1}) "{name}"')
+        if not hasattr(self, '_server_ignore_frame'):
+            self._server_ignore_frame = ctk.CTkFrame(self)
 
-                    if len(il) == 0:
-                        print(Utils.yellow('Список пуст'))
+            self._server_ignore_frame_title = ctk.CTkTextbox(
+                self._server_ignore_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=20,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._server_ignore_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._server_ignore_frame_title.insert('end', self._locales.get_string('server_ignore_title'))
+            self._server_ignore_frame_title.configure(state='disabled')
 
-                case '2':
-                    print(Utils.yellow('Введи название трека\n\n'
-                                       f'{Utils.purple("[b]")} - Назад'))
+            self._server_ignore_description = ctk.CTkTextbox(
+                self._server_ignore_frame,
+                wrap='word',
+                height=45,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._server_ignore_description.bind('<MouseWheel>', lambda event: 'break')
+            self._server_ignore_description.insert('end', self._locales.get_string('server_ignore_description'))
+            self._server_ignore_description.configure(state='disabled')
 
-                    name = Utils.g_input('> ')
+            values = _get_values()
 
-                    if name == 'b':
-                        print(Utils.green('Отмена ввода'))
-                        continue
+            self._server_ignore_table_frame = ctk.CTkScrollableFrame(self._server_ignore_frame)
 
-                    try:
-                        self._settings.add_track_to_server_ignore(name)
+            self._server_ignore_table = CTkTable(
+                self._server_ignore_table_frame,
+                width=10,
+                wraplength=250,
+                values=values
+            )
+            self._server_ignore_input_description = ctk.CTkTextbox(
+                self._server_ignore_frame,
+                wrap='word',
+                height=45,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._server_ignore_input_description.bind('<MouseWheel>', lambda event: 'break')
+            self._server_ignore_input_description.insert('end', self._locales.get_string('local_ignore_hint'))
+            self._server_ignore_input_description.configure(state='disabled')
 
-                        self._settings.save()
+            self._server_ignore_input = ctk.CTkEntry(
+                self._server_ignore_frame
+            )
 
-                        print(f'{Utils.Colors.GREEN}Трек {Utils.Colors.END}"{name}"{Utils.Colors.GREEN} добавлен в игнор лист{Utils.Colors.END}')
+            self._server_ignore_button_frame = ctk.CTkFrame(
+                self._server_ignore_frame,
+                fg_color=self._server_ignore_frame.cget('fg_color')
+            )
 
-                    except SettingsStorage.AlreadyExistsError:
-                        print(f'{Utils.Colors.RED}Трек {Utils.Colors.END}"{name}"{Utils.Colors.RED} уже был добавлен игнор лист{Utils.Colors.END}')
+            def _add_track():
+                track_name = self._server_ignore_input.get().strip()
 
-                case '3':
-                    Utils.remove_tracks_from_ignore(sorted(self._settings.get_all_server_ignore_tracks()), self._settings.delete_track_from_server_ignore)
+                if track_name == '':
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('input_error'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
+
+                    return
+
+                try:
+
+                    self._settings.add_track_to_server_ignore(track_name)
 
                     self._settings.save()
 
-                case 'c':
-                    print_menu()
+                    self._server_ignore_input.delete(0, 'end')
+                    _update_table()
 
-                case 'b':
-                    print(Utils.green('Возврат в настройки'))
-                    time.sleep(1)
-                    break
+                except SettingsStorage.AlreadyExistsError:
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('already_exists'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
 
-                case _:
-                    print(Utils.red('Ошибка ввода'))
+            def _delete_tracks():
+                tracks_input = self._server_ignore_input.get().strip()
+                try:
+                    Utils.remove_tracks_from_ignore(
+                        sorted(self._settings.get_all_server_ignore_tracks()),
+                        self._settings.delete_track_from_server_ignore,
+                        tracks_input
+                    )
+
+                    self._settings.save()
+
+                    self._server_ignore_input.delete(0, 'end')
+                    _update_table()
+
+                except ValueError:
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('input_error'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
+
+                except IndexError:
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('index_error'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
+
+                except SettingsStorage.NotFoundError:
+                    CTkMessagebox(
+                        title=self._locales.get_string('error'),
+                        message=self._locales.get_string('not_found_error'),
+                        icon='cancel',
+                        topmost=False
+                    ).get()
+
+            self._server_ignore_delete_button = ctk.CTkButton(
+                self._server_ignore_button_frame,
+                text=self._locales.get_string('delete'),
+                command=_delete_tracks
+            )
+            self._server_ignore_add_button = ctk.CTkButton(
+                self._server_ignore_button_frame,
+                text=self._locales.get_string('add'),
+                command=_add_track
+            )
+
+            self._server_ignore_frame.grid_columnconfigure(0, weight=1)
+            self._server_ignore_frame.grid_rowconfigure(2, weight=1)
+            self._server_ignore_table_frame.grid_columnconfigure(0, weight=1)
+
+            self._server_ignore_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+            self._server_ignore_description.grid(row=1, column=0, sticky='ew', pady=(5, 0))
+            self._server_ignore_table.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
+            self._server_ignore_table_frame.grid(row=2, column=0, sticky='nsew', padx=5, pady=5)
+            self._server_ignore_input_description.grid(row=3, column=0, sticky='ew', pady=(5, 0))
+            self._server_ignore_input.grid(row=4, column=0, sticky='we', padx=5, pady=5)
+            self._server_ignore_button_frame.grid(row=5, column=0, sticky='e', padx=5, pady=5)
+            self._server_ignore_delete_button.grid(row=0, column=0, padx=5, pady=5)
+            self._server_ignore_add_button.grid(row=0, column=1, padx=5, pady=5)
+
+        else:
+            _update_table()
+
+        self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._server_ignore_button.configure(fg_color=('gray75', 'gray25'))
+        self._server_ignore_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._server_ignore_frame
+        self._current_button = self._server_ignore_button
 
     def _settings_auto_update(self):
         def print_menu():

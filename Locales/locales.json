@@ -263,6 +263,14 @@
     "not_found_error": {
       "ru": "Трек не найден",
       "en": "Track not found"
+    },
+    "server_ignore_title": {
+      "ru": "Серверный игнор лист",
+      "en": "Server ignore list"
+    },
+    "server_ignore_description": {
+      "ru": "Эти треки будут игнорироваться при поиске треков, которых нет в любимых в Spotify",
+      "en": "These tracks will be ignored when searching for tracks that are not in favorites in Spotify"
     }
   }
 }

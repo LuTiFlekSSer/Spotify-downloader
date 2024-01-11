@@ -218,11 +218,11 @@ def _parse_numbers(numbers: str):
     return ranges
 
 
-def _cli_part_of_menu(tracks, tracks_input):
+def _input_parser(tracks, tracks_input):
     if tracks_input == '':
         raise ValueError
 
-    if tracks_input in tracks or set(tracks_input) - set(string.digits + ',-'):
+    if tracks_input in tracks or set(tracks_input) - set(string.digits + ' ,-'):
         return tracks_input
 
     numbers_range = _parse_numbers(tracks_input)
@@ -234,7 +234,7 @@ def _cli_part_of_menu(tracks, tracks_input):
 
 
 def add_tracks_to_ignore(tracks, add, tracks_input):
-    track_list = _cli_part_of_menu(tracks, tracks_input)
+    track_list = _input_parser(tracks, tracks_input)
 
     if track_list is None:
         return False
@@ -263,7 +263,7 @@ def add_tracks_to_ignore(tracks, add, tracks_input):
 
 
 def remove_tracks_from_ignore(tracks, remove, tracks_input):
-    track_list = _cli_part_of_menu(tracks, tracks_input)
+    track_list = _input_parser(tracks, tracks_input)
 
     if track_list is None:
         return
