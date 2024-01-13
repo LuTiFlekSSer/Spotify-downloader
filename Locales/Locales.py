@@ -35,3 +35,7 @@ class Locales:
             raise Errors.SetLocaleError
 
         Locales._language = language
+
+    @staticmethod
+    def get_languages():
+        return Locales._locales['languages']

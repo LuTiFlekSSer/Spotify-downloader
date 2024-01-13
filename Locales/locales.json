@@ -1,8 +1,8 @@
 {
-  "languages": [
-    "ru",
-    "en"
-  ],
+  "languages": {
+    "ru": "Русский",
+    "en": "English"
+  },
   "strings": {
     "yes": {
       "en": "Yes",
@@ -202,7 +202,7 @@
     },
     "clear_login_data_title": {
       "ru": "Очистка данных для входа в аккаунт",
-      "en": "Clearing login data"
+      "en": "Clearing authorization data"
     },
     "clear": {
       "ru": "Очистить",
@@ -279,6 +279,18 @@
     "set_overwrite_tracks_title": {
       "ru": "Перезапись существующих треков в папке при загрузке",
       "en": "Overwriting existing tracks in a folder when downloading"
+    },
+    "set_language_title": {
+      "ru": "Язык приложения",
+      "en": "Application language"
+    },
+    "language_changed": {
+      "ru": "Изменение языка",
+      "en": "Changing the language"
+    },
+    "language_changed_message": {
+      "ru": "Перезапустите приложение, чтобы изменить язык",
+      "en": "Restart the application to change the language"
     }
   }
 }
