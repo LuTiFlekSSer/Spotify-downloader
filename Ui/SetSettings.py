@@ -1,6 +1,5 @@
 import SettingsStorage
 import os
-import time
 import win32com.client
 import Utils
 import customtkinter as ctk
@@ -110,7 +109,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_overwrite_tracks
         )
         self._set_language_button = ctk.CTkButton(
             self._buttons_container,
@@ -949,37 +949,79 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._update_check_button
 
     def _settings_overwrite_tracks(self):
-        def print_menu():
-            os.system('cls')
-            print(f'{Utils.cyan("Перезапись существующих треков при загрузке")}\n\n'
-                  f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("overwrite_tracks") == "True" else "Выключено"}')
+        if not hasattr(self, '_overwrite_tracks_frame'):
+            self._overwrite_tracks_frame = ctk.CTkFrame(self)
 
-            print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("overwrite_tracks") == "True" else "Включить"}\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
+            self._overwrite_tracks_frame_title = ctk.CTkTextbox(
+                self._overwrite_tracks_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=51,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._overwrite_tracks_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._overwrite_tracks_frame_title.insert('end', self._locales.get_string('set_overwrite_tracks_title'))
+            self._overwrite_tracks_frame_title.configure(state='disabled')
 
-        print_menu()
+            curr_value = 0 if self._settings.get_setting('overwrite_tracks') == 'True' else 1
 
-        while True:
-            match Utils.g_input('> '):
-                case '1':
-                    if self._settings.get_setting("overwrite_tracks") == "True":
-                        self._settings.change_setting('overwrite_tracks', 'False')
-                        print(Utils.green('Выключено'))
-                    else:
-                        self._settings.change_setting('overwrite_tracks', 'True')
-                        print(Utils.green('Включено'))
+            def _radio_command():
+                self._apply_overwrite_tracks_button.configure(state='normal')
 
-                    time.sleep(1)
-                    break
+            self._overwrite_tracks_var = ctk.IntVar(self, curr_value)
+            self._overwrite_tracks_on_radio = ctk.CTkRadioButton(
+                self._overwrite_tracks_frame,
+                text=self._locales.get_string('on'),
+                variable=self._overwrite_tracks_var,
+                value=0,
+                command=_radio_command
+            )
+            self._overwrite_tracks_off_radio = ctk.CTkRadioButton(
+                self._overwrite_tracks_frame,
+                text=self._locales.get_string('off'),
+                variable=self._overwrite_tracks_var,
+                value=1,
+                command=_radio_command
+            )
 
-                case 'c':
-                    print_menu()
+            def _set_overwrite_tracks():
+                self._settings.change_setting('overwrite_tracks', 'True' if self._overwrite_tracks_var.get() == 0 else 'False')
+                self._apply_overwrite_tracks_button.configure(state='disabled')
 
-                case 'b':
-                    print(Utils.green('Возврат в настройки'))
-                    time.sleep(1)
-                    break
+            def _cancel():
+                self._overwrite_tracks_var.set(0 if self._settings.get_setting('overwrite_tracks') == 'True' else 1)
+                self._apply_overwrite_tracks_button.configure(state='disabled')
 
-                case _:
-                    print(Utils.red('Ошибка ввода'))
+            self._confirm_overwrite_tracks_frame = ctk.CTkFrame(self._overwrite_tracks_frame, fg_color=self._overwrite_tracks_frame.cget('fg_color'))
+            self._apply_overwrite_tracks_button = ctk.CTkButton(
+                self._confirm_overwrite_tracks_frame,
+                text=self._locales.get_string('apply'),
+                command=_set_overwrite_tracks,
+                state='disabled'
+            )
+            self._cancel_overwrite_tracks_button = ctk.CTkButton(
+                self._confirm_overwrite_tracks_frame,
+                text=self._locales.get_string('cancel'),
+                command=_cancel
+            )
+
+            self._overwrite_tracks_frame.grid_columnconfigure(0, weight=1)
+            self._overwrite_tracks_frame.grid_rowconfigure(3, weight=1)
+
+            self._overwrite_tracks_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+            self._overwrite_tracks_on_radio.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+            self._overwrite_tracks_off_radio.grid(row=2, column=0, sticky='w', padx=5, pady=5)
+            self._apply_overwrite_tracks_button.grid(row=0, column=0, padx=5, pady=5)
+            self._cancel_overwrite_tracks_button.grid(row=0, column=1, padx=5, pady=5)
+            self._confirm_overwrite_tracks_frame.grid(row=3, column=0, sticky='se', padx=5, pady=5)
+
+        self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._rewrite_tracks_button.configure(fg_color=('gray75', 'gray25'))
+        self._overwrite_tracks_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._overwrite_tracks_frame
+        self._current_button = self._rewrite_tracks_button

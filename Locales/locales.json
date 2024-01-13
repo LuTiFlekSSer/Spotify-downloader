@@ -275,6 +275,10 @@
     "set_auto_update_title": {
       "ru": "Автоматическая проверка обновлений программы при запуске",
       "en": "Automatic checking for program updates when starting"
+    },
+    "set_overwrite_tracks_title": {
+      "ru": "Перезапись существующих треков в папке при загрузке",
+      "en": "Overwriting existing tracks in a folder when downloading"
     }
   }
 }
