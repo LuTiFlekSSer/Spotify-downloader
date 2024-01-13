@@ -119,7 +119,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_set_language
         )
 
         self.grid_columnconfigure(1, weight=1)
@@ -1025,3 +1026,84 @@ class SetSettings(ctk.CTkFrame):
         self._overwrite_tracks_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
         self._current_frame = self._overwrite_tracks_frame
         self._current_button = self._rewrite_tracks_button
+
+    def _settings_set_language(self):
+        if not hasattr(self, '_set_language_frame'):
+            self._set_language_frame = ctk.CTkFrame(self)
+
+            self._language_frame_title = ctk.CTkTextbox(
+                self._set_language_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=51,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._language_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._language_frame_title.insert('end', self._locales.get_string('set_language_title'))
+            self._language_frame_title.configure(state='disabled')
+
+            def _language_list_callback(choice):
+                self._apply_language_button.configure(state='normal')
+
+            self._language_list = ctk.CTkComboBox(
+                self._set_language_frame,
+                values=list(self._locales.get_languages().values()),
+                command=_language_list_callback,
+                state='readonly'
+            )
+            self._language_list.set(self._locales.get_languages()[self._settings.get_setting('language')])
+
+            def _set_language():
+                language = self._language_list.get()
+
+                for code, lang in self._locales.get_languages().items():
+                    if lang == language:
+                        language = code
+                        break
+
+                self._settings.change_setting('language', language)
+                self._apply_language_button.configure(state='disabled')
+
+                CTkMessagebox(
+                    title=self._locales.get_string('language_changed'),
+                    message=self._locales.get_string('language_changed_message'),
+                    icon='info',
+                    topmost=False
+                ).get()
+
+            def _cancel():
+                self._language_list.set(self._locales.get_languages()[self._settings.get_setting('language')])
+                self._apply_language_button.configure(state='disabled')
+
+            self._confirm_language_frame = ctk.CTkFrame(self._set_language_frame, fg_color=self._set_language_frame.cget('fg_color'))
+            self._apply_language_button = ctk.CTkButton(
+                self._confirm_language_frame,
+                text=self._locales.get_string('apply'),
+                command=_set_language,
+                state='disabled'
+            )
+            self._cancel_language_button = ctk.CTkButton(
+                self._confirm_language_frame,
+                text=self._locales.get_string('cancel'),
+                command=_cancel
+            )
+
+            self._set_language_frame.grid_columnconfigure(0, weight=1)
+            self._set_language_frame.grid_rowconfigure(2, weight=1)
+
+            self._language_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+            self._language_list.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+            self._apply_language_button.grid(row=0, column=0, padx=5, pady=5)
+            self._cancel_language_button.grid(row=0, column=1, padx=5, pady=5)
+            self._confirm_language_frame.grid(row=2, column=0, sticky='se', padx=5, pady=5)
+
+        self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._set_language_button.configure(fg_color=('gray75', 'gray25'))
+        self._set_language_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._set_language_frame
+        self._current_button = self._set_language_button
