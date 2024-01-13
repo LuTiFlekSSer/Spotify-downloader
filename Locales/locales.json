@@ -189,8 +189,8 @@
       "en": "Choose folder"
     },
     "set_auto_compare_title": {
-      "ru": "Проверка отсутствующих треков в spotify при синхронизации",
-      "en": "Checking for missing tracks in spotify when syncing"
+      "ru": "Проверка отсутствующих любимых треков в spotify при синхронизации",
+      "en": "Checking for missing favorite tracks in spotify when syncing"
     },
     "on": {
       "ru": "Включено",
@@ -270,6 +270,10 @@
     },
     "server_ignore_description": {
       "ru": "Эти треки будут игнорироваться при поиске треков, которых нет в любимых в Spotify",
+      "en": "These tracks will be ignored when searching for tracks that are not in favorites in Spotify"
+    },
+    "set_auto_update_title": {
+      "ru": "Автоматическая проверка обновлений программы при запуске",
       "en": "These tracks will be ignored when searching for tracks that are not in favorites in Spotify"
     }
   }

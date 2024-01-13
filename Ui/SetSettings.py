@@ -100,7 +100,8 @@ class SetSettings(ctk.CTkFrame):
             fg_color="transparent",
             corner_radius=0,
             border_spacing=10,
-            anchor='w'
+            anchor='w',
+            command=self._settings_auto_update
         )
         self._rewrite_tracks_button = ctk.CTkButton(
             self._buttons_container,
@@ -870,40 +871,116 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._server_ignore_button
 
     def _settings_auto_update(self):
-        def print_menu():
-            os.system('cls')
-            print(f'{Utils.cyan("Автоматическая проверка обновлений")}\n\n'
-                  f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_update") == "True" else "Выключено"}')
+        if not hasattr(self, '_auto_update_frame'):
+            self._auto_update_frame = ctk.CTkFrame(self)
 
-            print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_update") == "True" else "Включить"}\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
+            self._auto_update_frame_title = ctk.CTkTextbox(
+                self._auto_update_frame,
+                font=('Arial', 17, 'bold'),
+                wrap='word',
+                height=51,
+                activate_scrollbars=False,
+                padx=0,
+                pady=0,
+                fg_color=self._thread_frame.cget('fg_color')
+            )
+            self._auto_update_frame_title.bind('<MouseWheel>', lambda event: 'break')
+            self._auto_update_frame_title.insert('end', self._locales.get_string('set_auto_update_title'))
+            self._auto_update_frame_title.configure(state='disabled')
 
-        print_menu()
+            curr_value = 0 if self._settings.get_setting('auto_update') == 'True' else 1
 
-        while True:
-            match Utils.g_input('> '):
-                case '1':
-                    if self._settings.get_setting("auto_update") == "True":
-                        self._settings.change_setting('auto_update', 'False')
-                        print(Utils.green('Выключено'))
-                    else:
-                        self._settings.change_setting('auto_update', 'True')
-                        print(Utils.green('Включено'))
+            def _radio_command():
+                self._apply_auto_update_button.configure(state='normal')
 
-                    time.sleep(1)
-                    break
+            self._auto_update_var = ctk.IntVar(self, curr_value)
+            self._auto_update_on_radio = ctk.CTkRadioButton(
+                self._auto_update_frame,
+                text=self._locales.get_string('on'),
+                variable=self._auto_update_var,
+                value=0,
+                command=_radio_command
+            )
+            self._auto_update_off_radio = ctk.CTkRadioButton(
+                self._auto_update_frame,
+                text=self._locales.get_string('off'),
+                variable=self._auto_update_var,
+                value=1,
+                command=_radio_command
+            )
 
-                case 'c':
-                    print_menu()
+            def _set_auto_update():
+                self._settings.change_setting('auto_update', 'True' if self._auto_update_var.get() == 0 else 'False')
+                self._apply_auto_update_button.configure(state='disabled')
 
-                case 'b':
-                    print(Utils.green('Возврат в настройки'))
-                    time.sleep(1)
-                    break
+            def _cancel():
+                self._auto_update_var.set(0 if self._settings.get_setting('auto_update') == 'True' else 1)
+                self._apply_auto_update_button.configure(state='disabled')
 
-                case _:
-                    print(Utils.red('Ошибка ввода'))
+            self._confirm_auto_update_frame = ctk.CTkFrame(self._auto_update_frame, fg_color=self._auto_update_frame.cget('fg_color'))
+            self._apply_auto_update_button = ctk.CTkButton(
+                self._confirm_auto_update_frame,
+                text=self._locales.get_string('apply'),
+                command=_set_auto_update,
+                state='disabled'
+            )
+            self._cancel_auto_update_button = ctk.CTkButton(
+                self._confirm_auto_update_frame,
+                text=self._locales.get_string('cancel'),
+                command=_cancel
+            )
+
+            self._auto_update_frame.grid_columnconfigure(0, weight=1)
+            self._auto_update_frame.grid_rowconfigure(3, weight=1)
+
+            self._auto_update_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
+            self._auto_update_on_radio.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+            self._auto_update_off_radio.grid(row=2, column=0, sticky='w', padx=5, pady=5)
+            self._apply_auto_update_button.grid(row=0, column=0, padx=5, pady=5)
+            self._cancel_auto_update_button.grid(row=0, column=1, padx=5, pady=5)
+            self._confirm_auto_update_frame.grid(row=3, column=0, sticky='se', padx=5, pady=5)
+
+        self._current_frame.grid_forget()
+        self._current_button.configure(fg_color='transparent')
+
+        self._update_check_button.configure(fg_color=('gray75', 'gray25'))
+        self._auto_update_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
+        self._current_frame = self._auto_update_frame
+        self._current_button = self._update_check_button
+        # def print_menu():
+        #     os.system('cls')
+        #     print(f'{Utils.cyan("Автоматическая проверка обновлений")}\n\n'
+        #           f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_update") == "True" else "Выключено"}')
+        #
+        #     print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_update") == "True" else "Включить"}\n\n'
+        #           f'{Utils.purple("[c]")} - Очистка ввода\n'
+        #           f'{Utils.purple("[b]")} - Назад')
+        #
+        # print_menu()
+        #
+        # while True:
+        #     match Utils.g_input('> '):
+        #         case '1':
+        #             if self._settings.get_setting("auto_update") == "True":
+        #                 self._settings.change_setting('auto_update', 'False')
+        #                 print(Utils.green('Выключено'))
+        #             else:
+        #                 self._settings.change_setting('auto_update', 'True')
+        #                 print(Utils.green('Включено'))
+        #
+        #             time.sleep(1)
+        #             break
+        #
+        #         case 'c':
+        #             print_menu()
+        #
+        #         case 'b':
+        #             print(Utils.green('Возврат в настройки'))
+        #             time.sleep(1)
+        #             break
+        #
+        #         case _:
+        #             print(Utils.red('Ошибка ввода'))
 
     def _settings_overwrite_tracks(self):
         def print_menu():
