@@ -274,7 +274,7 @@
     },
     "set_auto_update_title": {
       "ru": "Автоматическая проверка обновлений программы при запуске",
-      "en": "These tracks will be ignored when searching for tracks that are not in favorites in Spotify"
+      "en": "Automatic checking for program updates when starting"
     }
   }
 }

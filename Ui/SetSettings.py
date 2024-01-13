@@ -947,40 +947,6 @@ class SetSettings(ctk.CTkFrame):
         self._auto_update_frame.grid(row=1, column=1, sticky='nsew', padx=5, pady=5)
         self._current_frame = self._auto_update_frame
         self._current_button = self._update_check_button
-        # def print_menu():
-        #     os.system('cls')
-        #     print(f'{Utils.cyan("Автоматическая проверка обновлений")}\n\n'
-        #           f'{Utils.green("Текущее значение:")} {"Включено" if self._settings.get_setting("auto_update") == "True" else "Выключено"}')
-        #
-        #     print(f'{Utils.blue("[1]")} - {"Выключить" if self._settings.get_setting("auto_update") == "True" else "Включить"}\n\n'
-        #           f'{Utils.purple("[c]")} - Очистка ввода\n'
-        #           f'{Utils.purple("[b]")} - Назад')
-        #
-        # print_menu()
-        #
-        # while True:
-        #     match Utils.g_input('> '):
-        #         case '1':
-        #             if self._settings.get_setting("auto_update") == "True":
-        #                 self._settings.change_setting('auto_update', 'False')
-        #                 print(Utils.green('Выключено'))
-        #             else:
-        #                 self._settings.change_setting('auto_update', 'True')
-        #                 print(Utils.green('Включено'))
-        #
-        #             time.sleep(1)
-        #             break
-        #
-        #         case 'c':
-        #             print_menu()
-        #
-        #         case 'b':
-        #             print(Utils.green('Возврат в настройки'))
-        #             time.sleep(1)
-        #             break
-        #
-        #         case _:
-        #             print(Utils.red('Ошибка ввода'))
 
     def _settings_overwrite_tracks(self):
         def print_menu():
