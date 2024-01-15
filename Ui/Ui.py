@@ -24,10 +24,16 @@ class Ui(ctk.CTk):
 
         ctk.set_appearance_mode('Dark')
 
-        self._window_width = 640
-        self._window_height = 400
+        self._settings = SettingsStorage.Settings()
 
-        self.minsize(self._window_width, self._window_height)
+        try:
+            window_size = self._settings.get_setting('window_size')
+            self._window_width, self._window_height = map(int, window_size.split('*'))
+        except SettingsStorage.NotFoundError:
+            self._window_width = 640
+            self._window_height = 400
+
+        self.minsize(640, 400)
         self.title('Spotify downloader')
         self.geometry(self._pos_for_window())
         self.iconbitmap(Utils.resource_path('icons/icon.ico'))
@@ -107,6 +113,8 @@ class Ui(ctk.CTk):
         else:
             self._create_menu_bar()
 
+        self.protocol("WM_DELETE_WINDOW", self._close_callback)
+
     def _create_menu_bar(self):
         self.resizable(True, True)
 
@@ -119,7 +127,7 @@ class Ui(ctk.CTk):
         self._file_dropdown.add_option(option=self._locales.get_string('open_settings'), command=self._open_settings)  # todo чекать, не запущен ли режим в mainpage
         self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)  # todo чекать, не запущен ли режим в mainpage
         self._file_dropdown.add_separator()
-        self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self.quit)
+        self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self._close_callback)
 
         self._main_page = MainPage.MainPage(self)
         self._main_page.pack(fill='both', expand=True)
@@ -169,7 +177,7 @@ class Ui(ctk.CTk):
                     creationflags=subprocess.CREATE_NEW_CONSOLE
                 )
 
-                self.quit()
+                self._close_callback()
         else:
             CTkMessagebox(
                 title=self._locales.get_string('check'),
@@ -179,8 +187,7 @@ class Ui(ctk.CTk):
             ).get()
 
     def _open_sync_folder(self):
-        ss = SettingsStorage.Settings()
-        path = ss.get_setting('path_for_sync')
+        path = self._settings.get_setting('path_for_sync')
 
         if path == '' or not os.path.exists(path):
             CTkMessagebox(
@@ -204,7 +211,14 @@ class Ui(ctk.CTk):
         self._update.pack(fill='both', expand=True, anchor='c')
         self._update.install(self._args.U)
 
-        self.quit()
+        self._close_callback()
+
+    def _close_callback(self):
+        width, height = self.winfo_width(), self.winfo_height()
+
+        self._settings.change_setting('window_size', f'{width}*{height}')
+
+        self.destroy()
 
     def start(self):
         if self._args.U is not None:

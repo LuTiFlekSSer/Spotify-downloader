@@ -35,6 +35,7 @@ class CompatibilityChecker:
         if Utils.compare_versions(self._db_version, '2.0.0'):
             self._settings.change_setting('version', '2.0.0')
             self._settings.create_setting('language', 'en')
+            self._settings.create_setting('window_size', '640*400')
 
             self._db_version = '2.0.0'
 
