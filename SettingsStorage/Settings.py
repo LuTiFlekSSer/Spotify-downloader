@@ -47,7 +47,7 @@ class Settings:
         cur.execute(f"INSERT INTO app_settings VALUES ('version', '{Version.__version__}')")
         cur.execute(f"INSERT INTO app_settings VALUES ('auto_update', 'True')")
         cur.execute(f"INSERT INTO app_settings VALUES ('overwrite_tracks', 'False')")
-        cur.execute(f"INSERT INTO app_settings VALUES ('language', 'en')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('language', 'None')")
         cur.execute(f"INSERT INTO app_settings VALUES ('window_size', '640*400')")
 
     def get_setting(self, name):

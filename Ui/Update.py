@@ -13,6 +13,8 @@ import customtkinter as ctk
 import Locales
 from CTkMessagebox import CTkMessagebox
 from PIL import ImageTk, Image
+import ctypes
+import locale
 
 
 class Update(ctk.CTkFrame):
@@ -62,7 +64,20 @@ class Update(ctk.CTkFrame):
         if self._cc.need_db_update():
             self._cc.update_db()
 
-        Locales.Locales.set_language(self._ss.get_setting('language'))
+        language = self._ss.get_setting('language')
+
+        if language == 'None':
+            windll = ctypes.windll.kernel32
+            system_language = locale.windows_locale[windll.GetUserDefaultUILanguage()]
+
+            if system_language == 'ru_RU':
+                self._ss.change_setting('language', 'ru')
+                language = 'ru'
+            else:
+                self._ss.change_setting('language', 'en')
+                language = 'en'
+
+        Locales.Locales.set_language(language)
 
     def update_check(self, force=False):
         if self._ss.get_setting('auto_update') == 'False' and force is False:
