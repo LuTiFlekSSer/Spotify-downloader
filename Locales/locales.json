@@ -121,8 +121,8 @@
       "en": "Check of tracks in spotify"
     },
     "clear_data": {
-      "ru": "Очистить данные авторизации",
-      "en": "Clear authorization data"
+      "ru": "Очистить данные аккаунта",
+      "en": "Clear account data"
     },
     "local_ignore": {
       "ru": "Локальный игнор лист",
@@ -291,6 +291,42 @@
     "language_changed_message": {
       "ru": "Перезапустите приложение, чтобы изменить язык",
       "en": "Restart the application to change the language"
+    },
+    "login_title": {
+      "ru": "Требуется авторизация",
+      "en": "Authorization required"
+    },
+    "sync_title": {
+      "ru": "Синхронизация треков с аккаунтом",
+      "en": "Synchronize tracks with account"
+    },
+    "back": {
+      "ru": "Назад",
+      "en": "Back"
+    },
+    "next": {
+      "ru": "Далее",
+      "en": "Next"
+    },
+    "code_description": {
+      "ru": "Чтобы выполнить вход, необходимо перейти по ссылке (скопирована в буфер обмена) и скопировать url после перенаправления:",
+      "en": "To log in, you need to follow the link (copied to the clipboard) and copy the url after redirection:"
+    },
+    "login_error": {
+      "ru": "Необходимо заполнить все поля",
+      "en": "You must fill in all fields"
+    },
+    "url_code_error": {
+      "ru": "Введена некорректная ссылка с кодом",
+      "en": "An incorrect link with a code was entered"
+    },
+    "authorization_error": {
+      "ru": "Ошибка входа в аккаунт",
+      "en": "Account login error"
+    },
+    "code_error": {
+      "ru": "Задана некорректная ссылка с кодом. Очистите данные аккаунта в настройках",
+      "en": "An incorrect link with a code is set. Clear account data in settings"
     }
   }
 }
