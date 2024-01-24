@@ -144,10 +144,10 @@ class Update(ctk.CTkFrame):
         download_thread.start()
 
         while download_thread.is_alive():
+            time.sleep(0.01)
+
             self._progress_bar.set(progress_value)
             self.update()
-
-            time.sleep(0.01)
 
         try:
             self._updater.start_update()
