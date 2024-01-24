@@ -16,6 +16,7 @@ import subprocess
 import SettingsStorage
 from CTkMessagebox import CTkMessagebox
 from Ui import SetSettings
+import tkinter as tk
 
 
 class Ui(ctk.CTk):
@@ -25,6 +26,8 @@ class Ui(ctk.CTk):
         ctk.set_appearance_mode('Dark')
 
         self._settings = SettingsStorage.Settings()
+
+        self.bind('<Control-KeyPress>', self._key_handler)
 
         try:
             window_size = self._settings.get_setting('window_size')
@@ -48,6 +51,40 @@ class Ui(ctk.CTk):
 
         self._update = Update.Update(self, self._update_callback)
         self._locales = Locales.Locales()
+
+    def _key_handler(self, event):
+        if event.keycode == 86 and event.keysym != 'v':
+            self._paste()
+        elif event.keycode == 67 and event.keysym != 'c':
+            self._copy()
+        elif event.keycode == 88 and event.keysym != 'x':
+            self._cut()
+        elif event.keycode == 65 and event.keysym != 'a':
+            self._select()
+
+    def _select(self):
+        widget = self.focus_get()
+
+        if isinstance(widget, tk.Entry):
+            widget.event_generate('<<SelectAll>>')
+
+    def _copy(self):
+        widget = self.focus_get()
+
+        if isinstance(widget, tk.Entry):
+            widget.event_generate('<<Copy>>')
+
+    def _cut(self):
+        widget = self.focus_get()
+
+        if isinstance(widget, tk.Entry):
+            widget.event_generate('<<Cut>>')
+
+    def _paste(self):
+        widget = self.focus_get()
+
+        if isinstance(widget, tk.Entry):
+            widget.event_generate('<<Paste>>')
 
     def _update_callback(self, need_exit):
         if need_exit:
