@@ -20,17 +20,21 @@ class SetSettings(ctk.CTkFrame):
         self._buttons_container = ctk.CTkScrollableFrame(self, width=220)
         self._title_frame = ctk.CTkFrame(self)
 
-        self._sync_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/back.png')), size=(20, 20))
+        self._back_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/back.png')), size=(20, 20))
         self._back_button = ctk.CTkButton(
             self._title_frame,
-            image=self._sync_image,
+            image=self._back_image,
             command=callback,
             text='',
             width=20,
             hover_color=("gray70", "gray30"),
             fg_color="transparent",
         )
-        self._settings_title = ctk.CTkLabel(self._title_frame, text=self._locales.get_string('settings'), font=('Arial', 25, 'bold'))
+        self._settings_title = ctk.CTkLabel(
+            self._title_frame,
+            text=self._locales.get_string('settings'),
+            font=('Arial', 23, 'bold')
+        )
 
         self._set_threads_button = ctk.CTkButton(
             self._buttons_container,
@@ -131,7 +135,7 @@ class SetSettings(ctk.CTkFrame):
 
         self._settings_title.grid(row=0, column=0, sticky='ns')
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
-        self._title_frame.grid(row=0, column=0, padx=5, pady=5, sticky='nswe', columnspan=2, ipady=1)
+        self._title_frame.grid(row=0, column=0, padx=5, pady=5, sticky='nswe', columnspan=2, ipady=4)
 
         self._set_threads_button.grid(row=0, column=0, sticky='ew')
         self._set_sync_dir_button.grid(row=1, column=0, sticky='ew')
