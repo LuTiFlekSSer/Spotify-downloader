@@ -327,6 +327,30 @@
     "code_error": {
       "ru": "Задана некорректная ссылка с кодом. Очистите данные аккаунта в настройках",
       "en": "An incorrect link with a code is set. Clear account data in settings"
+    },
+    "status": {
+      "ru": "Статус",
+      "en": "Status"
+    },
+    "getting_tracks_from_disk": {
+      "ru": "Чтение треков с диска",
+      "en": "Reading tracks from disk"
+    },
+    "path_error": {
+      "ru": "Не задан путь для синхронизации треков\nЗадать сейчас?",
+      "en": "No path specified for syncing tracks\nSet now?"
+    },
+    "get_spotify_tracks_error": {
+      "ru": "Ошибка при получении треков из spotify",
+      "en": "Error getting tracks from spotify"
+    },
+    "getting_tracks_from_spotify": {
+      "ru": "Чтение треков из spotify",
+      "en": "Reading tracks from spotify"
+    },
+    "program_is_busy": {
+      "ru": "Недоступно в данный момент",
+      "en": "Not available at the moment"
     }
   }
 }

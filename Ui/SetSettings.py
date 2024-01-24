@@ -277,7 +277,14 @@ class SetSettings(ctk.CTkFrame):
                 fg_color=self._thread_frame.cget('fg_color'),
                 wrap='none'
             )
-            self._current_path.insert('end', f'"{self._settings.get_setting("path_for_sync")}"')
+
+            def _get_current_path():
+                if (curr_path := self._settings.get_setting("path_for_sync")) != '':
+                    return f'"{curr_path}"'
+                else:
+                    return self._locales.get_string("not_specified")
+
+            self._current_path.insert('end', f'{_get_current_path()}')
             self._current_path.configure(state='disabled')
 
             self._new_path_frame = ctk.CTkFrame(self._path_frame, fg_color=self._path_frame.cget('fg_color'))
@@ -326,7 +333,7 @@ class SetSettings(ctk.CTkFrame):
 
                 self._current_path.configure(state='normal')
                 self._current_path.delete('0.0', 'end')
-                self._current_path.insert('end', f'"{self._settings.get_setting("path_for_sync")}"')
+                self._current_path.insert('end', f'{_get_current_path()}')
                 self._current_path.configure(state='disabled')
 
             def _cancel():

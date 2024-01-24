@@ -124,8 +124,8 @@ class Ui(ctk.CTk):
         self._file_dropdown = CTkMenuBar.CustomDropdownMenu(widget=self._file_button)
         self._file_dropdown.add_option(option=self._locales.get_string('open_sync_dir'), command=self._open_sync_folder)
         self._file_dropdown.add_separator()
-        self._file_dropdown.add_option(option=self._locales.get_string('open_settings'), command=self._open_settings)  # todo чекать, не запущен ли режим в mainpage
-        self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)  # todo чекать, не запущен ли режим в mainpage
+        self._file_dropdown.add_option(option=self._locales.get_string('open_settings'), command=self._open_settings)
+        self._file_dropdown.add_option(option=self._locales.get_string('check_for_updates'), command=self._check_for_updates)
         self._file_dropdown.add_separator()
         self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self._close_callback)
 
@@ -133,6 +133,16 @@ class Ui(ctk.CTk):
         self._main_page.pack(fill='both', expand=True)
 
     def _open_settings(self):
+        if self._main_page.get_busy_state():
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('program_is_busy'),
+                icon='cancel',
+                topmost=False
+            )
+
+            return
+
         if not hasattr(self, '_set_settings'):
             self._set_settings = SetSettings.SetSettings(self, self._close_settings)
 
@@ -147,6 +157,16 @@ class Ui(ctk.CTk):
         self._main_page.pack(fill='both', expand=True)
 
     def _check_for_updates(self):
+        if self._main_page.get_busy_state():
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('program_is_busy'),
+                icon='cancel',
+                topmost=False
+            )
+
+            return
+
         result = self._update.update_check()
 
         if result:

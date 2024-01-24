@@ -5,7 +5,6 @@ __all__ = [
 from SettingsStorage import Settings
 from os import listdir
 from LocalTracks import Errors
-from progress.bar import IncrementalBar
 
 
 class LcTracks:
@@ -22,16 +21,15 @@ class LcTracks:
             raise Errors.PathError
 
         self._local_tracks = set()
-        self._get_tracks_from_folder()
 
-    def _get_tracks_from_folder(self):
+    def get_tracks_from_folder(self):
         tracks = listdir(self._directory)
 
         self._local_tracks.clear()
 
         local_tracks_db = self._settings.get_local_tracks_db()
 
-        for track in IncrementalBar('Чтение треков с диска', max=len(tracks), suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]').iter(tracks):
+        for i, track in enumerate(tracks):
             if track.endswith('.mp3'):
                 if (name := track[:-4]) in local_tracks_db:
                     track_id = local_tracks_db[name]
@@ -43,6 +41,8 @@ class LcTracks:
                     self._settings.add_track_to_local_tracks(name, track_id)
 
                 self._local_tracks.add((track[:-4], track_id))
+
+            yield i, len(tracks)
 
         for name in local_tracks_db:
             self._settings.delete_local_track(name)

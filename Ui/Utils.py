@@ -33,36 +33,17 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-def set_sync_path(print_menu):
-    print(red(f'{Colors.BLINK}Не задан путь к папке для синхронизации, задать сейчас?') + yellow(' (y - да, n - нет)'))
-
+def set_sync_path(window_name):
     settings = SettingsStorage.Settings()
 
-    while True:
-        match input('> '):
-            case 'y':
+    try:
+        directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, window_name, 16, "").Self.path
+        settings.change_setting('path_for_sync', directory)
 
-                try:
-                    directory = win32com.client.Dispatch('Shell.Application').BrowseForFolder(0, 'Выбери папку с треками', 16, "").Self.path
-                    settings.change_setting('path_for_sync', directory)
+        return True
 
-                    print(f'{green("Путь изменен на:")} {directory}\n')
-                    time.sleep(1)
-
-                    print_menu()
-
-                    return True
-                except Exception:
-                    print(red('Проверка отменена'))
-                    time.sleep(1)
-
-                    return False
-            case 'n':
-                print(green('Возврат в меню'))
-                time.sleep(1)
-                return False
-            case _:
-                print(red('Ошибка ввода'))
+    except Exception:
+        return False
 
 
 def compare_versions(curr_version, new_version):
