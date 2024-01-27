@@ -141,6 +141,13 @@ class Ui(ctk.CTk):
         self.overrideredirect(False)
         self.wm_attributes('-topmost', False)
 
+        try:
+            window_mode = self._settings.get_setting('window_mode')
+            if window_mode in ['zoomed', 'normal']:
+                self.state(window_mode)
+        except SettingsStorage.NotFoundError:
+            pass
+
         if need_update:
             self.grid_rowconfigure((0, 1, 2), weight=1)
             self.grid_columnconfigure((0, 1, 2), weight=1)
