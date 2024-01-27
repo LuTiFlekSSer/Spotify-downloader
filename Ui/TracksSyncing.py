@@ -302,6 +302,12 @@ class TracksSyncing(ctk.CTkFrame):
                         self._input_ignore_list.delete(0, 'end')
 
                         self._update_table(self._server_missing_tracks)
+
+                        if len(self._server_missing_tracks) == 0:
+                            self._set_missing_description(self._locales.get_string('no_missing_tracks'))
+                            self._input_ignore_list.grid_forget()
+                            self._add_ignore_tracks_button.grid_forget()
+
                     except ValueError:
                         CTkMessagebox(
                             title=self._locales.get_string('error'),
@@ -357,6 +363,13 @@ class TracksSyncing(ctk.CTkFrame):
                     self._input_ignore_list.delete(0, 'end')
 
                     self._update_table(sorted(self._local_missing_tracks))
+
+                    if len(self._local_missing_tracks) == 0:
+                        self._set_missing_description(self._locales.get_string('no_missing_tracks'))
+                        self._input_ignore_list.grid_forget()
+                        self._add_ignore_tracks_button.grid_forget()
+                        self._next_button.grid_forget()
+
                 except ValueError:
                     CTkMessagebox(
                         title=self._locales.get_string('error'),
