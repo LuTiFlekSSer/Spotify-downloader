@@ -218,29 +218,25 @@ def add_tracks_to_ignore(tracks, add, tracks_input):
     track_list = _input_parser(tracks, tracks_input)
 
     if track_list is None:
-        return False
+        return
     elif isinstance(track_list, str):
+        if track_list not in tracks:
+            raise ValueError
+
         try:
             add(track_list)
 
-            print(f'{Colors.GREEN}Трек {Colors.END}"{track_list}"{Colors.GREEN} добавлен в игнор лист{Colors.END}')
-
-            return True
-
         except SettingsStorage.AlreadyExistsError:
-            print(f'{Colors.RED}Трек {Colors.END}"{track_list}"{Colors.RED} уже был добавлен игнор лист{Colors.END}')
+            pass
 
-            return False
+        return
 
     for r in track_list:
         for i in range(r[0], r[-1] + 1):
             try:
                 add(tracks[i - 1])
             except SettingsStorage.AlreadyExistsError:
-                print(f'{Colors.RED}Трек {Colors.END}"{tracks[i - 1]}"{Colors.RED} уже был добавлен игнор лист{Colors.END}')
-
-    print(green('Треки добавлены в игнор лист'))
-    return True
+                pass
 
 
 def remove_tracks_from_ignore(tracks, remove, tracks_input):

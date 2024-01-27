@@ -351,6 +351,26 @@
     "program_is_busy": {
       "ru": "Недоступно в данный момент",
       "en": "Not available at the moment"
+    },
+    "missing_spotify_tracks": {
+      "ru": "Поиск треков, отсутствующих в spotify",
+      "en": "Search for tracks missing in spotify"
+    },
+    "missing_local_tracks": {
+      "ru": "Поиск треков, отсутствующих на диске",
+      "en": "Search for tracks missing on disk"
+    },
+    "no_missing_tracks": {
+      "ru": "Отсутствующие треки не найдены",
+      "en": "No missing tracks found"
+    },
+    "find_missing_tracks": {
+      "ru": "Найдены отсутствующие треки\nДля добавления в игнор лист введите название (название - исполнитель) или номер (1, 2-5)",
+      "en": "Missing tracks found\nTo add to the ignore list, enter the title (title - artist) or number (1, 2-5)"
+    },
+    "state_missing": {
+      "ru": "Отсутствует",
+      "en": "Missing"
     }
   }
 }
