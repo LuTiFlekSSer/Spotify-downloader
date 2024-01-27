@@ -7,6 +7,7 @@ import Locales
 from PIL import Image
 from CTkMessagebox import CTkMessagebox
 from CTkTable import CTkTable
+import pyperclip
 
 
 class SetSettings(ctk.CTkFrame):
@@ -577,6 +578,7 @@ class SetSettings(ctk.CTkFrame):
                 self._local_ignore_table_frame,
                 width=10,
                 wraplength=250,
+                command=lambda x: pyperclip.copy(x['value']),
                 values=values
             )
             self._local_ignore_input_description = ctk.CTkTextbox(
@@ -754,6 +756,7 @@ class SetSettings(ctk.CTkFrame):
                 self._server_ignore_table_frame,
                 width=10,
                 wraplength=250,
+                command=lambda x: pyperclip.copy(x['value']),
                 values=values
             )
             self._server_ignore_input_description = ctk.CTkTextbox(
