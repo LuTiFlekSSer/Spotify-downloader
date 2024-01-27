@@ -22,10 +22,15 @@ class SetSettings(ctk.CTkFrame):
         self._title_frame = ctk.CTkFrame(self)
 
         self._back_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/back.png')), size=(20, 20))
+
+        def _callback():
+            self._settings_set_threads()
+            callback()
+
         self._back_button = ctk.CTkButton(
             self._title_frame,
             image=self._back_image,
-            command=callback,
+            command=_callback,
             text='',
             width=20,
             hover_color=("gray70", "gray30"),
