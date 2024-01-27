@@ -104,12 +104,13 @@ class SpTracks:
 
     def refresh_track_list(self):
         settings = Settings()
+        local_ignore = settings.get_all_local_ignore_tracks()
 
-        for track in settings.get_all_local_ignore_tracks():
-            if track in self._spotify_tracks:
-                self._total -= 1
-                self._spotify_tracks.remove(track)
-                self._tracks_info.pop(track)
+        tracks_with_id = [(track, track_id) for track, track_id in self._spotify_tracks if track in local_ignore]
+        for track in tracks_with_id:
+            self._total -= 1
+            self._spotify_tracks.remove(track)
+            self._tracks_info.pop(track[0])
 
     def set_limit(self, limit):
         if not isinstance(limit, int):
