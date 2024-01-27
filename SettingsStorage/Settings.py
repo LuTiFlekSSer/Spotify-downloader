@@ -49,6 +49,7 @@ class Settings:
         cur.execute(f"INSERT INTO app_settings VALUES ('overwrite_tracks', 'False')")
         cur.execute(f"INSERT INTO app_settings VALUES ('language', 'None')")
         cur.execute(f"INSERT INTO app_settings VALUES ('window_size', '640*400')")
+        cur.execute(f"INSERT INTO app_settings VALUES ('window_mode', 'normal')")
 
     def get_setting(self, name):
         if not isinstance(name, str):

@@ -19,7 +19,7 @@ import locale
 
 class Update(ctk.CTkFrame):
     def __init__(self, master, callback):
-        super().__init__(master)
+        super().__init__(master, fg_color=master.cget('fg_color'))
         self._locales = Locales.Locales()
 
         self._callback = callback
@@ -120,8 +120,10 @@ class Update(ctk.CTkFrame):
 
         progress_value = 0
 
+        exit_flag = False
+
         def _start_download():
-            nonlocal progress_value
+            nonlocal progress_value, exit_flag
 
             try:
                 self._updater.start_download()
@@ -137,8 +139,7 @@ class Update(ctk.CTkFrame):
                     icon='cancel',
                     topmost=False
                 ).get()
-
-                return self._callback(False)
+                exit_flag = True
 
         download_thread = threading.Thread(target=_start_download)
         download_thread.start()
@@ -147,7 +148,11 @@ class Update(ctk.CTkFrame):
             time.sleep(0.01)
 
             self._progress_bar.set(progress_value)
+
             self.update()
+
+        if exit_flag:
+            return self._callback(False)
 
         try:
             self._updater.start_update()

@@ -40,7 +40,6 @@ class Ui(ctk.CTk):
         self.title('Spotify downloader')
         self.geometry(self._pos_for_window())
         self.iconbitmap(Utils.resource_path('icons/icon.ico'))
-        self.resizable(False, False)
 
         self._create_splash_screen()
 
@@ -143,7 +142,10 @@ class Ui(ctk.CTk):
         self.wm_attributes('-topmost', False)
 
         if need_update:
-            self._update.pack(fill='both', expand=True, anchor='c')
+            self.grid_rowconfigure((0, 1, 2), weight=1)
+            self.grid_columnconfigure((0, 1, 2), weight=1)
+
+            self._update.grid(row=1, column=1)
 
             if force:
                 self._update.download()
@@ -153,8 +155,6 @@ class Ui(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self._close_callback)
 
     def _create_menu_bar(self):
-        self.resizable(True, True)
-
         self._menu_bar = CTkMenuBar.CTkMenuBar(self, bg_color=self.cget('bg'))
         self._file_button = self._menu_bar.add_cascade(self._locales.get_string('menu_file'))
 
@@ -265,7 +265,11 @@ class Ui(ctk.CTk):
         self.overrideredirect(False)
         self.wm_attributes('-topmost', False)
 
-        self._update.pack(fill='both', expand=True, anchor='c')
+        self.grid_rowconfigure((0, 1, 2), weight=1)
+        self.grid_columnconfigure((0, 1, 2), weight=1)
+
+        self._update.grid(row=1, column=1)
+
         self._update.install(self._args.U)
 
         self._close_callback()
@@ -274,6 +278,7 @@ class Ui(ctk.CTk):
         width, height = self.winfo_width(), self.winfo_height()
 
         self._settings.change_setting('window_size', f'{width}*{height}')
+        self._settings.change_setting('window_mode', self.state())
 
         self.destroy()
 

@@ -36,6 +36,7 @@ class CompatibilityChecker:
             self._settings.change_setting('version', '2.0.0')
             self._settings.create_setting('language', 'None')
             self._settings.create_setting('window_size', '640*400')
+            self._settings.create_setting('window_mode', 'normal')
 
             self._db_version = '2.0.0'
 
