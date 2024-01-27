@@ -243,9 +243,10 @@ class TracksSyncing(ctk.CTkFrame):
         self._tracks_info = None
         self._spt = None
         progress_value = 0
+        exit_flag = False
 
         def _get_spotify_tracks():
-            nonlocal progress_value
+            nonlocal progress_value, exit_flag
 
             self._spt = SpotifyTracks.SpTracks(spl)
             try:
@@ -260,8 +261,7 @@ class TracksSyncing(ctk.CTkFrame):
                     topmost=False
                 ).get()
 
-                self._exit_callback(self)
-                return
+                exit_flag = True
 
             self._spotify_tracks = self._spt.get_spotify_tracks()
             self._tracks_info = self._spt.get_tracks_info()
@@ -274,6 +274,9 @@ class TracksSyncing(ctk.CTkFrame):
 
             self._progress_bar.set(progress_value)
             self.update()
+
+        if exit_flag:
+            return self._exit_callback(self)
 
         self._comp = TracksComparator.Comparator(self._local_tracks, self._spotify_tracks, self._tracks_info)
 
