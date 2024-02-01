@@ -284,8 +284,11 @@ class Ui(ctk.CTk):
     def _close_callback(self):
         width, height = self.winfo_width(), self.winfo_height()
 
-        self._settings.change_setting('window_size', f'{width}*{height}')
+        self.deiconify()
+
         self._settings.change_setting('window_mode', self.state())
+        if self.state() == 'normal':
+            self._settings.change_setting('window_size', f'{width}*{height}')
 
         self.destroy()
 
