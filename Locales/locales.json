@@ -371,6 +371,10 @@
     "state_missing": {
       "ru": "Отсутствует",
       "en": "Missing"
+    },
+    "forward": {
+      "ru": "Вперед",
+      "en": "Forward"
     }
   }
 }

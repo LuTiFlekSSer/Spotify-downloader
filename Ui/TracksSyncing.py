@@ -56,7 +56,21 @@ class TracksSyncing(ctk.CTkFrame):
             width=10,
             wraplength=250,
             command=lambda x: pyperclip.copy(x['value']),
-            values=[['№', self._locales.get_string('title'), self._locales.get_string('status')]]
+            values=self._create_values_for_table([])
+        )
+        self._page = 0
+        self._table_limit = 30
+
+        self._next_table_page_button = ctk.CTkButton(
+            self._table_frame,
+            text=self._locales.get_string('forward'),
+            command=self._next_page
+        )
+        self._back_table_page_button = ctk.CTkButton(
+            self._table_frame,
+            text=self._locales.get_string('back'),
+            command=self._previous_page,
+            state='disabled'
         )
 
         self._input_frame = ctk.CTkFrame(
@@ -123,7 +137,7 @@ class TracksSyncing(ctk.CTkFrame):
         self._title_frame.grid_columnconfigure(0, weight=1)
         self._title_frame.grid_rowconfigure(0, weight=1)
 
-        self._table_frame.grid_columnconfigure(0, weight=1)
+        self._table_frame.grid_columnconfigure((0, 1), weight=1)
         self._table_frame.grid_rowconfigure(0, weight=1)
 
         self._input_frame.grid_rowconfigure((0, 1, 2), weight=1)
@@ -140,12 +154,40 @@ class TracksSyncing(ctk.CTkFrame):
         self._sync_title.grid(row=0, column=0, sticky='ns')
         self._title_frame.grid(row=0, column=0, padx=5, pady=5, sticky='new', ipady=4)
         self._sync_frame.grid(row=1, column=0, sticky='nsew', padx=5, pady=5)
-        self._table.grid(row=0, column=0, sticky='nsew')
+        self._table.grid(row=0, column=0, sticky='nsew', columnspan=2)
         self._get_tracks_frame.grid(row=1, column=0, sticky='we')
         self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
         self._current_step_title.grid(row=0, column=0, padx=5, pady=5)
         self._missing_tracks_title.grid(row=0, column=0, pady=5, sticky='we')
         self._missing_tracks_description.grid(row=1, column=0, pady=5, sticky='we')
+
+    def _next_page(self):
+        self._page += 1
+
+        self._table.update_values(
+            self._create_values_for_table(
+                self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)],
+                self._table_limit * self._page
+            )
+        )
+
+        self._back_table_page_button.configure(state='normal')
+        if self._table_limit * (self._page + 1) >= len(self._table_data):
+            self._next_table_page_button.configure(state='disabled')
+
+    def _previous_page(self):
+        self._page -= 1
+
+        self._table.update_values(
+            self._create_values_for_table(
+                self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)],
+                self._table_limit * self._page
+            )
+        )
+
+        self._next_table_page_button.configure(state='normal')
+        if self._page == 0:
+            self._back_table_page_button.configure(state='disabled')
 
     def initialize(self):
         self._sync_frame.configure(fg_color=self._title_frame.cget('fg_color'))
@@ -170,6 +212,8 @@ class TracksSyncing(ctk.CTkFrame):
             self._add_ignore_tracks_button.grid_forget()
             self._update_table([])
             self._input_ignore_list.delete(0, 'end')
+            self._next_table_page_button.grid_forget()
+            self._back_table_page_button.grid_forget()
 
             self._table_frame.grid(row=0, column=1, sticky='nsew', padx=(5, 0), columnspan=2, rowspan=3)
             self._input_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 5), rowspan=3)
@@ -332,6 +376,8 @@ class TracksSyncing(ctk.CTkFrame):
                 self._input_ignore_list.grid(row=2, column=0, pady=5, sticky='we')
                 self._add_ignore_tracks_button.grid(row=3, column=0, pady=5, sticky='e')
 
+                self.update()
+
                 self._update_table(self._server_missing_tracks)
 
             self._next_button.configure(command=self._sync_local)
@@ -394,6 +440,8 @@ class TracksSyncing(ctk.CTkFrame):
             self._input_ignore_list.grid(row=2, column=0, pady=5, sticky='we')
             self._add_ignore_tracks_button.grid(row=3, column=0, pady=5, sticky='e')
 
+            self.update()
+
             self._update_table(sorted(self._local_missing_tracks))
 
             self._next_button.configure(command=self._start_download)
@@ -401,15 +449,43 @@ class TracksSyncing(ctk.CTkFrame):
     def _start_download(self):
         pass
 
-    def _create_values_for_table(self, values):
+    def _create_values_for_table(self, values, offset=0):
         return ([['№', self._locales.get_string('title'), self._locales.get_string('status')]] +
-                [[i + 1, track, self._locales.get_string('state_missing')] for i, track in enumerate(values)])
+                [[offset + i + 1, track, self._locales.get_string('state_missing')] for i, track in enumerate(values)])
 
     def _update_table(self, values):
-        self._table.delete_rows(range(len(self._table.get())))
+        self._table_data = values
+        rows_count = len(self._table.get())
 
-        for value in self._create_values_for_table(values):
-            self._table.add_row(value, width=10)
+        was_updated = False
+        tmp_values = []
+
+        for i, value in enumerate(self._create_values_for_table(self._table_data[:self._table_limit])):
+            if i < rows_count:
+                tmp_values.append(value)
+            else:
+                if not was_updated:
+                    was_updated = True
+                    self._table.update_values(tmp_values)
+
+                self._table.add_row(value, width=10)
+
+        if not was_updated:
+            self._table.update_values(tmp_values)
+
+        if len(self._table_data) > self._table_limit:
+            self._next_table_page_button.grid(row=1, column=1, sticky='e', padx=5, pady=5)
+            self._back_table_page_button.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+            self._next_table_page_button.configure(state='normal')
+            self._back_table_page_button.configure(state='disabled')
+
+            self._page = 0
+        else:
+            self._next_table_page_button.grid_forget()
+            self._back_table_page_button.grid_forget()
+
+            self._table.delete_rows([i for i in range(len(values) + 1, len(self._table.get()))])
 
     def _set_missing_title(self, text):
         self._missing_tracks_title.configure(state='normal')
@@ -423,6 +499,7 @@ class TracksSyncing(ctk.CTkFrame):
         self._missing_tracks_title.tag_add('text', '0.0', 'end')
 
         self._missing_tracks_title.configure(state='disabled')
+        self.update()
 
     def _set_missing_description(self, text):
         self._missing_tracks_description.configure(state='normal')
