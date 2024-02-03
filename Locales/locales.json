@@ -375,6 +375,58 @@
     "forward": {
       "ru": "Вперед",
       "en": "Forward"
+    },
+    "tracks_downloading": {
+      "ru": "Загрузка треков",
+      "en": "Downloading tracks"
+    },
+    "downloaded": {
+      "ru": "Загружен",
+      "en": "Downloaded"
+    },
+    "download_error": {
+      "ru": "Ошибка при загрузке",
+      "en": "Error downloading"
+    },
+    "jpg_error": {
+      "ru": "Ошибка изменения обложки",
+      "en": "Error changing cover"
+    },
+    "nf_error": {
+      "ru": "Не найден",
+      "en": "Not found"
+    },
+    "tag_error": {
+      "ru": "Ошибка изменения метаданных",
+      "en": "Error changing metadata"
+    },
+    "cancelled": {
+      "ru": "Отменено",
+      "en": "Cancelled"
+    },
+    "downloading": {
+      "ru": "Загрузка",
+      "en": "Downloading"
+    },
+    "completed": {
+      "ru": "Загрузка завершена",
+      "en": "Download completed"
+    },
+    "stop": {
+      "ru": "Остановить",
+      "en": "Stop"
+    },
+    "retry": {
+      "ru": "Повторить неудачные",
+      "en": "Retry failed"
+    },
+    "retry_title": {
+      "ru": "Повтор загрузки",
+      "en": "Retry download"
+    },
+    "retry_description": {
+      "ru": "Неудачных загрузок нет",
+      "en": "No failed downloads"
     }
   }
 }

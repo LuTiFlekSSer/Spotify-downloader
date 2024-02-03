@@ -1,9 +1,13 @@
 import CTkTable
+
+import DownloaderPool
 import SettingsStorage
 import os
 import SpotifyTracks
 import LocalTracks
 import time
+
+import TrackDownloader
 import TracksComparator
 import SpLogin
 import Utils
@@ -23,6 +27,8 @@ class TracksSyncing(ctk.CTkFrame):
         self._locales = Locales.Locales()
         self._exit_callback = exit_callback
         self._busy_callback = busy_callback
+        self._completed_tracks = {}
+        self._downloading = False
 
         self._title_frame = ctk.CTkFrame(self)
 
@@ -155,13 +161,14 @@ class TracksSyncing(ctk.CTkFrame):
         self._title_frame.grid(row=0, column=0, padx=5, pady=5, sticky='new', ipady=4)
         self._sync_frame.grid(row=1, column=0, sticky='nsew', padx=5, pady=5)
         self._table.grid(row=0, column=0, sticky='nsew', columnspan=2)
-        self._get_tracks_frame.grid(row=1, column=0, sticky='we')
+        self._get_tracks_frame.grid(row=1, column=0, sticky='we', padx=5, pady=5)
         self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
         self._current_step_title.grid(row=0, column=0, padx=5, pady=5)
         self._missing_tracks_title.grid(row=0, column=0, pady=5, sticky='we')
         self._missing_tracks_description.grid(row=1, column=0, pady=5, sticky='we')
 
     def _next_page(self):
+        self._table_frame._parent_canvas.yview_moveto(0)
         self._page += 1
 
         self._table.update_values(
@@ -176,6 +183,7 @@ class TracksSyncing(ctk.CTkFrame):
             self._next_table_page_button.configure(state='disabled')
 
     def _previous_page(self):
+        self._table_frame._parent_canvas.yview_moveto(0)
         self._page -= 1
 
         self._table.update_values(
@@ -204,9 +212,11 @@ class TracksSyncing(ctk.CTkFrame):
 
         else:
             self._progress_bar.set(0)
+            self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
             self._current_step_title.configure(text=self._locales.get_string('getting_tracks_from_disk'))
             self._back_button.grid(row=0, column=0, sticky='w', padx=2)
             self._next_button.grid_forget()
+            self._next_button.configure(text=self._locales.get_string('next'))
             self._missing_tracks_frame.grid_forget()
             self._input_ignore_list.grid_forget()
             self._add_ignore_tracks_button.grid_forget()
@@ -214,11 +224,14 @@ class TracksSyncing(ctk.CTkFrame):
             self._input_ignore_list.delete(0, 'end')
             self._next_table_page_button.grid_forget()
             self._back_table_page_button.grid_forget()
+            self._completed_tracks = {}
+            self._table_frame._parent_canvas.yview_moveto(0)
+            self._downloading = False
 
             self._table_frame.grid(row=0, column=1, sticky='nsew', padx=(5, 0), columnspan=2, rowspan=3)
             self._input_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 5), rowspan=3)
 
-            self._get_tracks_frame.grid(row=1, column=0)
+            self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
             self._sync_frame.configure(fg_color=self.cget('fg_color'))
 
             self._start_sync()
@@ -325,7 +338,7 @@ class TracksSyncing(ctk.CTkFrame):
         self._comp = TracksComparator.Comparator(self._local_tracks, self._spotify_tracks, self._tracks_info)
 
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
-        self._next_button.grid(row=2, column=0, sticky='se', pady=5, padx=5)
+        self._next_button.grid(row=2, column=0, sticky='s', pady=5, padx=5)
         self._missing_tracks_frame.grid(row=0, column=0, rowspan=2, sticky='nsew', padx=5, pady=5)
 
         if self._settings.get_setting('auto_comp') == 'True':
@@ -447,11 +460,118 @@ class TracksSyncing(ctk.CTkFrame):
             self._next_button.configure(command=self._start_download)
 
     def _start_download(self):
-        pass
+        self._downloading = True
+        self._back_button.grid_forget()
+        self._missing_tracks_frame.grid_forget()
+        self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
+
+        for cell_index in range(self._table_limit * self._page, self._table_limit * (self._page + 1)):
+            try:
+                self._table.insert(cell_index % self._table_limit + 1, 2, self._locales.get_string('downloading'))
+            except KeyError:
+                pass
+        self.update()
+
+        self._tracks_for_downloading = [(track, self._settings.get_setting('path_for_sync'), self._local_missing_tracks[track]) for track in sorted(self._local_missing_tracks)]
+
+        self._pp = DownloaderPool.PlaylistPool(True)
+        self._completed_count = 0
+        self._completed_tracks = {}
+
+        def _download():
+            for track, track_status in self._pp.start(self._tracks_for_downloading):
+                self._completed_count += 1
+                self._completed_tracks[track] = track_status
+
+        def _start():
+            self._progress_bar.set(0)
+            self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
+            self._current_step_title.configure(text=self._locales.get_string('tracks_downloading'))
+            self._back_button.grid_forget()
+            self._next_button.configure(command=self._pp.stop, text=self._locales.get_string('stop'))
+
+            download_thread = threading.Thread(target=_download)
+            download_thread.start()
+
+            last_iter = False
+            while download_thread.is_alive() or last_iter:
+                time.sleep(0.01)
+
+                for track_index in range(self._table_limit * self._page, self._table_limit * (self._page + 1)):
+                    if track_index in self._completed_tracks:
+                        status = self._get_status_str(self._completed_tracks[track_index])
+
+                        index_on_page = track_index % self._table_limit
+                        self._table.insert(index_on_page + 1, 2, status)
+
+                self._progress_bar.set(Utils.map_value(self._completed_count, len(self._tracks_for_downloading)))
+                self.update()
+
+                if last_iter:
+                    break
+
+                if not download_thread.is_alive():
+                    last_iter = True
+
+            self._back_button.grid(row=0, column=0, sticky='w', padx=2)
+            self._next_button.configure(text=self._locales.get_string('retry'), command=_retry)
+            self._progress_bar.grid_forget()
+            self._current_step_title.configure(text=self._locales.get_string('completed'))
+
+        def _retry():
+            pp_status = self._pp.pool_status()
+            self._tracks_for_downloading = [track for track in self._tracks_for_downloading if track[0] not in pp_status['ok']['list']]
+
+            if len(self._tracks_for_downloading) == 0:
+                CTkMessagebox(
+                    title=self._locales.get_string('retry_title'),
+                    message=self._locales.get_string('retry_description'),
+                    icon='info',
+                    topmost=False
+                ).get()
+
+                return
+
+            self._pp.clear_tracks_with_error()
+
+            self._completed_count = 0
+            self._completed_tracks = {}
+
+            self._update_table([track for track, _, _ in self._tracks_for_downloading])
+            _start()
+
+        _start()
 
     def _create_values_for_table(self, values, offset=0):
-        return ([['№', self._locales.get_string('title'), self._locales.get_string('status')]] +
-                [[offset + i + 1, track, self._locales.get_string('state_missing')] for i, track in enumerate(values)])
+        table_values = [['№', self._locales.get_string('title'), self._locales.get_string('status')]]
+
+        for i, track in enumerate(values):
+            if self._downloading:
+                status = self._locales.get_string('downloading')
+            else:
+                status = self._locales.get_string('state_missing')
+
+            if offset + i in self._completed_tracks:
+                status = self._get_status_str(self._completed_tracks[offset + i])
+
+            table_values.append([offset + i + 1, track, status])
+
+        return table_values
+
+    def _get_status_str(self, status):
+        match status:
+            case TrackDownloader.Status.OK:
+                return self._locales.get_string('downloaded')
+            case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
+                return self._locales.get_string('download_error')
+            case TrackDownloader.Status.JPG_ERR:
+                return self._locales.get_string('jpg_error')
+            case TrackDownloader.Status.NF_ERR:
+                return self._locales.get_string('nf_error')
+            case TrackDownloader.Status.TAG_ERR:
+                return self._locales.get_string('tag_error')
+            case TrackDownloader.Status.CANCELLED:
+                return self._locales.get_string('cancelled')
 
     def _update_table(self, values):
         self._table_data = values
@@ -510,162 +630,3 @@ class TracksSyncing(ctk.CTkFrame):
         self._missing_tracks_description.insert('end', text)
 
         self._missing_tracks_description.configure(state='disabled')
-
-    def tracks_syncing(self):
-        def print_menu():
-            os.system('cls')
-            print(Utils.cyan('Синхронизация треков с аккаунтом\n'))
-
-        print_menu()
-
-        if (path := self._settings.get_setting('path_for_sync')) == '' or not os.path.exists(path):
-            if not Utils.set_sync_path(print_menu):
-                return
-
-        lct = LocalTracks.LcTracks()
-        local_tracks = lct.get_local_tracks()
-
-        spl = self._spotify_login.spotify_login()
-
-        if spl is None:
-            return
-
-        print_menu()
-
-        spt = SpotifyTracks.SpTracks(spl)
-        try:
-            spt.start()
-        except SpotifyTracks.TracksGetError:
-            print(Utils.red('\nОшибка при получении треков из spotify'))
-            time.sleep(1)
-            return
-
-        spotify_tracks = spt.get_spotify_tracks()
-        tracks_info = spt.get_tracks_info()
-
-        comp = TracksComparator.Comparator(local_tracks, spotify_tracks, tracks_info)
-
-        print_menu()
-
-        if self._settings.get_setting('auto_comp') == 'True':
-            server_missing_tracks = comp.get_server_missing_tracks()
-
-            def print_server_menu():
-                if len(server_missing_tracks) == 0:
-                    print(Utils.green('\nТреки на сервере синхронизированы\n'))
-                else:
-                    print(Utils.yellow('\nСписок отсутствующих треков на сервере:\n'))
-                    for i, track in enumerate(server_missing_tracks):
-                        print(f'{i + 1}) {track}')
-                    print()
-
-                print(f'{Utils.blue("[1]")} - Продолжить синхронизацию треков\n'
-                      f'{Utils.blue("[2]")} - Добавить треки в серверный игнор лист\n\n'
-                      f'{Utils.purple("[c]")} - Очистка ввода\n'
-                      f'{Utils.purple("[b]")} - Назад')
-
-            print_server_menu()
-
-            while True:
-                match Utils.g_input('> '):
-                    case '1':
-                        break
-
-                    case '2':
-                        res = Utils.add_tracks_to_ignore(server_missing_tracks, self._settings.add_track_to_server_ignore)
-
-                        if res:
-                            self._settings.save()
-
-                            server_missing_tracks = comp.get_server_missing_tracks(refresh=True)
-
-                            time.sleep(1)
-
-                            print_menu()
-                            print_server_menu()
-
-                    case 'c':
-                        print_menu()
-                        print_server_menu()
-
-                    case 'b':
-                        print(Utils.green('Возврат в меню'))
-                        time.sleep(1)
-                        return
-
-                    case _:
-                        print(Utils.red('Ошибка ввода'))
-
-        local_missing_tracks = comp.get_local_missing_tracks()
-
-        print_menu()
-
-        if len(local_missing_tracks) == 0:
-            def print_local_menu():
-                print(Utils.green('\nЛокальные треки синхронизированы\n'))
-                print(f'{Utils.purple("[c]")} - Очистка ввода\n'
-                      f'{Utils.purple("[b]")} - Назад')
-
-            print_local_menu()
-
-            while True:
-                match Utils.g_input('> '):
-                    case 'c':
-                        print_menu()
-                        print_local_menu()
-
-                    case 'b':
-                        print(Utils.green('Возврат в меню'))
-                        time.sleep(1)
-                        return
-
-                    case _:
-                        print(Utils.red('Ошибка ввода'))
-
-        def print_local_tracks():
-            print(Utils.yellow('Список отсутствующих локальных треков:\n'))
-            for i, track in enumerate(sorted(local_missing_tracks)):
-                print(f'{i + 1}) {track}')
-
-            print(f'\n{Utils.blue("[1]")} - Скачать отсутствующие треки\n'
-                  f'{Utils.blue("[2]")} - Добавить треки в локальный игнор лист (новые треки будут сразу проигнорированы при загрузке)\n\n'
-                  f'{Utils.purple("[c]")} - Очистка ввода\n'
-                  f'{Utils.purple("[b]")} - Назад')
-
-        print_local_tracks()
-
-        while True:
-            match Utils.g_input('> '):
-                case '1':
-                    break
-
-                case '2':
-                    res = Utils.add_tracks_to_ignore(sorted(local_missing_tracks), self._settings.add_track_to_local_ignore)
-
-                    if res:
-                        self._settings.save()
-
-                        spt.refresh_track_list()
-
-                        local_missing_tracks = comp.get_local_missing_tracks(refresh=True)
-
-                        time.sleep(1)
-
-                        print_menu()
-                        print_local_tracks()
-
-                case 'c':
-                    print_menu()
-                    print_local_tracks()
-
-                case 'b':
-                    print(Utils.green('Возврат в меню'))
-                    time.sleep(1)
-                    return
-
-                case _:
-                    print(Utils.red('Ошибка ввода'))
-
-        Utils.start_playlist_download(Utils.cyan('Синхронизация треков с аккаунтом\n'),
-                                      [(track, self._settings.get_setting('path_for_sync'), local_missing_tracks[track]) for track in local_missing_tracks],
-                                      True)
