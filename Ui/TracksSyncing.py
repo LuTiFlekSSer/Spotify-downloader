@@ -1,4 +1,3 @@
-import CTkTable
 import DownloaderPool
 import SettingsStorage
 import os
@@ -10,7 +9,7 @@ import TracksComparator
 import SpLogin
 import Utils
 import customtkinter as ctk
-from PIL import Image
+from PIL import Image, ImageTk
 import Locales
 from CTkMessagebox import CTkMessagebox
 import threading
@@ -130,6 +129,18 @@ class TracksSyncing(ctk.CTkFrame):
         )
         self._missing_tracks_description.configure(state='disabled')
 
+        self._no_missing_canvas = ctk.CTkCanvas(
+            self._missing_tracks_frame,
+            width=150,
+            height=150,
+            highlightthickness=0,
+            bg=self._missing_tracks_frame.cget('bg_color')[1]
+        )
+
+        image = Image.open(Utils.resource_path('icons/galochka.png')).resize((150, 150))
+        self._no_missing_image = ImageTk.PhotoImage(image)
+        self._no_missing_canvas.create_image(0, 0, anchor=ctk.NW, image=self._no_missing_image)
+
         self._input_ignore_list = ctk.CTkEntry(self._missing_tracks_frame)
 
         self._add_ignore_tracks_button = ctk.CTkButton(
@@ -227,6 +238,7 @@ class TracksSyncing(ctk.CTkFrame):
             self._completed_tracks = {}
             self._table_frame._parent_canvas.yview_moveto(0)
             self._downloading = False
+            self._no_missing_canvas.grid_forget()
 
             self._table_frame.grid(row=0, column=1, sticky='nsew', padx=(5, 0), columnspan=2, rowspan=3)
             self._input_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 5), rowspan=3)
@@ -348,6 +360,7 @@ class TracksSyncing(ctk.CTkFrame):
 
             if len(self._server_missing_tracks) == 0:
                 self._set_missing_description(self._locales.get_string('no_missing_tracks'))
+                self._no_missing_canvas.grid(row=2, column=0)
             else:
                 self._set_missing_description(self._locales.get_string('find_missing_tracks'))
 
@@ -367,6 +380,7 @@ class TracksSyncing(ctk.CTkFrame):
                             self._set_missing_description(self._locales.get_string('no_missing_tracks'))
                             self._input_ignore_list.grid_forget()
                             self._add_ignore_tracks_button.grid_forget()
+                            self._no_missing_canvas.grid(row=2, column=0)
 
                     except ValueError:
                         CTkMessagebox(
@@ -398,6 +412,7 @@ class TracksSyncing(ctk.CTkFrame):
             self._sync_local()
 
     def _sync_local(self):
+        self._no_missing_canvas.grid_forget()
         self._set_missing_title(self._locales.get_string('missing_local_tracks'))
 
         self._local_missing_tracks = self._comp.get_local_missing_tracks()
@@ -409,6 +424,7 @@ class TracksSyncing(ctk.CTkFrame):
             self._update_table([])
             self._input_ignore_list.grid_forget()
             self._add_ignore_tracks_button.grid_forget()
+            self._no_missing_canvas.grid(row=1, column=0)
         else:
             self._set_missing_description(self._locales.get_string('find_missing_tracks'))
 
@@ -430,7 +446,8 @@ class TracksSyncing(ctk.CTkFrame):
                         self._set_missing_description(self._locales.get_string('no_missing_tracks'))
                         self._input_ignore_list.grid_forget()
                         self._add_ignore_tracks_button.grid_forget()
-                        self._next_button.grid_forget()
+                        self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+                        self._no_missing_canvas.grid(row=2, column=0)
 
                 except ValueError:
                     CTkMessagebox(
@@ -483,12 +500,26 @@ class TracksSyncing(ctk.CTkFrame):
                 self._completed_count += 1
                 self._completed_tracks[track] = track_status
 
+        def _stop_download():
+            result = CTkMessagebox(
+                title=self._locales.get_string('stop_download_title'),
+                message=self._locales.get_string('stop_download_description'),
+                icon='question',
+                option_1=self._locales.get_string('yes'),
+                option_2=self._locales.get_string('no'),
+                topmost=False
+            ).get()
+
+            if result == self._locales.get_string('yes'):
+                self._pp.stop()
+                self._next_button.configure(state='disabled')
+
         def _start():
             self._progress_bar.set(0)
             self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
             self._current_step_title.configure(text=self._locales.get_string('tracks_downloading'))
             self._back_button.grid_forget()
-            self._next_button.configure(command=self._pp.stop, text=self._locales.get_string('stop'))
+            self._next_button.configure(command=_stop_download, text=self._locales.get_string('stop'))
 
             download_thread = threading.Thread(target=_download)
             download_thread.start()
@@ -514,24 +545,20 @@ class TracksSyncing(ctk.CTkFrame):
                     last_iter = True
 
             self._back_button.grid(row=0, column=0, sticky='w', padx=2)
-            self._next_button.configure(text=self._locales.get_string('retry'), command=_retry)
-            self._progress_bar.grid_forget()
-            self._current_step_title.configure(text=self._locales.get_string('completed'))
+            self._next_button.configure(state='normal')
 
-        def _retry():
             pp_status = self._pp.pool_status()
             self._tracks_for_downloading = [track for track in self._tracks_for_downloading if track[0] not in pp_status['ok']['list']]
 
             if len(self._tracks_for_downloading) == 0:
-                CTkMessagebox(
-                    title=self._locales.get_string('retry_title'),
-                    message=self._locales.get_string('retry_description'),
-                    icon='info',
-                    topmost=False
-                ).get()
+                self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+            else:
+                self._next_button.configure(text=self._locales.get_string('retry'), command=_retry)
 
-                return
+            self._progress_bar.grid_forget()
+            self._current_step_title.configure(text=self._locales.get_string('completed'))
 
+        def _retry():
             self._pp.clear_tracks_with_error()
 
             self._completed_count = 0
@@ -628,5 +655,8 @@ class TracksSyncing(ctk.CTkFrame):
 
         self._missing_tracks_description.delete('0.0', 'end')
         self._missing_tracks_description.insert('end', text)
+
+        self._missing_tracks_description.tag_config('text', justify='center')
+        self._missing_tracks_description.tag_add('text', '0.0', 'end')
 
         self._missing_tracks_description.configure(state='disabled')

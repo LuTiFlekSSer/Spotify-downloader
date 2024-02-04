@@ -427,6 +427,18 @@
     "retry_description": {
       "ru": "Неудачных загрузок нет",
       "en": "No failed downloads"
+    },
+    "go_to_menu": {
+      "ru": "Вернуться в меню",
+      "en": "Return to menu"
+    },
+    "stop_download_title": {
+      "ru": "Остановка загрузки",
+      "en": "Stop download"
+    },
+    "stop_download_description": {
+      "ru": "Будет остановлена загрузка треков, которые еще не начали скачиваться\nОстановить?",
+      "en": "Downloading tracks that have not yet started downloading will be stopped\nStop?"
     }
   }
 }
