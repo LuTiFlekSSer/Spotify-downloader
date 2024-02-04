@@ -1,12 +1,10 @@
 import CTkTable
-
 import DownloaderPool
 import SettingsStorage
 import os
 import SpotifyTracks
 import LocalTracks
 import time
-
 import TrackDownloader
 import TracksComparator
 import SpLogin
@@ -17,6 +15,7 @@ import Locales
 from CTkMessagebox import CTkMessagebox
 import threading
 import pyperclip
+import CustomTable
 
 
 class TracksSyncing(ctk.CTkFrame):
@@ -57,12 +56,13 @@ class TracksSyncing(ctk.CTkFrame):
             fg_color=self._title_frame.cget('fg_color')
         )
 
-        self._table = CTkTable.CTkTable(
+        self._table = CustomTable.CustomTable(
             self._table_frame,
             width=10,
             wraplength=250,
             command=lambda x: pyperclip.copy(x['value']),
-            values=self._create_values_for_table([])
+            values=self._create_values_for_table([]),
+            max_rows=31,
         )
         self._page = 0
         self._table_limit = 30

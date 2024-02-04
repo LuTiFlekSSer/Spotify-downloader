@@ -6,8 +6,8 @@ import customtkinter as ctk
 import Locales
 from PIL import Image
 from CTkMessagebox import CTkMessagebox
-from CTkTable import CTkTable
 import pyperclip
+from CustomTable import CustomTable
 
 
 class SetSettings(ctk.CTkFrame):
@@ -17,6 +17,9 @@ class SetSettings(ctk.CTkFrame):
         self._new_directory = None
         self._locales = Locales.Locales()
         self._settings = SettingsStorage.Settings()
+        self._table_limit = 20
+        self._local_ignore_table_data = None
+        self._server_ignore_table_data = None
 
         self._buttons_container = ctk.CTkScrollableFrame(self, width=220)
         self._title_frame = ctk.CTkFrame(self)
@@ -535,15 +538,72 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._clear_data_button
 
     def _settings_local_ignore_list(self):
-        def _get_values():
-            return ([['№', self._locales.get_string('title')]] +
-                    [[i + 1, track] for i, track in enumerate(sorted(self._settings.get_all_local_ignore_tracks()))])
+        def _create_values_for_table(values, offset=0):
+            return [['№', self._locales.get_string('title')]] + [[offset + i + 1, track] for i, track in enumerate(values)]
 
-        def _update_table():
-            self._local_ignore_table.delete_rows(range(len(self._local_ignore_table.get())))
+        def _update_table(values):
+            self._local_ignore_table_data = values
+            rows_count = len(self._local_ignore_table.get())
 
-            for value in _get_values():
-                self._local_ignore_table.add_row(value, width=10)
+            was_updated = False
+            tmp_values = []
+
+            for i, value in enumerate(_create_values_for_table(self._local_ignore_table_data[:self._table_limit])):
+                if i < rows_count:
+                    tmp_values.append(value)
+                else:
+                    if not was_updated:
+                        was_updated = True
+                        self._local_ignore_table.update_values(tmp_values)
+
+                    self._local_ignore_table.add_row(value, width=10)
+
+            if not was_updated:
+                self._local_ignore_table.update_values(tmp_values)
+
+            if len(self._local_ignore_table_data) > self._table_limit:
+                self._next_page_local_ignore_table.grid(row=1, column=1, sticky='e', padx=5, pady=5)
+                self._previous_page_local_ignore_table.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+                self._next_page_local_ignore_table.configure(state='normal')
+                self._previous_page_local_ignore_table.configure(state='disabled')
+
+                self._local_table_page = 0
+            else:
+                self._next_page_local_ignore_table.grid_forget()
+                self._previous_page_local_ignore_table.grid_forget()
+
+                self._local_ignore_table.delete_rows([i for i in range(len(values) + 1, len(self._local_ignore_table.get()))])
+
+        def _next_page():
+            self._local_ignore_table_frame._parent_canvas.yview_moveto(0)
+            self._local_table_page += 1
+
+            self._local_ignore_table.update_values(
+                _create_values_for_table(
+                    self._local_ignore_table_data[self._table_limit * self._local_table_page:self._table_limit * (self._local_table_page + 1)],
+                    self._table_limit * self._local_table_page
+                )
+            )
+
+            self._previous_page_local_ignore_table.configure(state='normal')
+            if self._table_limit * (self._local_table_page + 1) >= len(self._local_ignore_table_data):
+                self._next_page_local_ignore_table.configure(state='disabled')
+
+        def _previous_page():
+            self._local_ignore_table_frame._parent_canvas.yview_moveto(0)
+            self._local_table_page -= 1
+
+            self._local_ignore_table.update_values(
+                _create_values_for_table(
+                    self._local_ignore_table_data[self._table_limit * self._local_table_page:self._table_limit * (self._local_table_page + 1)],
+                    self._table_limit * self._local_table_page
+                )
+            )
+
+            self._next_page_local_ignore_table.configure(state='normal')
+            if self._local_table_page == 0:
+                self._previous_page_local_ignore_table.configure(state='disabled')
 
         if not hasattr(self, '_local_ignore_frame'):
             self._local_ignore_frame = ctk.CTkFrame(self)
@@ -575,17 +635,30 @@ class SetSettings(ctk.CTkFrame):
             self._local_ignore_description.insert('end', self._locales.get_string('local_ignore_description'))
             self._local_ignore_description.configure(state='disabled')
 
-            values = _get_values()
-
             self._local_ignore_table_frame = ctk.CTkScrollableFrame(self._local_ignore_frame)
 
-            self._local_ignore_table = CTkTable(
+            self._local_ignore_table = CustomTable(
                 self._local_ignore_table_frame,
                 width=10,
                 wraplength=250,
                 command=lambda x: pyperclip.copy(x['value']),
-                values=values
+                max_columns=2,
+                max_rows=21
             )
+            self._local_table_page = 0
+
+            self._next_page_local_ignore_table = ctk.CTkButton(
+                self._local_ignore_table_frame,
+                text=self._locales.get_string('forward'),
+                command=_next_page
+            )
+            self._previous_page_local_ignore_table = ctk.CTkButton(
+                self._local_ignore_table_frame,
+                text=self._locales.get_string('back'),
+                command=_previous_page
+            )
+            _update_table(sorted(self._settings.get_all_local_ignore_tracks()))
+
             self._local_ignore_input_description = ctk.CTkTextbox(
                 self._local_ignore_frame,
                 wrap='word',
@@ -628,7 +701,7 @@ class SetSettings(ctk.CTkFrame):
                     self._settings.save()
 
                     self._local_ignore_input.delete(0, 'end')
-                    _update_table()
+                    _update_table(sorted(self._settings.get_all_local_ignore_tracks()))
 
                 except SettingsStorage.AlreadyExistsError:
                     CTkMessagebox(
@@ -650,7 +723,7 @@ class SetSettings(ctk.CTkFrame):
                     self._settings.save()
 
                     self._local_ignore_input.delete(0, 'end')
-                    _update_table()
+                    _update_table(sorted(self._settings.get_all_local_ignore_tracks()))
 
                 except ValueError:
                     CTkMessagebox(
@@ -689,11 +762,12 @@ class SetSettings(ctk.CTkFrame):
 
             self._local_ignore_frame.grid_columnconfigure(0, weight=1)
             self._local_ignore_frame.grid_rowconfigure(2, weight=1)
-            self._local_ignore_table_frame.grid_columnconfigure(0, weight=1)
+            self._local_ignore_table_frame.grid_columnconfigure((0, 1), weight=1)
+            self._local_ignore_table_frame.grid_rowconfigure(0, weight=1)
 
             self._local_ignore_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
             self._local_ignore_description.grid(row=1, column=0, sticky='ew', pady=(5, 0))
-            self._local_ignore_table.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
+            self._local_ignore_table.grid(row=0, column=0, sticky='nsew', padx=5, pady=5, columnspan=2)
             self._local_ignore_table_frame.grid(row=2, column=0, sticky='nsew', padx=5, pady=5)
             self._local_ignore_input_description.grid(row=3, column=0, sticky='ew', pady=(5, 0))
             self._local_ignore_input.grid(row=4, column=0, sticky='we', padx=5, pady=5)
@@ -702,7 +776,7 @@ class SetSettings(ctk.CTkFrame):
             self._local_ignore_add_button.grid(row=0, column=1, padx=5, pady=5)
 
         else:
-            _update_table()
+            _update_table(sorted(self._settings.get_all_local_ignore_tracks()))
 
         self._current_frame.grid_forget()
         self._current_button.configure(fg_color='transparent')
@@ -713,15 +787,72 @@ class SetSettings(ctk.CTkFrame):
         self._current_button = self._local_ignore_button
 
     def _settings_server_ignore_list(self):
-        def _get_values():
-            return ([['№', self._locales.get_string('title')]] +
-                    [[i + 1, track] for i, track in enumerate(sorted(self._settings.get_all_server_ignore_tracks()))])
+        def _create_values_for_table(values, offset=0):
+            return [['№', self._locales.get_string('title')]] + [[offset + i + 1, track] for i, track in enumerate(values)]
 
-        def _update_table():
-            self._server_ignore_table.delete_rows(range(len(self._server_ignore_table.get())))
+        def _update_table(values):
+            self._server_ignore_table_data = values
+            rows_count = len(self._server_ignore_table.get())
 
-            for value in _get_values():
-                self._server_ignore_table.add_row(value, width=10)
+            was_updated = False
+            tmp_values = []
+
+            for i, value in enumerate(_create_values_for_table(self._server_ignore_table_data[:self._table_limit])):
+                if i < rows_count:
+                    tmp_values.append(value)
+                else:
+                    if not was_updated:
+                        was_updated = True
+                        self._server_ignore_table.update_values(tmp_values)
+
+                    self._server_ignore_table.add_row(value, width=10)
+
+            if not was_updated:
+                self._server_ignore_table.update_values(tmp_values)
+
+            if len(self._server_ignore_table_data) > self._table_limit:
+                self._next_page_server_ignore_table.grid(row=1, column=1, sticky='e', padx=5, pady=5)
+                self._previous_page_server_ignore_table.grid(row=1, column=0, sticky='w', padx=5, pady=5)
+
+                self._next_page_server_ignore_table.configure(state='normal')
+                self._previous_page_server_ignore_table.configure(state='disabled')
+
+                self._server_table_page = 0
+            else:
+                self._next_page_server_ignore_table.grid_forget()
+                self._previous_page_server_ignore_table.grid_forget()
+
+                self._server_ignore_table.delete_rows([i for i in range(len(values) + 1, len(self._server_ignore_table.get()))])
+
+        def _next_page():
+            self._server_ignore_table_frame._parent_canvas.yview_moveto(0)
+            self._server_table_page += 1
+
+            self._server_ignore_table.update_values(
+                _create_values_for_table(
+                    self._server_ignore_table_data[self._table_limit * self._server_table_page:self._table_limit * (self._server_table_page + 1)],
+                    self._table_limit * self._server_table_page
+                )
+            )
+
+            self._previous_page_server_ignore_table.configure(state='normal')
+            if self._table_limit * (self._server_table_page + 1) >= len(self._server_ignore_table_data):
+                self._next_page_server_ignore_table.configure(state='disabled')
+
+        def _previous_page():
+            self._server_ignore_table_frame._parent_canvas.yview_moveto(0)
+            self._server_table_page -= 1
+
+            self._server_ignore_table.update_values(
+                _create_values_for_table(
+                    self._server_ignore_table_data[self._table_limit * self._server_table_page:self._table_limit * (self._server_table_page + 1)],
+                    self._table_limit * self._server_table_page
+                )
+            )
+
+            self._next_page_server_ignore_table.configure(state='normal')
+            if self._server_table_page == 0:
+                self._previous_page_server_ignore_table.configure(state='disabled')
 
         if not hasattr(self, '_server_ignore_frame'):
             self._server_ignore_frame = ctk.CTkFrame(self)
@@ -753,17 +884,30 @@ class SetSettings(ctk.CTkFrame):
             self._server_ignore_description.insert('end', self._locales.get_string('server_ignore_description'))
             self._server_ignore_description.configure(state='disabled')
 
-            values = _get_values()
-
             self._server_ignore_table_frame = ctk.CTkScrollableFrame(self._server_ignore_frame)
 
-            self._server_ignore_table = CTkTable(
+            self._server_ignore_table = CustomTable(
                 self._server_ignore_table_frame,
                 width=10,
                 wraplength=250,
                 command=lambda x: pyperclip.copy(x['value']),
-                values=values
+                max_columns=2,
+                max_rows=21
             )
+            self._server_table_page = 0
+
+            self._next_page_server_ignore_table = ctk.CTkButton(
+                self._server_ignore_table_frame,
+                text=self._locales.get_string('forward'),
+                command=_next_page
+            )
+            self._previous_page_server_ignore_table = ctk.CTkButton(
+                self._server_ignore_table_frame,
+                text=self._locales.get_string('back'),
+                command=_previous_page
+            )
+            _update_table(sorted(self._settings.get_all_server_ignore_tracks()))
+
             self._server_ignore_input_description = ctk.CTkTextbox(
                 self._server_ignore_frame,
                 wrap='word',
@@ -806,7 +950,7 @@ class SetSettings(ctk.CTkFrame):
                     self._settings.save()
 
                     self._server_ignore_input.delete(0, 'end')
-                    _update_table()
+                    _update_table(sorted(self._settings.get_all_server_ignore_tracks()))
 
                 except SettingsStorage.AlreadyExistsError:
                     CTkMessagebox(
@@ -828,7 +972,7 @@ class SetSettings(ctk.CTkFrame):
                     self._settings.save()
 
                     self._server_ignore_input.delete(0, 'end')
-                    _update_table()
+                    _update_table(sorted(self._settings.get_all_server_ignore_tracks()))
 
                 except ValueError:
                     CTkMessagebox(
@@ -867,11 +1011,12 @@ class SetSettings(ctk.CTkFrame):
 
             self._server_ignore_frame.grid_columnconfigure(0, weight=1)
             self._server_ignore_frame.grid_rowconfigure(2, weight=1)
-            self._server_ignore_table_frame.grid_columnconfigure(0, weight=1)
+            self._server_ignore_table_frame.grid_columnconfigure((0, 1), weight=1)
+            self._server_ignore_table_frame.grid_rowconfigure(0, weight=1)
 
             self._server_ignore_frame_title.grid(row=0, column=0, sticky='ew', pady=(5, 0))
             self._server_ignore_description.grid(row=1, column=0, sticky='ew', pady=(5, 0))
-            self._server_ignore_table.grid(row=0, column=0, sticky='nsew', padx=5, pady=5)
+            self._server_ignore_table.grid(row=0, column=0, sticky='nsew', padx=5, pady=5, columnspan=2)
             self._server_ignore_table_frame.grid(row=2, column=0, sticky='nsew', padx=5, pady=5)
             self._server_ignore_input_description.grid(row=3, column=0, sticky='ew', pady=(5, 0))
             self._server_ignore_input.grid(row=4, column=0, sticky='we', padx=5, pady=5)
@@ -880,7 +1025,7 @@ class SetSettings(ctk.CTkFrame):
             self._server_ignore_add_button.grid(row=0, column=1, padx=5, pady=5)
 
         else:
-            _update_table()
+            _update_table(sorted(self._settings.get_all_server_ignore_tracks()))
 
         self._current_frame.grid_forget()
         self._current_button.configure(fg_color='transparent')
