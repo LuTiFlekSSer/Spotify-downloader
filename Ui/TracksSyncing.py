@@ -212,9 +212,9 @@ class TracksSyncing(ctk.CTkFrame):
         self._sync_frame.configure(fg_color=self._title_frame.cget('fg_color'))
         self._table_frame.grid_forget()
         self._input_frame.grid_forget()
-
         self._spotify_login.grid_forget()
 
+        self._back_button.grid(row=0, column=0, sticky='w', padx=2)
         if (res := self._spotify_login.spotify_login()) is None:
             self._spotify_login.grid(row=1, column=1, sticky='nsew')
 
@@ -225,7 +225,6 @@ class TracksSyncing(ctk.CTkFrame):
             self._progress_bar.set(0)
             self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
             self._current_step_title.configure(text=self._locales.get_string('getting_tracks_from_disk'))
-            self._back_button.grid(row=0, column=0, sticky='w', padx=2)
             self._next_button.grid_forget()
             self._next_button.configure(text=self._locales.get_string('next'))
             self._missing_tracks_frame.grid_forget()
