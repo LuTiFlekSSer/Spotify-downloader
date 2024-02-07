@@ -439,6 +439,10 @@
     "stop_download_description": {
       "ru": "Будет остановлена загрузка треков, которые еще не начали скачиваться\nОстановить?",
       "en": "Downloading tracks that have not yet started downloading will be stopped\nStop?"
+    },
+    "compare_title": {
+      "ru": "Проверка отсутствующих треков в spotify",
+      "en": "Checking for missing tracks in spotify"
     }
   }
 }

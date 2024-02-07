@@ -1,5 +1,4 @@
 import TracksSyncing
-import TracksCompare
 import PlaylistDownload
 import MultipleTracksDownload
 import Utils
@@ -16,7 +15,7 @@ class MainPage(ctk.CTkFrame):
         self._busy_flag = False
 
         self._tracks_syncing = TracksSyncing.TracksSyncing(self, self._exit_callback, self._busy_callback)
-        # self._tracks_compare = TracksCompare.TracksCompare(self)
+        self._tracks_compare = TracksSyncing.TracksSyncing(self, self._exit_callback, self._busy_callback, True)
         # self._playlist_download = PlaylistDownload.PlaylistDownload()
         # self._multiple_tracks_download = MultipleTracksDownload.MultipleTracksDownload()
 
@@ -39,7 +38,7 @@ class MainPage(ctk.CTkFrame):
             text=self._locales.get_string('check_tracks'),
             image=self._check_image,
             compound='top',
-            command=...,
+            command=self._open_tracks_compare,
 
         )
         self._playlist_button = ctk.CTkButton(
@@ -73,6 +72,12 @@ class MainPage(ctk.CTkFrame):
 
         self._tracks_syncing.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
         self._tracks_syncing.initialize()
+
+    def _open_tracks_compare(self):
+        self._menu_frame.grid_forget()
+
+        self._tracks_compare.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
+        self._tracks_compare.initialize()
 
     def get_busy_state(self):
         return self._busy_flag

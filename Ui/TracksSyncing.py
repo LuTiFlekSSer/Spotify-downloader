@@ -18,7 +18,7 @@ import CustomTable
 
 
 class TracksSyncing(ctk.CTkFrame):
-    def __init__(self, master, exit_callback, busy_callback):
+    def __init__(self, master, exit_callback, busy_callback, tracks_compare=False):
         super().__init__(master)
 
         self._settings = SettingsStorage.Settings()
@@ -27,6 +27,7 @@ class TracksSyncing(ctk.CTkFrame):
         self._busy_callback = busy_callback
         self._completed_tracks = {}
         self._downloading = False
+        self._tracks_compare = tracks_compare
 
         self._title_frame = ctk.CTkFrame(self)
 
@@ -43,7 +44,7 @@ class TracksSyncing(ctk.CTkFrame):
 
         self._sync_title = ctk.CTkLabel(
             self._title_frame,
-            text=self._locales.get_string('sync_title'),
+            text=self._locales.get_string('sync_title') if not tracks_compare else self._locales.get_string('compare_title'),
             font=('Arial', 23, 'bold')
         )
 
@@ -352,7 +353,7 @@ class TracksSyncing(ctk.CTkFrame):
         self._next_button.grid(row=2, column=0, sticky='s', pady=5, padx=5)
         self._missing_tracks_frame.grid(row=0, column=0, rowspan=2, sticky='nsew', padx=5, pady=5)
 
-        if self._settings.get_setting('auto_comp') == 'True':
+        if self._settings.get_setting('auto_comp') == 'True' or self._tracks_compare:
             self._server_missing_tracks = self._comp.get_server_missing_tracks()
 
             self._set_missing_title(self._locales.get_string('missing_spotify_tracks'))
@@ -406,7 +407,10 @@ class TracksSyncing(ctk.CTkFrame):
 
                 self._update_table(self._server_missing_tracks)
 
-            self._next_button.configure(command=self._sync_local)
+            if self._tracks_compare:
+                self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+            else:
+                self._next_button.configure(command=self._sync_local)
         else:
             self._sync_local()
 
