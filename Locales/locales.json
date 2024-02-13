@@ -443,6 +443,54 @@
     "compare_title": {
       "ru": "Проверка отсутствующих треков в spotify",
       "en": "Checking for missing tracks in spotify"
+    },
+    "playlist_title": {
+      "ru": "Загрузка плейлиста",
+      "en": "Downloading playlist"
+    },
+    "playlist_link_input": {
+      "ru": "Ввод плейлиста",
+      "en": "Playlist input"
+    },
+    "playlist_link_description": {
+      "ru": "Введите ссылку на плейлист",
+      "en": "Enter the playlist link"
+    },
+    "link_error": {
+      "ru": "Введена некорректная ссылка",
+      "en": "An incorrect link is entered"
+    },
+    "link_work_error": {
+      "ru": "Ошибка при получении информации о плейлисте",
+      "en": "Error getting playlist information"
+    },
+    "getting_playlist_info": {
+      "ru": "Получение информации о плейлисте",
+      "en": "Getting playlist information"
+    },
+    "confirm": {
+      "ru": "Подтвердить",
+      "en": "Confirm"
+    },
+    "path_input": {
+      "ru": "Ввод пути для загрузки",
+      "en": "Path input for download"
+    },
+    "playlist_error": {
+      "ru": "Ошибка при получении информации о плейлисте",
+      "en": "Error getting playlist information"
+    },
+    "playlist_len_error": {
+      "ru": "Плейлист пуст",
+      "en": "Playlist is empty"
+    },
+    "change": {
+      "ru": "Изменить",
+      "en": "Change"
+    },
+    "path_not_specified": {
+      "ru": "Путь не задан",
+      "en": "Path not specified"
     }
   }
 }

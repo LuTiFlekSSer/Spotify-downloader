@@ -1,4 +1,4 @@
-import TracksSyncing
+import TracksProcessing
 import PlaylistDownload
 import MultipleTracksDownload
 import Utils
@@ -14,9 +14,9 @@ class MainPage(ctk.CTkFrame):
         self._locales = Locales.Locales()
         self._busy_flag = False
 
-        self._tracks_syncing = TracksSyncing.TracksSyncing(self, self._exit_callback, self._busy_callback)
-        self._tracks_compare = TracksSyncing.TracksSyncing(self, self._exit_callback, self._busy_callback, True)
-        # self._playlist_download = PlaylistDownload.PlaylistDownload()
+        self._tracks_syncing = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.SYNC)
+        self._tracks_compare = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.COMP)
+        self._playlist_download = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.PLAYLIST)
         # self._multiple_tracks_download = MultipleTracksDownload.MultipleTracksDownload()
 
         self._sync_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/sync.png')), size=(30, 30))
@@ -46,7 +46,7 @@ class MainPage(ctk.CTkFrame):
             text=self._locales.get_string('download_playlist'),
             image=self._playlist_image,
             compound='top',
-            command=...,
+            command=self._open_playlist_download,
 
         )
         self._multiple_tracks_button = ctk.CTkButton(
@@ -78,6 +78,12 @@ class MainPage(ctk.CTkFrame):
 
         self._tracks_compare.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
         self._tracks_compare.initialize()
+
+    def _open_playlist_download(self):
+        self._menu_frame.grid_forget()
+
+        self._playlist_download.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
+        self._playlist_download.initialize()
 
     def get_busy_state(self):
         return self._busy_flag

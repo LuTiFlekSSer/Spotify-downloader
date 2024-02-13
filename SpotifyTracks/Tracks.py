@@ -37,15 +37,15 @@ class SpTracks:
         self._tracks_info = {}
 
     def start(self):
-        self._total = self._client.current_user_saved_tracks(limit=1)['total']
-
-        self._spotify_tracks.clear()
-        self._tracks_info.clear()
-
-        settings = Settings()
-        local_ignore_list = settings.get_all_local_ignore_tracks()
-
         try:
+            self._total = self._client.current_user_saved_tracks(limit=1)['total']
+
+            self._spotify_tracks.clear()
+            self._tracks_info.clear()
+
+            settings = Settings()
+            local_ignore_list = settings.get_all_local_ignore_tracks()
+
             pool = ThreadPoolExecutor(int(settings.get_setting('threads')))
 
             runs = [pool.submit(self._get_tracks, offset, local_ignore_list) for offset in range(0, self._total, self._limit)]

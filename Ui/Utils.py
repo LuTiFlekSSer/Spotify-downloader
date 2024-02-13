@@ -1,15 +1,20 @@
 import string
-import DownloaderPool
-import time
 import os
 import win32com.client
 import SettingsStorage
 import re
 import sys
 import __main__
+import enum
 
 
 # todo заменить все принты
+class DownloadMode(enum.Enum):
+    SYNC = 0
+    COMP = 1
+    PLAYLIST = 2
+    MULTIPLE = 3
+
 
 def map_value(curr_value, max_value):
     return curr_value / max_value
