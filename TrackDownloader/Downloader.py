@@ -24,6 +24,7 @@ class Status(enum.Enum):
     NF_ERR = 4
     TAG_ERR = 5
     CANCELLED = 6
+    LINK_ERR = 7
 
 
 def create_download_query(track, directory):

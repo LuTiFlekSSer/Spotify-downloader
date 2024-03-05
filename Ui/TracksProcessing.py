@@ -57,6 +57,8 @@ class TracksProcessing(ctk.CTkFrame):
                 title_text = self._locales.get_string('sync_title')
             case Utils.DownloadMode.PLAYLIST:
                 title_text = self._locales.get_string('playlist_title')
+            case Utils.DownloadMode.MULTIPLE:
+                title_text = self._locales.get_string('multiple_title')
 
         self._sync_title = ctk.CTkLabel(
             self._title_frame,
@@ -234,6 +236,22 @@ class TracksProcessing(ctk.CTkFrame):
         if self._page == 0:
             self._back_table_page_button.configure(state='disabled')
 
+    def _set_page(self, page):
+        self._page = page
+
+        self._table.update_values(
+            self._create_values_for_table(
+                self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)],
+                self._table_limit * self._page
+            )
+        )
+
+        if self._table_limit * (self._page + 1) < len(self._table_data):
+            self._next_table_page_button.configure(state='normal')
+
+        if self._page != 0:
+            self._back_table_page_button.configure(state='normal')
+
     def initialize(self):
         self._sync_frame.configure(fg_color=self._title_frame.cget('fg_color'))
         self._table_frame.grid_forget()
@@ -267,6 +285,10 @@ class TracksProcessing(ctk.CTkFrame):
             self._input_button.configure(text=self._locales.get_string('add'))
             self._playlist = []
             self._path_textbox.grid_forget()
+            self._page = 0
+            self._next_button.configure(state='normal')
+            self._back_button.configure(state='normal')
+            self._back_button.configure(command=lambda: self._exit_callback(self))
 
             if (path := self._settings.get_setting('path_for_sync')) != '' or not os.path.exists(path):
                 self._set_path(f"{self._locales.get_string('current_path')} {path}")
@@ -289,6 +311,99 @@ class TracksProcessing(ctk.CTkFrame):
 
                 case Utils.DownloadMode.PLAYLIST:
                     self._start_playlist_download()
+
+                case Utils.DownloadMode.MULTIPLE:
+                    self._start_multiple_download()
+
+    def _start_multiple_download(self):
+        self._back_button.grid(row=0, column=0, sticky='w', padx=2)
+        self._next_button.grid(row=2, column=0, sticky='s', pady=5, padx=5)
+        self._get_tracks_frame.grid_forget()
+        self._tracks_frame.grid(row=0, column=0, rowspan=2, sticky='nsew', padx=5, pady=5)
+        self._input_entry.grid(row=2, column=0, pady=5, sticky='we')
+        self._input_button.grid(row=3, column=0, pady=5, sticky='e')
+        self._update_table([])
+        self._input_button.configure(text=self._locales.get_string('confirm'))
+        self._tracks_description.configure(height=25)
+
+        self._path_input()
+
+    def _initialize_multiple_pool(self):
+        self._busy_callback(True)
+        self._back_button.grid_forget()
+        self._path_textbox.grid_forget()
+        self._input_entry.grid(row=2, column=0, pady=5, sticky='we')
+        self._tracks_description.grid(row=1, column=0, pady=5, sticky='we')
+
+        self._set_title(self._locales.get_string('links_input'))
+        self._set_description(self._locales.get_string('input_link'))
+
+        self._mtp = DownloaderPool.MultipleTracksPool(self._path)
+        self._downloading = True
+
+        def _add_track():
+            link = self._input_entry.get().strip()
+            if urlparse(link).scheme:
+                self._input_button.configure(state='disabled')
+                self._next_button.configure(state='disabled')
+                self._back_button.configure(state='disabled')
+                self._input_entry.configure(state='disabled')
+                self.update()
+                track_name = ''
+
+                def _add_to_mtp():
+                    nonlocal track_name
+                    track_name = self._mtp.add(link)
+
+                add_thread = threading.Thread(target=_add_to_mtp)
+                add_thread.start()
+
+                while add_thread.is_alive():
+                    self.update()
+                    time.sleep(0.01)
+
+                self._input_button.configure(state='normal')
+                self._next_button.configure(state='normal')
+                self._back_button.configure(state='normal')
+                self._input_entry.configure(state='normal')
+                self.update()
+
+                if track_name is not None:
+                    self._playlist.append(track_name)
+                else:
+                    self._playlist.append(link)
+
+                tmp_page = self._page
+                self._update_table(self._playlist)
+                self._set_page(tmp_page)
+
+            else:
+                CTkMessagebox(
+                    title=self._locales.get_string('error'),
+                    message=self._locales.get_string('link_error'),
+                    icon='cancel',
+                    topmost=False
+                ).get()
+
+            self._input_entry.delete(0, 'end')
+
+        self._input_button.configure(command=_add_track, text=self._locales.get_string('add'))
+        self._next_button.configure(command=self._stop_multiple, text=self._locales.get_string('go_to_menu'))
+        self._back_button.configure(command=self._stop_multiple)
+
+        while self._downloading:
+            self.update()
+            time.sleep(0.01)
+
+            for row, track in enumerate(self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)]):
+                try:
+                    status = self._get_status_str(self._mtp.pool_status()['all_tracks'][track])
+                    self._table.insert(row + 1, 2, status)
+                except KeyError:
+                    pass
+
+    def _stop_multiple(self):
+        self._downloading = False
 
     def _start_playlist_download(self):
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
@@ -330,7 +445,10 @@ class TracksProcessing(ctk.CTkFrame):
                 offset = 0
                 try:
                     while True:
-                        playlist_info = requests.get(f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}', headers=TrackDownloader.Downloader.headers).json()
+                        playlist_info = requests.get(
+                            f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}',
+                            headers=TrackDownloader.Downloader.headers
+                        ).json()
 
                         if not playlist_info['success']:
                             error = True
@@ -392,24 +510,30 @@ class TracksProcessing(ctk.CTkFrame):
         self._set_description(self._locales.get_string('playlist_link_description'))
 
     def _path_input(self):
-        if len(self._playlist) == 0:
-            CTkMessagebox(
-                title=self._locales.get_string('error'),
-                message=self._locales.get_string('playlist_len_error'),
-                icon='cancel',
-                topmost=False
-            ).get()
+        if self._mode == Utils.DownloadMode.PLAYLIST:
+            if len(self._playlist) == 0:
+                CTkMessagebox(
+                    title=self._locales.get_string('error'),
+                    message=self._locales.get_string('playlist_len_error'),
+                    icon='cancel',
+                    topmost=False
+                ).get()
 
-            return
-        elif self._playlist_error:
-            CTkMessagebox(
-                title=self._locales.get_string('error'),
-                message=self._locales.get_string('playlist_error'),
-                icon='cancel',
-                topmost=False
-            ).get()
+                return
+            elif self._playlist_error:
+                CTkMessagebox(
+                    title=self._locales.get_string('error'),
+                    message=self._locales.get_string('playlist_error'),
+                    icon='cancel',
+                    topmost=False
+                ).get()
 
-            return
+                return
+
+            self._next_button.configure(command=self._download_playlist)
+
+        elif self._mode == Utils.DownloadMode.MULTIPLE:
+            self._next_button.configure(command=self._initialize_multiple_pool)
 
         self._set_title(self._locales.get_string('path_input'))
         self._tracks_description.grid_forget()
@@ -426,9 +550,10 @@ class TracksProcessing(ctk.CTkFrame):
                 pass
 
         self._input_button.configure(text=self._locales.get_string('change'), command=_change_path)
-        self._next_button.configure(command=self._download_playlist)
 
     def _download_playlist(self):
+        self._busy_callback(True)
+
         if self._path == '':
             CTkMessagebox(
                 title=self._locales.get_string('error'),
@@ -443,13 +568,6 @@ class TracksProcessing(ctk.CTkFrame):
         self._back_button.grid_forget()
         self._tracks_frame.grid_forget()
         self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
-
-        for cell_index in range(self._table_limit * self._page, self._table_limit * (self._page + 1)):
-            try:
-                self._table.insert(cell_index % self._table_limit + 1, 2, self._locales.get_string('downloading'))
-            except KeyError:
-                pass
-        self.update()
 
         self._tracks_for_downloading = [TrackDownloader.create_download_query(track, self._path) for track in self._playlist]
 
@@ -645,7 +763,7 @@ class TracksProcessing(ctk.CTkFrame):
             self._update_table([])
             self._input_entry.grid_forget()
             self._input_button.grid_forget()
-            self._no_missing_canvas.grid(row=1, column=0)
+            self._no_missing_canvas.grid(row=2, column=0)
         else:
             self._set_description(self._locales.get_string('find_missing_tracks'))
 
@@ -733,6 +851,9 @@ class TracksProcessing(ctk.CTkFrame):
 
         for cell_index in range(self._table_limit * self._page, self._table_limit * (self._page + 1)):
             try:
+                if self._table.get(cell_index % self._table_limit + 1, 0) == ' ':
+                    continue
+
                 self._table.insert(cell_index % self._table_limit + 1, 2, self._locales.get_string('downloading'))
             except KeyError:
                 pass
@@ -798,7 +919,10 @@ class TracksProcessing(ctk.CTkFrame):
 
         for i, track in enumerate(values):
             if self._downloading:
-                status = self._locales.get_string('downloading')
+                if self._mode == Utils.DownloadMode.MULTIPLE and track in self._mtp.pool_status()['all_tracks']:
+                    status = self._get_status_str(self._mtp.pool_status()['all_tracks'][track])
+                else:
+                    status = self._locales.get_string('downloading')
             else:
                 status = self._locales.get_string('state_missing')
 
@@ -823,9 +947,11 @@ class TracksProcessing(ctk.CTkFrame):
                 return self._locales.get_string('tag_error')
             case TrackDownloader.Status.CANCELLED:
                 return self._locales.get_string('cancelled')
+            case TrackDownloader.Status.LINK_ERR:
+                return self._locales.get_string('multiple_link_error')
 
     def _update_table(self, values):
-        self._table_data = values
+        self._table_data = values.copy()
         rows_count = len(self._table.get())
 
         was_updated = False

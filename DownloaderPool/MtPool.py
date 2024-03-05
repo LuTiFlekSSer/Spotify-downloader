@@ -63,6 +63,10 @@ class MultipleTracksPool:
                     'quantity': 0,
                     'list': []
                 },
+            'all_tracks':
+                {
+
+                }
         }
 
     def add(self, link):
@@ -75,6 +79,7 @@ class MultipleTracksPool:
             self._lock.acquire()
             self._pool_status['link_err']['quantity'] += 1
             self._pool_status['link_err']['list'].append(link)
+            self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
             self._lock.release()
 
             return
@@ -88,6 +93,7 @@ class MultipleTracksPool:
                 self._lock.acquire()
                 self._pool_status['link_err']['quantity'] += 1
                 self._pool_status['link_err']['list'].append(link)
+                self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
                 self._lock.release()
                 return
 
@@ -95,6 +101,7 @@ class MultipleTracksPool:
             self._lock.acquire()
             self._pool_status['link_err']['quantity'] += 1
             self._pool_status['link_err']['list'].append(link)
+            self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
             self._lock.release()
 
             return
@@ -108,6 +115,8 @@ class MultipleTracksPool:
 
         self._pool.submit(self._download, link, *query)
 
+        return query[0]
+
     def launched(self):
         return self._pool_status['launched']['quantity']
 
@@ -120,6 +129,7 @@ class MultipleTracksPool:
                 self._lock.acquire()
                 self._pool_status['ok']['quantity'] += 1
                 self._pool_status['ok']['list'].append(args[0])
+                self._pool_status['all_tracks'][args[0]] = TrackDownloader.Status.OK
                 self._lock.release()
 
             case TrackDownloader.Status.GET_ERR | TrackDownloader.Status.API_ERR:
@@ -131,6 +141,7 @@ class MultipleTracksPool:
                         'link': link
                     }
                 )
+                self._pool_status['all_tracks'][args[0]] = TrackDownloader.Status.GET_ERR
                 self._lock.release()
 
             case TrackDownloader.Status.JPG_ERR:
@@ -142,6 +153,7 @@ class MultipleTracksPool:
                         'link': link
                     }
                 )
+                self._pool_status['all_tracks'][args[0]] = TrackDownloader.Status.JPG_ERR
                 self._lock.release()
 
             case TrackDownloader.Status.NF_ERR:
@@ -153,6 +165,7 @@ class MultipleTracksPool:
                         'link': link
                     }
                 )
+                self._pool_status['all_tracks'][args[0]] = TrackDownloader.Status.NF_ERR
                 self._lock.release()
 
             case TrackDownloader.Status.TAG_ERR:
@@ -164,6 +177,7 @@ class MultipleTracksPool:
                         'link': link
                     }
                 )
+                self._pool_status['all_tracks'][args[0]] = TrackDownloader.Status.TAG_ERR
                 self._lock.release()
 
         self._lock.acquire()

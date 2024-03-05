@@ -491,6 +491,22 @@
     "path_not_specified": {
       "ru": "Путь не задан",
       "en": "Path not specified"
+    },
+    "multiple_title": {
+      "ru": "Загрузка треков",
+      "en": "Downloading tracks"
+    },
+    "links_input": {
+      "ru": "Ввод ссылок на треки",
+      "en": "Input links to tracks"
+    },
+    "input_link": {
+      "ru": "Введи ссылку на трек",
+      "en": "Enter a link to the track"
+    },
+    "multiple_link_error": {
+      "ru": "Некорректная ссылка",
+      "en": "Incorrect link"
     }
   }
 }

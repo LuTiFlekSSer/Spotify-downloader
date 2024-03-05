@@ -15,7 +15,7 @@ class MainPage(ctk.CTkFrame):
         self._tracks_syncing = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.SYNC)
         self._tracks_compare = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.COMP)
         self._playlist_download = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.PLAYLIST)
-        # self._multiple_tracks_download = MultipleTracksDownload.MultipleTracksDownload()
+        self._multiple_tracks_download = TracksProcessing.TracksProcessing(self, self._exit_callback, self._busy_callback, Utils.DownloadMode.MULTIPLE)
 
         self._sync_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/sync.png')), size=(30, 30))
         self._check_image = ctk.CTkImage(Image.open(Utils.resource_path('icons/check.png')), size=(30, 30))
@@ -52,7 +52,7 @@ class MainPage(ctk.CTkFrame):
             text=self._locales.get_string('download_tracks'),
             image=self._multiple_image,
             compound='top',
-            command=...,
+            command=self._open_multiple_download,
 
         )
 
@@ -82,6 +82,12 @@ class MainPage(ctk.CTkFrame):
 
         self._playlist_download.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
         self._playlist_download.initialize()
+
+    def _open_multiple_download(self):
+        self._menu_frame.grid_forget()
+
+        self._multiple_tracks_download.grid(row=0, column=0, sticky='nsew', rowspan=3, columnspan=3)
+        self._multiple_tracks_download.initialize()
 
     def get_busy_state(self):
         return self._busy_flag
