@@ -259,61 +259,61 @@ class TracksProcessing(ctk.CTkFrame):
         self._spotify_login.grid_forget()
 
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
-        if (res := self._spotify_login.spotify_login()) is None and (self._mode == Utils.DownloadMode.COMP or self._mode == Utils.DownloadMode.SYNC):
-            self._spotify_login.grid(row=1, column=1, sticky='nsew')
+        if not (self._mode == Utils.DownloadMode.MULTIPLE or self._mode == Utils.DownloadMode.PLAYLIST):
+            if (res := self._spotify_login.spotify_login()) is None and (self._mode == Utils.DownloadMode.COMP or self._mode == Utils.DownloadMode.SYNC):
+                return self._spotify_login.grid(row=1, column=1, sticky='nsew')
 
-        elif not res:
-            self._exit_callback(self)
+            elif not res:
+                return self._exit_callback(self)
 
+        self._progress_bar.set(0)
+        self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
+        self._progress_bar.configure(mode='determinate')
+        self._next_button.grid_forget()
+        self._next_button.configure(text=self._locales.get_string('next'))
+        self._tracks_frame.grid_forget()
+        self._input_entry.grid_forget()
+        self._input_button.grid_forget()
+        self._update_table([])
+        self._input_entry.delete(0, 'end')
+        self._next_table_page_button.grid_forget()
+        self._back_table_page_button.grid_forget()
+        self._completed_tracks = {}
+        self._table_frame._parent_canvas.yview_moveto(0)
+        self._downloading = False
+        self._no_missing_canvas.grid_forget()
+        self._input_button.configure(text=self._locales.get_string('add'))
+        self._playlist = []
+        self._path_textbox.grid_forget()
+        self._page = 0
+        self._next_button.configure(state='normal')
+        self._back_button.configure(state='normal')
+        self._back_button.configure(command=lambda: self._exit_callback(self))
+
+        if (path := self._settings.get_setting('path_for_sync')) != '' or not os.path.exists(path):
+            self._set_path(f"{self._locales.get_string('current_path')} {path}")
+            self._path = path
         else:
-            self._progress_bar.set(0)
-            self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
-            self._progress_bar.configure(mode='determinate')
-            self._next_button.grid_forget()
-            self._next_button.configure(text=self._locales.get_string('next'))
-            self._tracks_frame.grid_forget()
-            self._input_entry.grid_forget()
-            self._input_button.grid_forget()
-            self._update_table([])
-            self._input_entry.delete(0, 'end')
-            self._next_table_page_button.grid_forget()
-            self._back_table_page_button.grid_forget()
-            self._completed_tracks = {}
-            self._table_frame._parent_canvas.yview_moveto(0)
-            self._downloading = False
-            self._no_missing_canvas.grid_forget()
-            self._input_button.configure(text=self._locales.get_string('add'))
-            self._playlist = []
-            self._path_textbox.grid_forget()
-            self._page = 0
-            self._next_button.configure(state='normal')
-            self._back_button.configure(state='normal')
-            self._back_button.configure(command=lambda: self._exit_callback(self))
+            self._set_path(f"{self._locales.get_string('current_path')} {self._locales.get_string('not_specified')}")
+            self._path = ''
 
-            if (path := self._settings.get_setting('path_for_sync')) != '' or not os.path.exists(path):
-                self._set_path(f"{self._locales.get_string('current_path')} {path}")
-                self._path = path
-            else:
-                self._set_path(f"{self._locales.get_string('current_path')} {self._locales.get_string('not_specified')}")
-                self._path = ''
+        self._table_frame.grid(row=0, column=1, sticky='nsew', padx=(5, 0), columnspan=2, rowspan=3)
+        self._input_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 5), rowspan=3)
 
-            self._table_frame.grid(row=0, column=1, sticky='nsew', padx=(5, 0), columnspan=2, rowspan=3)
-            self._input_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 5), rowspan=3)
+        self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
+        self._sync_frame.configure(fg_color=self.cget('fg_color'))
 
-            self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
-            self._sync_frame.configure(fg_color=self.cget('fg_color'))
+        match self._mode:
+            case Utils.DownloadMode.SYNC | Utils.DownloadMode.COMP:
+                self._current_step_title.configure(text=self._locales.get_string('getting_tracks_from_disk'))
 
-            match self._mode:
-                case Utils.DownloadMode.SYNC | Utils.DownloadMode.COMP:
-                    self._current_step_title.configure(text=self._locales.get_string('getting_tracks_from_disk'))
+                self._start_sync()
 
-                    self._start_sync()
+            case Utils.DownloadMode.PLAYLIST:
+                self._start_playlist_download()
 
-                case Utils.DownloadMode.PLAYLIST:
-                    self._start_playlist_download()
-
-                case Utils.DownloadMode.MULTIPLE:
-                    self._start_multiple_download()
+            case Utils.DownloadMode.MULTIPLE:
+                self._start_multiple_download()
 
     def _start_multiple_download(self):
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
@@ -859,7 +859,7 @@ class TracksProcessing(ctk.CTkFrame):
         if len(self._local_missing_tracks) == 0:
             self._set_description(self._locales.get_string('no_missing_tracks'))
 
-            self._next_button.grid_forget()
+            self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
             self._update_table([])
             self._input_entry.grid_forget()
             self._input_button.grid_forget()
