@@ -345,8 +345,8 @@
       "en": "Error getting tracks from spotify"
     },
     "getting_tracks_from_spotify": {
-      "ru": "Чтение треков из spotify",
-      "en": "Reading tracks from spotify"
+      "ru": "Получение треков из spotify",
+      "en": "Getting tracks from spotify"
     },
     "program_is_busy": {
       "ru": "Недоступно в данный момент",
@@ -507,6 +507,14 @@
     "multiple_link_error": {
       "ru": "Некорректная ссылка",
       "en": "Incorrect link"
+    },
+    "multiple_completion": {
+      "ru": "Завершение загрузки",
+      "en": "Download completion"
+    },
+    "finish_download": {
+      "ru": "Завершить загрузку",
+      "en": "Finish download"
     }
   }
 }

@@ -82,7 +82,7 @@ class MultipleTracksPool:
             self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
             self._lock.release()
 
-            return
+            return link
 
         track_id = track_id[track_id.rfind('/') + 1:]
 
@@ -95,7 +95,7 @@ class MultipleTracksPool:
                 self._pool_status['link_err']['list'].append(link)
                 self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
                 self._lock.release()
-                return
+                return link
 
         except Exception:
             self._lock.acquire()
@@ -104,7 +104,7 @@ class MultipleTracksPool:
             self._pool_status['all_tracks'][link] = TrackDownloader.Status.LINK_ERR
             self._lock.release()
 
-            return
+            return link
 
         query = TrackDownloader.create_download_query(track, self._directory)
 

@@ -330,7 +330,6 @@ class TracksProcessing(ctk.CTkFrame):
 
     def _initialize_multiple_pool(self):
         self._busy_callback(True)
-        self._back_button.grid_forget()
         self._path_textbox.grid_forget()
         self._input_entry.grid(row=2, column=0, pady=5, sticky='we')
         self._tracks_description.grid(row=1, column=0, pady=5, sticky='we')
@@ -368,10 +367,7 @@ class TracksProcessing(ctk.CTkFrame):
                 self._input_entry.configure(state='normal')
                 self.update()
 
-                if track_name is not None:
-                    self._playlist.append(track_name)
-                else:
-                    self._playlist.append(link)
+                self._playlist.append(track_name)
 
                 tmp_page = self._page
                 self._update_table(self._playlist)
@@ -388,22 +384,126 @@ class TracksProcessing(ctk.CTkFrame):
             self._input_entry.delete(0, 'end')
 
         self._input_button.configure(command=_add_track, text=self._locales.get_string('add'))
-        self._next_button.configure(command=self._stop_multiple, text=self._locales.get_string('go_to_menu'))
-        self._back_button.configure(command=self._stop_multiple)
+        self._next_button.configure(command=self._stop_multiple, text=self._locales.get_string('finish_download'))
+        self._back_button.configure(command=lambda: self._stop_multiple(True))
 
         while self._downloading:
             self.update()
             time.sleep(0.01)
 
-            for row, track in enumerate(self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)]):
-                try:
-                    status = self._get_status_str(self._mtp.pool_status()['all_tracks'][track])
-                    self._table.insert(row + 1, 2, status)
-                except KeyError:
-                    pass
+            self._update_table_for_multiple()
 
-    def _stop_multiple(self):
+        self._update_table_for_multiple()
+
+    def _update_table_for_multiple(self):
+        for row, track in enumerate(self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)]):
+            try:
+                status = self._get_status_str(self._mtp.pool_status()['all_tracks'][track])
+                self._table.insert(row + 1, 2, status)
+            except KeyError:
+                pass
+
+    def _stop_multiple(self, back_clicked=False):
         self._downloading = False
+
+        self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
+        self._progress_bar.configure(mode='indeterminate')
+        self._next_button.grid_forget()
+        self._back_button.grid_forget()
+        self._progress_bar.start()
+        self._current_step_title.configure(text=self._locales.get_string('multiple_completion'))
+        self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
+        self._tracks_frame.grid_forget()
+
+        while self._mtp.launched() != 0:
+            self.update()
+            time.sleep(0.01)
+
+        self._progress_bar.stop()
+        self._progress_bar.configure(mode='determinate')
+        self._progress_bar.grid_forget()
+        self._back_button.grid(row=0, column=0, sticky='w', padx=2)
+        self._back_button.configure(command=lambda: self._exit_callback(self))
+        self._current_step_title.configure(text=self._locales.get_string('completed'))
+        self._next_button.grid(row=2, column=0, sticky='s', pady=5, padx=5)
+        self.update()
+
+        if back_clicked:
+            return self._exit_callback(self)
+
+        def _retry_multiple():
+            self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
+            self._progress_bar.configure(mode='indeterminate')
+            self._current_step_title.configure(text=self._locales.get_string('retry_title'))
+            self._next_button.grid_forget()
+            self._progress_bar.start()
+            self._downloading = True
+
+            mtp_status = self._mtp.pool_status()
+            links = []
+            track_names = []
+
+            for error_type in ['jpg_err', 'tag_err', 'get_err', 'nf_err']:
+                if mtp_status[error_type]['quantity'] == 0:
+                    continue
+
+                track_buffer = mtp_status[error_type]['list'].copy()
+
+                mtp_status[error_type]['list'].clear()
+                mtp_status[error_type]['quantity'] -= len(track_buffer)
+
+                for track in track_buffer:
+                    links.append(track['link'])
+                    track_names.append(track['name'])
+
+            if mtp_status['link_err']['quantity'] != 0:
+                track_buffer = mtp_status['link_err']['list'].copy()
+
+                mtp_status['link_err']['list'].clear()
+                mtp_status['link_err']['quantity'] -= len(track_buffer)
+
+                for track in track_buffer:
+                    links.append(track)
+                    track_names.append(track)
+
+            self._mtp.pool_status()['all_tracks'].clear()
+            self._update_table(track_names)
+            track_names.clear()
+
+            def _retry_thread():
+                for link in links:
+                    track_names.append(self._mtp.add(link))
+
+            retry_thread = threading.Thread(target=_retry_thread)
+            retry_thread.start()
+
+            flag = False
+
+            while retry_thread.is_alive() or self._mtp.launched() != 0:
+                time.sleep(0.01)
+                self.update()
+
+                if not retry_thread.is_alive() and not flag:
+                    flag = True
+                    self._update_table(track_names)
+
+                self._update_table_for_multiple()
+
+            self._update_table_for_multiple()
+
+            self._progress_bar.grid_forget()
+            self._progress_bar.configure(mode='determinate')
+            self._current_step_title.configure(text=self._locales.get_string('completed'))
+            self._progress_bar.stop()
+            self._next_button.grid(row=2, column=0, sticky='s', pady=5, padx=5)
+            self._stop_multiple()
+
+        for error_type in ['jpg_err', 'tag_err', 'get_err', 'nf_err', 'link_err']:
+            if self._mtp.pool_status()[error_type]['quantity'] != 0:
+                self._next_button.configure(text=self._locales.get_string('retry'), command=_retry_multiple)
+                return
+
+        self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
 
     def _start_playlist_download(self):
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
