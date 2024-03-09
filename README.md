@@ -1,8 +1,7 @@
 <h1 align="center">
 
 ![Logo](icons/icon.ico)  
-Spotify-downloader
-
+Spotify-downloader  
 [![ru](https://img.shields.io/badge/README-ru-red.svg)](README_RU.md)
 
 </h1>
