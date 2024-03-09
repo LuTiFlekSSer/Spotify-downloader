@@ -17,6 +17,7 @@ import SettingsStorage
 from CTkMessagebox import CTkMessagebox
 from Ui import SetSettings
 import tkinter as tk
+import Version
 
 
 class Ui(ctk.CTk):
@@ -37,7 +38,7 @@ class Ui(ctk.CTk):
             self._window_height = 400
 
         self.minsize(640, 400)
-        self.title('Spotify downloader')
+        self.title(f'Spotify downloader v{Version.__version__}')
         self.geometry(self._pos_for_window())
         self.iconbitmap(Utils.resource_path('icons/icon.ico'))
 
