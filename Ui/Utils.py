@@ -8,7 +8,6 @@ import __main__
 import enum
 
 
-# todo заменить все принты
 class DownloadMode(enum.Enum):
     SYNC = 0
     COMP = 1
@@ -132,49 +131,3 @@ def remove_tracks_from_ignore(tracks, remove, tracks_input):
     for r in track_list:
         for i in range(r[0], r[-1] + 1):
             remove(tracks[i - 1])
-
-
-class Colors:  # todo удалить цвета
-    PURPLE = '\033[95m'
-    BLUE = '\033[94m'
-    CYAN = '\033[96m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    END = '\033[0m'
-    BOLD = '\033[1m'
-    BLINK = '\033[6m'
-
-
-def purple(s):
-    return Colors.PURPLE + s + Colors.END
-
-
-def blue(s):
-    return Colors.BLUE + s + Colors.END
-
-
-def cyan(s):
-    return Colors.CYAN + s + Colors.END
-
-
-def green(s):
-    return Colors.GREEN + s + Colors.END
-
-
-def yellow(s):
-    return Colors.YELLOW + s + Colors.END
-
-
-def red(s):
-    return Colors.RED + s + Colors.END
-
-
-def bold(s):
-    return Colors.BOLD + s + Colors.END
-
-
-def g_input(s):
-    inp = input(bold(s) + Colors.GREEN)
-    print(Colors.END, end='')
-    return inp
