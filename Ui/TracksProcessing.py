@@ -329,6 +329,16 @@ class TracksProcessing(ctk.CTkFrame):
         self._path_input()
 
     def _initialize_multiple_pool(self):
+        if self._path == '':
+            CTkMessagebox(
+                title=self._locales.get_string('error'),
+                message=self._locales.get_string('path_not_specified'),
+                icon='cancel',
+                topmost=False
+            ).get()
+
+            return
+
         self._busy_callback(True)
         self._path_textbox.grid_forget()
         self._input_entry.grid(row=2, column=0, pady=5, sticky='we')
