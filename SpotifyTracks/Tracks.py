@@ -5,10 +5,8 @@ __all__ = [
 from SpotifyTracks import Errors
 from SpotifyLogin import Login
 from SettingsStorage import Settings
-from progress.bar import IncrementalBar
 from concurrent.futures import ThreadPoolExecutor
 import time
-import threading
 
 
 class SpTracks:
@@ -37,29 +35,24 @@ class SpTracks:
         self._total = 0
         self._spotify_tracks = set()
         self._tracks_info = {}
-        self._updater_on = True
 
     def start(self):
-        self._total = self._client.current_user_saved_tracks(limit=1)['total']
-
-        self._spotify_tracks.clear()
-        self._tracks_info.clear()
-
-        settings = Settings()
-        local_ignore_list = settings.get_all_local_ignore_tracks()
-
         try:
+            self._total = self._client.current_user_saved_tracks(limit=1)['total']
+
+            self._spotify_tracks.clear()
+            self._tracks_info.clear()
+
+            settings = Settings()
+            local_ignore_list = settings.get_all_local_ignore_tracks()
+
             pool = ThreadPoolExecutor(int(settings.get_setting('threads')))
 
             runs = [pool.submit(self._get_tracks, offset, local_ignore_list) for offset in range(0, self._total, self._limit)]
-
             checked = [False for _ in runs]
 
-            bar = IncrementalBar('Чтение треков из spotify', max=self._total / self._limit, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
-            bar.start()
+            completed = 0
 
-            t = threading.Thread(target=self._bar_updater, args=(bar,))
-            t.start()
             for _ in runs:
                 i = 0
 
@@ -68,14 +61,12 @@ class SpTracks:
 
                     if not checked[i] and runs[i].done():
                         checked[i] = True
+                        completed += self._limit
 
                         try:
                             runs[i].result()
                         except Exception:
                             pool.shutdown(cancel_futures=True)
-
-                            self._updater_on = False
-                            t.join()
 
                             raise Errors.TracksGetError
 
@@ -85,18 +76,11 @@ class SpTracks:
                     if i == len(runs):
                         i = 0
 
-                bar.next()
+                yield completed, self._total
 
-            self._updater_on = False
-            t.join()
 
         except Exception:
             raise Errors.TracksGetError
-
-    def _bar_updater(self, bar):
-        while self._updater_on:
-            time.sleep(0.1)
-            bar.update()
 
     def _get_tracks(self, offset, local_ignore_list):
         for track in self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']:
@@ -120,12 +104,13 @@ class SpTracks:
 
     def refresh_track_list(self):
         settings = Settings()
+        local_ignore = settings.get_all_local_ignore_tracks()
 
-        for track in settings.get_all_local_ignore_tracks():
-            if track in self._spotify_tracks:
-                self._total -= 1
-                self._spotify_tracks.remove(track)
-                self._tracks_info.pop(track)
+        tracks_with_id = [(track, track_id) for track, track_id in self._spotify_tracks if track in local_ignore]
+        for track in tracks_with_id:
+            self._total -= 1
+            self._spotify_tracks.remove(track)
+            self._tracks_info.pop(track[0])
 
     def set_limit(self, limit):
         if not isinstance(limit, int):

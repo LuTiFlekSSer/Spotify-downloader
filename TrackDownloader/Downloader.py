@@ -23,6 +23,8 @@ class Status(enum.Enum):
     JPG_ERR = 3
     NF_ERR = 4
     TAG_ERR = 5
+    CANCELLED = 6
+    LINK_ERR = 7
 
 
 def create_download_query(track, directory):
@@ -84,38 +86,56 @@ class Downloader:
                 self._status = Status.NF_ERR
                 return False
 
-            domains = [
-                'https://cdn1.tik.live/api/stream?',
-                'https://cdn2.tik.live/api/stream?',
-                'https://cdn3.tik.live/api/stream?'
-            ]
-
-            query = urlparse(response['link']).query
+            # domains = [
+            #     'https://cdn1.tik.live/api/stream?',
+            #     'https://cdn2.tik.live/api/stream?',
+            #     'https://cdn3.tik.live/api/stream?'
+            # ]
+            #
+            # query = urlparse(response['link']).query
+            #
+            # try:
+            #     for i, domain in enumerate(domains):
+            #         attempts = 0
+            #
+            #         header = Downloader.headers.copy()
+            #         header['authority'] = urlparse(domain).hostname
+            #
+            #         track = requests.get(domain + query, headers=header)
+            #
+            #         while attempts < 5 and track.status_code != 200:
+            #             track = requests.get(domain + query, headers=header)
+            #             attempts += 1
+            #
+            #         if track.status_code != 200:
+            #             if i == len(domains) - 1:
+            #                 self._status = Status.GET_ERR
+            #                 return False
+            #             else:
+            #                 continue
+            #
+            #         with open(f'{path}/{name}.mp3', 'wb') as file:
+            #             file.write(track.content)
+            #             break
+            query = response['link']
 
             try:
-                for i, domain in enumerate(domains):
-                    attempts = 0
+                attempts = 0
 
-                    header = Downloader.headers.copy()
-                    header['authority'] = urlparse(domain).hostname
+                header = Downloader.headers.copy()
 
-                    track = requests.get(domain + query, headers=header)
+                track = requests.get(query, headers=header)
 
-                    while attempts < 5 and track.status_code != 200:
-                        track = requests.get(domain + query, headers=header)
-                        attempts += 1
+                while attempts < 5 and track.status_code != 200:
+                    track = requests.get(query, headers=header)
+                    attempts += 1
 
-                    if track.status_code != 200:
-                        if i == len(domains) - 1:
-                            self._status = Status.GET_ERR
-                            return False
-                        else:
-                            continue
+                if track.status_code != 200:
+                    self._status = Status.GET_ERR
+                    return False
 
-                    with open(f'{path}/{name}.mp3', 'wb') as file:
-                        file.write(track.content)
-                        break
-
+                with open(f'{path}/{name}.mp3', 'wb') as file:
+                    file.write(track.content)
             except Exception:
                 self._status = Status.GET_ERR
                 return False

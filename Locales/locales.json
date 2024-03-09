@@ -1,0 +1,532 @@
+{
+  "languages": {
+    "ru": "Русский",
+    "en": "English"
+  },
+  "strings": {
+    "yes": {
+      "en": "Yes",
+      "ru": "Да"
+    },
+    "no": {
+      "en": "No",
+      "ru": "Нет"
+    },
+    "update_title": {
+      "ru": "Обнаружено обновление\nСкачать?",
+      "en": "An update has been detected\nDownload it?"
+    },
+    "error": {
+      "ru": "Ошибка",
+      "en": "Error"
+    },
+    "update_check_error": {
+      "ru": "Ошибка при проверке обновлений",
+      "en": "Error checking for updates"
+    },
+    "update_download_error": {
+      "ru": "Ошибка при загрузке обновления",
+      "en": "Error downloading the update"
+    },
+    "downloading_update": {
+      "ru": "Загрузка обновления",
+      "en": "Downloading the update"
+    },
+    "installing_update": {
+      "ru": "Установка обновления",
+      "en": "Installing the update"
+    },
+    "update_installed": {
+      "ru": "Обновление установлено",
+      "en": "The update is installed"
+    },
+    "update_install_error": {
+      "ru": "Ошибка при установке обновления",
+      "en": "Error installing the update"
+    },
+    "menu_file": {
+      "ru": "Файл",
+      "en": "File"
+    },
+    "language": {
+      "ru": "Язык",
+      "en": "Language"
+    },
+    "open_sync_dir": {
+      "ru": "Открыть синхронизируемую папку",
+      "en": "Open the sync folder"
+    },
+    "open_settings": {
+      "ru": "Настройки",
+      "en": "Settings"
+    },
+    "check_for_updates": {
+      "ru": "Проверить обновления",
+      "en": "Check for updates"
+    },
+    "exit": {
+      "ru": "Выход",
+      "en": "Exit"
+    },
+    "sync_dir_error": {
+      "ru": "Ошибка в пути к синхронизируемой папке",
+      "en": "Error in the path to the sync folder"
+    },
+    "last_update_installed": {
+      "ru": "Уже установлена последняя версия",
+      "en": "The latest version is already installed"
+    },
+    "check": {
+      "ru": "Проверка",
+      "en": "Check"
+    },
+    "update?": {
+      "ru": "Обновить?",
+      "en": "Update?"
+    },
+    "run_as_script_error": {
+      "ru": "Работает только при запуске exe-файла",
+      "en": "Only works when running the exe file"
+    },
+    "sync_tracks": {
+      "ru": "Синхронизировать\nтреки",
+      "en": "Sync\ntracks"
+    },
+    "check_tracks": {
+      "ru": "Проверить\nтреки",
+      "en": "Check\ntracks"
+    },
+    "download_playlist": {
+      "ru": "Скачать\nплейлист",
+      "en": "Download\nplaylist"
+    },
+    "download_tracks": {
+      "ru": "Скачать\nтреки",
+      "en": "Download\ntracks"
+    },
+    "settings": {
+      "ru": "Настройки",
+      "en": "Settings"
+    },
+    "set_threads": {
+      "ru": "Количество потоков",
+      "en": "Number of threads"
+    },
+    "set_sync_dir": {
+      "ru": "Синхронизируемая папка",
+      "en": "Sync folder"
+    },
+    "set_auto_tracks_compare": {
+      "ru": "Проверка треков в spotify",
+      "en": "Check of tracks in spotify"
+    },
+    "clear_data": {
+      "ru": "Очистить данные аккаунта",
+      "en": "Clear account data"
+    },
+    "local_ignore": {
+      "ru": "Локальный игнор лист",
+      "en": "Local ignore list"
+    },
+    "server_ignore": {
+      "ru": "Серверный игнор лист",
+      "en": "Server ignore list"
+    },
+    "auto_check_update": {
+      "ru": "Проверка обновлений",
+      "en": "Update check"
+    },
+    "rewrite_tracks": {
+      "ru": "Перезапись треков",
+      "en": "Rewrite tracks"
+    },
+    "set_threads_title": {
+      "ru": "Поменять количество потоков для загрузки треков",
+      "en": "Change the number of threads for downloading tracks"
+    },
+    "current_threads": {
+      "ru": "Текущее количество потоков:",
+      "en": "Current number of threads:"
+    },
+    "new_threads": {
+      "ru": "Новое количество потоков:",
+      "en": "New number of threads:"
+    },
+    "apply": {
+      "ru": "Применить",
+      "en": "Apply"
+    },
+    "cancel": {
+      "ru": "Отменить",
+      "en": "Cancel"
+    },
+    "no_value_error": {
+      "ru": "Не указано значение",
+      "en": "No value specified"
+    },
+    "set_path_title": {
+      "ru": "Смена папки, в которой производится синхронизация треков",
+      "en": "Changing the folder in which tracks are synchronized"
+    },
+    "current_path": {
+      "ru": "Текущая папка:",
+      "en": "Current folder:"
+    },
+    "new_path": {
+      "ru": "Новая папка:",
+      "en": "New folder:"
+    },
+    "input_path": {
+      "ru": "Выбрать папку",
+      "en": "Select folder"
+    },
+    "not_specified": {
+      "ru": "Не задано",
+      "en": "Not specified"
+    },
+    "choose_folder": {
+      "ru": "Выбери папку",
+      "en": "Choose folder"
+    },
+    "set_auto_compare_title": {
+      "ru": "Проверка отсутствующих любимых треков в spotify при синхронизации",
+      "en": "Checking for missing favorite tracks in spotify when syncing"
+    },
+    "on": {
+      "ru": "Включено",
+      "en": "On"
+    },
+    "off": {
+      "ru": "Выключено",
+      "en": "Off"
+    },
+    "clear_login_data_title": {
+      "ru": "Очистка данных для входа в аккаунт",
+      "en": "Clearing authorization data"
+    },
+    "clear": {
+      "ru": "Очистить",
+      "en": "Clear"
+    },
+    "clear?": {
+      "ru": "Очистить?",
+      "en": "Clear?"
+    },
+    "clear_login_data": {
+      "ru": "Очистить данные авторизации?",
+      "en": "Clear authorization data?"
+    },
+    "data_cleared": {
+      "ru": "Данные авторизации очищены",
+      "en": "Authorization data cleared"
+    },
+    "clear_title": {
+      "ru": "Очищено",
+      "en": "Cleared"
+    },
+    "local_ignore_title": {
+      "ru": "Локальный игнор лист",
+      "en": "Local ignore list"
+    },
+    "local_ignore_description": {
+      "ru": "Эти треки будут игнорироваться при получении треков из Spotify",
+      "en": "These tracks will be ignored when getting tracks from Spotify"
+    },
+    "title": {
+      "ru": "Название",
+      "en": "Title"
+    },
+    "delete": {
+      "ru": "Удалить",
+      "en": "Delete"
+    },
+    "add": {
+      "ru": "Добавить",
+      "en": "Add"
+    },
+    "local_ignore_hint": {
+      "ru": "Название трека (название - исполнитель) или номер (1, 2-5) (для удаления):",
+      "en": "Track title (title - artist) or number (1, 2-5) (for deletion):"
+    },
+    "already_exists": {
+      "ru": "Трек уже находится в игнор листе",
+      "en": "The track is already in the ignore list"
+    },
+    "input_error": {
+      "ru": "Ошибка ввода",
+      "en": "Input error"
+    },
+    "index_error": {
+      "ru": "Ошибка в введенных номерах треков",
+      "en": "Error in the entered track numbers"
+    },
+    "not_found_error": {
+      "ru": "Трек не найден",
+      "en": "Track not found"
+    },
+    "server_ignore_title": {
+      "ru": "Серверный игнор лист",
+      "en": "Server ignore list"
+    },
+    "server_ignore_description": {
+      "ru": "Эти треки будут игнорироваться при поиске треков, которых нет в любимых в Spotify",
+      "en": "These tracks will be ignored when searching for tracks that are not in favorites in Spotify"
+    },
+    "set_auto_update_title": {
+      "ru": "Автоматическая проверка обновлений программы при запуске",
+      "en": "Automatic checking for program updates when starting"
+    },
+    "set_overwrite_tracks_title": {
+      "ru": "Перезапись существующих треков в папке при загрузке",
+      "en": "Overwriting existing tracks in a folder when downloading"
+    },
+    "set_language_title": {
+      "ru": "Язык приложения",
+      "en": "Application language"
+    },
+    "language_changed": {
+      "ru": "Изменение языка",
+      "en": "Changing the language"
+    },
+    "language_changed_message": {
+      "ru": "Перезапустите приложение, чтобы изменить язык",
+      "en": "Restart the application to change the language"
+    },
+    "login_title": {
+      "ru": "Требуется авторизация",
+      "en": "Authorization required"
+    },
+    "sync_title": {
+      "ru": "Синхронизация треков с аккаунтом",
+      "en": "Synchronize tracks with account"
+    },
+    "back": {
+      "ru": "Назад",
+      "en": "Back"
+    },
+    "next": {
+      "ru": "Далее",
+      "en": "Next"
+    },
+    "code_description": {
+      "ru": "Чтобы выполнить вход, необходимо перейти по ссылке (скопирована в буфер обмена) и скопировать url после перенаправления:",
+      "en": "To log in, you need to follow the link (copied to the clipboard) and copy the url after redirection:"
+    },
+    "login_error": {
+      "ru": "Необходимо заполнить все поля",
+      "en": "You must fill in all fields"
+    },
+    "url_code_error": {
+      "ru": "Введена некорректная ссылка с кодом",
+      "en": "An incorrect link with a code was entered"
+    },
+    "authorization_error": {
+      "ru": "Ошибка входа в аккаунт",
+      "en": "Account login error"
+    },
+    "code_error": {
+      "ru": "Задана некорректная ссылка с кодом. Очистите данные аккаунта в настройках",
+      "en": "An incorrect link with a code is set. Clear account data in settings"
+    },
+    "status": {
+      "ru": "Статус",
+      "en": "Status"
+    },
+    "getting_tracks_from_disk": {
+      "ru": "Чтение треков с диска",
+      "en": "Reading tracks from disk"
+    },
+    "path_error": {
+      "ru": "Не задан путь для синхронизации треков\nЗадать сейчас?",
+      "en": "No path specified for syncing tracks\nSet now?"
+    },
+    "get_spotify_tracks_error": {
+      "ru": "Ошибка при получении треков из spotify",
+      "en": "Error getting tracks from spotify"
+    },
+    "getting_tracks_from_spotify": {
+      "ru": "Получение треков из spotify",
+      "en": "Getting tracks from spotify"
+    },
+    "program_is_busy": {
+      "ru": "Недоступно в данный момент",
+      "en": "Not available at the moment"
+    },
+    "missing_spotify_tracks": {
+      "ru": "Поиск треков, отсутствующих в spotify",
+      "en": "Search for tracks missing in spotify"
+    },
+    "missing_local_tracks": {
+      "ru": "Поиск треков, отсутствующих на диске",
+      "en": "Search for tracks missing on disk"
+    },
+    "no_missing_tracks": {
+      "ru": "Отсутствующие треки не найдены",
+      "en": "No missing tracks found"
+    },
+    "find_missing_tracks": {
+      "ru": "Найдены отсутствующие треки\nДля добавления в игнор лист введите название (название - исполнитель) или номер (1, 2-5)",
+      "en": "Missing tracks found\nTo add to the ignore list, enter the title (title - artist) or number (1, 2-5)"
+    },
+    "state_missing": {
+      "ru": "Отсутствует",
+      "en": "Missing"
+    },
+    "forward": {
+      "ru": "Вперед",
+      "en": "Forward"
+    },
+    "tracks_downloading": {
+      "ru": "Загрузка треков",
+      "en": "Downloading tracks"
+    },
+    "downloaded": {
+      "ru": "Загружен",
+      "en": "Downloaded"
+    },
+    "download_error": {
+      "ru": "Ошибка при загрузке",
+      "en": "Error downloading"
+    },
+    "jpg_error": {
+      "ru": "Ошибка изменения обложки",
+      "en": "Error changing cover"
+    },
+    "nf_error": {
+      "ru": "Не найден",
+      "en": "Not found"
+    },
+    "tag_error": {
+      "ru": "Ошибка изменения метаданных",
+      "en": "Error changing metadata"
+    },
+    "cancelled": {
+      "ru": "Отменено",
+      "en": "Cancelled"
+    },
+    "downloading": {
+      "ru": "Загрузка",
+      "en": "Downloading"
+    },
+    "completed": {
+      "ru": "Загрузка завершена",
+      "en": "Download completed"
+    },
+    "stop": {
+      "ru": "Остановить",
+      "en": "Stop"
+    },
+    "retry": {
+      "ru": "Повторить неудачные",
+      "en": "Retry failed"
+    },
+    "retry_title": {
+      "ru": "Повтор загрузки",
+      "en": "Retry download"
+    },
+    "retry_description": {
+      "ru": "Неудачных загрузок нет",
+      "en": "No failed downloads"
+    },
+    "go_to_menu": {
+      "ru": "Вернуться в меню",
+      "en": "Return to menu"
+    },
+    "stop_download_title": {
+      "ru": "Остановка загрузки",
+      "en": "Stop download"
+    },
+    "stop_download_description": {
+      "ru": "Будет остановлена загрузка треков, которые еще не начали скачиваться\nОстановить?",
+      "en": "Downloading tracks that have not yet started downloading will be stopped\nStop?"
+    },
+    "compare_title": {
+      "ru": "Проверка отсутствующих треков в spotify",
+      "en": "Checking for missing tracks in spotify"
+    },
+    "playlist_title": {
+      "ru": "Загрузка плейлиста",
+      "en": "Downloading playlist"
+    },
+    "playlist_link_input": {
+      "ru": "Ввод плейлиста",
+      "en": "Playlist input"
+    },
+    "playlist_link_description": {
+      "ru": "Введите ссылку на плейлист",
+      "en": "Enter the playlist link"
+    },
+    "link_error": {
+      "ru": "Введена некорректная ссылка",
+      "en": "An incorrect link is entered"
+    },
+    "link_work_error": {
+      "ru": "Ошибка при получении информации о плейлисте",
+      "en": "Error getting playlist information"
+    },
+    "getting_playlist_info": {
+      "ru": "Получение информации о плейлисте",
+      "en": "Getting playlist information"
+    },
+    "confirm": {
+      "ru": "Подтвердить",
+      "en": "Confirm"
+    },
+    "path_input": {
+      "ru": "Ввод пути для загрузки",
+      "en": "Path input for download"
+    },
+    "playlist_error": {
+      "ru": "Ошибка при получении информации о плейлисте",
+      "en": "Error getting playlist information"
+    },
+    "playlist_len_error": {
+      "ru": "Плейлист пуст",
+      "en": "Playlist is empty"
+    },
+    "change": {
+      "ru": "Изменить",
+      "en": "Change"
+    },
+    "path_not_specified": {
+      "ru": "Путь не задан",
+      "en": "Path not specified"
+    },
+    "multiple_title": {
+      "ru": "Загрузка треков",
+      "en": "Downloading tracks"
+    },
+    "links_input": {
+      "ru": "Ввод ссылок на треки",
+      "en": "Input links to tracks"
+    },
+    "input_link": {
+      "ru": "Введи ссылку на трек",
+      "en": "Enter a link to the track"
+    },
+    "multiple_link_error": {
+      "ru": "Некорректная ссылка",
+      "en": "Incorrect link"
+    },
+    "multiple_completion": {
+      "ru": "Завершение загрузки",
+      "en": "Download completion"
+    },
+    "finish_download": {
+      "ru": "Завершить загрузку",
+      "en": "Finish download"
+    },
+    "cut": {
+      "ru": "Вырезать",
+      "en": "Cut"
+    },
+    "copy": {
+      "ru": "Копировать",
+      "en": "Copy"
+    },
+    "paste": {
+      "ru": "Вставить",
+      "en": "Paste"
+    }
+  }
+}

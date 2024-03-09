@@ -1,6 +1,9 @@
 requests>=2.31.0
-progress>=1.6
 spotipy>=2.23.0
 eyed3>=0.9.7
 pywin32>=306
 pyperclip>=1.8.2
+customtkinter>=5.2.1
+Pillow>=10.1.0
+CTkMessagebox>=2.5
+CTkMenuBar>=0.3

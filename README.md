@@ -1,52 +1,61 @@
 <h1 align="center">
 
-![Logo](icon.ico)  
+![Logo](icons/icon.ico)  
 Spotify-downloader
+
+[![ru](https://img.shields.io/badge/README-ru-red.svg)](README_RU.md)
 
 </h1>
 
 
 <div align="center">
 
-![Platform](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white "Не кликабельно")
+![Platform](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white "Non-clickable")
 
-[![Last release](https://img.shields.io/github/v/release/LuTiFlekSSer/Spotify-downloader)](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest "Скачать")
-![Downloads](https://img.shields.io/github/downloads/LuTiFlekSSer/Spotify-downloader/total "Не кликабельно")
+[![Last release](https://img.shields.io/github/v/release/LuTiFlekSSer/Spotify-downloader)](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest "Download")
+![Downloads](https://img.shields.io/github/downloads/LuTiFlekSSer/Spotify-downloader/total "Non-clickable")
 
-Spotify-downloader - это консольное приложение, которое позволяет скачивать музыку с сервиса Spotify,
-а также синхронизировать локальную папку с треками с любимыми треками в Spotify.
+Spotify-downloader is an application that allows you to download music from Spotify,
+and also synchronize a local folder with tracks with your favorite tracks on Spotify.
 
 </div>
 
-## Возможности :sparkles:
+## Features :sparkles:
 
-* Синхронизация локальных и любимых треков
-    * Можно загружать только отсутствующие треки на диске
-    * Можно проверять, какие треки были случайно удалены из любимых
-    * Можно добавлять треки в игнор листы, чтобы пропускать их при синхронизации
-* Загрузка треков из плейлистов
-* Загрузка отдельных треков по ссылке
-* Настраиваемое кол-во потоков для загрузки
-* Автоматическое обновление
+* Synchronization of local and favorite tracks
+    * You can download only missing tracks on the disk
+    * You can check which tracks were accidentally removed from favorites
+    * You can add tracks to ignore lists to skip them during synchronization
+* Download tracks from playlists
+* Download individual tracks by link
+* Customizable number of download threads
+* Automatic renaming of tracks during synchronization if they have been renamed in Spotify
+* Automatic update
 
-## Установка :wrench:
+## Screenshots :camera:
 
-1. Необходимо загрузить программу из раздела с [релизами](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest)
-2. Запустить скачанный файл
-3. Чтобы работала синхронизация с аккаунтом, необходимо ввести `clinet id`, `client secret` и `redirect uri`, которые можно получить на [странице разработчика](https://developer.spotify.com/) Spotify:
-    1. Необходимо залогиниться на сайте со своего аккаунта Spotify
-    2. Перейти в раздел [Dashboard](https://developer.spotify.com/dashboard/)
-    3. [Создать](https://developer.spotify.com/dashboard/create) новое приложение и заполнить поля
-    4. Перейти на страничку созданного приложения и нажать **settings**, откуда можно скопировать необходимые данные
-4. Перейти в `[1]` пункт программы и указать путь к папке, которая будет использоваться для синхронизации
-5. Следовать дальнейшим инструкциям программы для ввода данных аккаунта
+| ![Main](res/main_en.png) | ![Settings](res/settings_en.png) |
+|:------------------------:|:--------------------------------:|
+| ![Sync](res/sync_en.png) |    ![Sync](res/sync_1_en.png)    |
 
-P.S. Если не сделать действия из 3 и дальнейших пунктов, то будут работать только загрузка плейлистов и отдельных треков
+## Installation :wrench:
 
-## Обратная связь :mailbox:
+1. Download the program from the [releases](https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest) section
+2. Run the downloaded file
+3. For synchronization with your account, you need to enter `client id`, `client secret`, and `redirect uri`, which you can get on the [developer page](https://developer.spotify.com/) of Spotify:
+    1. Log in to the site with your Spotify account
+    2. Go to the [Dashboard](https://developer.spotify.com/dashboard/) section
+    3. [Create](https://developer.spotify.com/dashboard/create) a new application and fill in the fields
+    4. Go to the page of the created application and click **settings**, where you can copy the necessary data
+4. In the program, go to `Sync tracks` or `Checks tracks`
+5. Follow the further instructions of the program to complete logging into your account
 
-* В случае обнаружения проблем с программой, можно создать [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с соответствующим описанием ошибки и меткой `bug`
-* Предлагать улучшения можно в [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) с меткой `enhancement`
+P.S. If you don't perform the actions from steps 3 and beyond, only downloading playlists and individual tracks will work
+
+## Feedback :mailbox:
+
+* If you encounter any issues with the program, you can create an [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) with a description of the error and the `bug` label
+* Suggestions for improvements can be made in [issue](https://github.com/LuTiFlekSSer/Spotify-downloader/issues/) with the `enhancement` label
 
 ___
 

@@ -1,38 +1,27 @@
 __all__ = [
     'Updater',
-    'get_executable_path'
 ]
 
 import time
 
 import Version
 import requests
-from CliUi import Utils
+from Ui import Utils
 from Updater import Errors
 import os
 import subprocess
-from progress.bar import IncrementalBar
-import sys
-import __main__
 import shutil
-
-
-def get_executable_path():
-    if getattr(sys, 'frozen', False):
-        return sys.executable
-    elif __file__:
-        return os.path.abspath(__main__.__file__)
-    else:
-        return None
 
 
 class Updater:
     latest_release_link = 'https://api.github.com/repos/LuTiFlekSSer/Spotify-downloader/releases/latest'
 
     def __init__(self):
+        self._total_size = None
         self._curr_version = Version.__version__
         self._latest_release_exe = None
         self._release_name = None
+        self._request = None
 
     def need_app_update(self):
         try:
@@ -48,53 +37,62 @@ class Updater:
 
                         return True
                 except ValueError:
-                    print(Utils.red('Ошибка при проверке обновлений'))
-                    time.sleep(1)
-
-                    return False
+                    raise Errors.UpdateCheckError
 
         except Exception:
             raise Errors.UpdateCheckError
 
         return False
 
-    def download_update(self):
+    def get_total_size(self):
+        if self._total_size is None:
+            raise Errors.UpdateError
+
+        return self._total_size
+
+    def start_download(self):
         if self._latest_release_exe is None:
             raise Errors.UpdateError
 
-        request = requests.get(self._latest_release_exe, stream=True)
+        try:
+            self._request = requests.get(self._latest_release_exe, stream=True)
+        except Exception:
+            raise Errors.UpdateError
 
-        total_size = int(request.headers.get('content-length', 0)) / 1024
+        self._total_size = int(self._request.headers.get('content-length', 0)) / 1024
 
-        bar = IncrementalBar(Utils.Colors.END + 'Загрузка обновления', max=total_size, suffix='%(percent)d%% [%(elapsed_td)s / %(eta_td)s]')
-        bar.start()
+    def download_update(self):
+        if self._latest_release_exe is None or self._request is None:
+            raise Errors.UpdateError
 
         with open(os.getenv('TEMP') + f'\\{self._release_name}', 'wb') as file:
-            for data in request.iter_content(chunk_size=1024):
-                bar.next()
+            for i, data in enumerate(self._request.iter_content(chunk_size=1024)):
                 file.write(data)
 
-        bar.finish()
+                yield i
 
     def start_update(self):
-        if (path := get_executable_path()) is None:
-            print(Utils.red('Не удалось получить путь до текущего файла'))
+        if (path := Utils.get_executable_path()) is None:
+            raise Errors.UpdateError
 
-            time.sleep(2)
-
-            return
         elif path.endswith('.py'):
             path = path[:-3] + '.exe'
 
-        subprocess.Popen(f'{os.getenv("TEMP")}\\{self._release_name} -U "{path}"',
-                         creationflags=subprocess.CREATE_NEW_CONSOLE)
+        try:
+            subprocess.Popen(
+                f'{os.getenv("TEMP")}\\{self._release_name} -U "{path}"',
+                creationflags=subprocess.CREATE_NEW_CONSOLE
+            )
+        except Exception:
+            raise Errors.UpdateError
 
-    def install_update(self, path_to_exe):
+    @staticmethod
+    def install_update(path_to_exe):
         attempts = 0
 
         while attempts < 3:
             try:
-                shutil.copy(get_executable_path(), path_to_exe)
+                shutil.copy(Utils.get_executable_path(), path_to_exe)
                 break
             except Exception:
                 time.sleep(2)
