@@ -290,7 +290,7 @@ class TracksProcessing(ctk.CTkFrame):
         self._back_button.configure(state='normal')
         self._back_button.configure(command=lambda: self._exit_callback(self))
 
-        if (path := self._settings.get_setting('path_for_sync')) != '' or not os.path.exists(path):
+        if (path := self._settings.get_setting('path_for_sync')) != '' and os.path.exists(path):
             self._set_path(f"{self._locales.get_string('current_path')} {path}")
             self._path = path
         else:
