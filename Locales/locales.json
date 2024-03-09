@@ -515,6 +515,18 @@
     "finish_download": {
       "ru": "Завершить загрузку",
       "en": "Finish download"
+    },
+    "cut": {
+      "ru": "Вырезать",
+      "en": "Cut"
+    },
+    "copy": {
+      "ru": "Копировать",
+      "en": "Copy"
+    },
+    "paste": {
+      "ru": "Вставить",
+      "en": "Paste"
     }
   }
 }

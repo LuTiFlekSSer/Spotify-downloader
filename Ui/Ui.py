@@ -51,6 +51,14 @@ class Ui(ctk.CTk):
         self._update = Update.Update(self, self._update_callback)
         self._locales = Locales.Locales()
 
+        self._popup = tk.Menu(self, tearoff=False, bg=self._update.cget('fg_color')[1], fg='white', activebackground='grey')
+        self._popup.add_command(label=self._locales.get_string('copy'), command=self._copy)
+        self._popup.add_command(label=self._locales.get_string('paste'), command=self._paste)
+        self._popup.add_command(label=self._locales.get_string('cut'), command=self._cut)
+        self._popup.add_command(label=self._locales.get_string('clear'), command=self._clear_text)
+
+        self.bind('<Button-3>', lambda event: self._do_popup(event))
+
     def _key_handler(self, event):
         if event.keycode == 86 and event.keysym != 'v':
             self._paste()
@@ -60,6 +68,21 @@ class Ui(ctk.CTk):
             self._cut()
         elif event.keycode == 65 and event.keysym != 'a':
             self._select()
+
+    def _do_popup(self, event):
+        if isinstance(event.widget, tk.Entry):
+            try:
+                event.widget.focus_set()
+
+                self._popup.tk_popup(event.x_root, event.y_root)
+            finally:
+                self._popup.grab_release()
+
+    def _clear_text(self):
+        widget = self.focus_get()
+
+        if isinstance(widget, tk.Entry):
+            widget.delete('0', 'end')
 
     def _select(self):
         widget = self.focus_get()
@@ -132,6 +155,7 @@ class Ui(ctk.CTk):
             force = False
 
         need_update = self._update.update_check(force)
+        self._main_page = MainPage.MainPage(self)
 
         if (time_left := time.time() - start_time) < 1.5:
             time.sleep((1500 - int(time_left * 1000)) / 1000)
@@ -173,7 +197,6 @@ class Ui(ctk.CTk):
         self._file_dropdown.add_separator()
         self._file_dropdown.add_option(option=self._locales.get_string('exit'), command=self._close_callback)
 
-        self._main_page = MainPage.MainPage(self)
         self._main_page.pack(fill='both', expand=True)
 
     def _open_settings(self):
