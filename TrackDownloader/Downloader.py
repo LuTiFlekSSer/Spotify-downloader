@@ -53,6 +53,17 @@ def _get_track_info(track_info, method='download'):
     return response
 
 
+def isfile_case_sensitive(path, name):
+    if not os.path.exists(f'{path}\\{name}.mp3'):
+        return False
+
+    for file in os.listdir(path):
+        if file == f'{name}.mp3':
+            return True
+
+    return False
+
+
 class Downloader:
     headers = {
         'authority': 'api.spotifydown.com',
@@ -60,25 +71,45 @@ class Downloader:
         'referer': 'https://spotifydown.com/'
     }
 
-    def __init__(self, name, path, track_info, sync=False):
+    def __init__(self, name, path, track_info, sync=False, lock=None):
         if not isinstance(name, str) or not isinstance(path, str) or not isinstance(track_info, dict):
             raise TypeError
 
         self._status = Status.OK
 
         self._settings = SettingsStorage.Settings()
-        if os.path.isfile(f'{path}\\{name}.mp3') and self._settings.get_setting('overwrite_tracks') == 'False':
+
+        if not isfile_case_sensitive(path, name) and os.path.exists(f'{path}\\{name}.mp3'):
+            if name not in self._settings.get_all_local_ignore_tracks() and sync:
+                if lock is not None:
+                    lock.acquire()
+
+                self._settings.add_track_to_local_ignore(name)
+                self._settings.save()
+
+                if lock is not None:
+                    lock.release()
+
+            return
+
+        if isfile_case_sensitive(path, name) and self._settings.get_setting('overwrite_tracks') == 'False':
+            if lock is not None:
+                lock.acquire()
+
             if (sync and
                     (self._settings.get_local_tracks_db()[name] == 'None' or self._settings.get_local_tracks_db()[name] != track_info['id'])):
                 self._settings.change_local_track_id(name, track_info['id'])
 
                 self._settings.save()
 
+            if lock is not None:
+                lock.release()
+
             return
 
-        self._download_from_y2api(name, path, track_info, sync)
+        self._download_from_y2api(name, path, track_info, sync, lock)
 
-    def _download_from_y2api(self, name, path, track_info, sync):
+    def _download_from_y2api(self, name, path, track_info, sync, lock):
         try:
             response = _get_track_info(track_info)
 
@@ -166,9 +197,15 @@ class Downloader:
         track.tag.album = track_info['album_name']
         track.tag.release_date = track_info['release_date']
         if sync:
+            if lock is not None:
+                lock.acquire()
+
             self._settings.add_track_to_local_tracks(name, track_info['id'])
 
             self._settings.save()
+
+            if lock is not None:
+                lock.release()
 
         attempts = 0
 

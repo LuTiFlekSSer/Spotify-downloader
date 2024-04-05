@@ -958,6 +958,8 @@ class TracksProcessing(ctk.CTkFrame):
         self._back_button.grid_forget()
         self._tracks_frame.grid_forget()
         self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
+        self._progress_bar.set(0)
+        self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
 
         for cell_index in range(self._table_limit * self._page, self._table_limit * (self._page + 1)):
             try:
@@ -969,8 +971,6 @@ class TracksProcessing(ctk.CTkFrame):
                 pass
         self.update()
 
-        self._progress_bar.set(0)
-        self._progress_bar.grid(row=1, column=0, padx=5, pady=5)
         self._current_step_title.configure(text=self._locales.get_string('tracks_downloading'))
         self._back_button.grid_forget()
         self._next_button.configure(command=self._stop_download, text=self._locales.get_string('stop'))

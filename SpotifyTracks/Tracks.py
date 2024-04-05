@@ -7,6 +7,7 @@ from SpotifyLogin import Login
 from SettingsStorage import Settings
 from concurrent.futures import ThreadPoolExecutor
 import time
+from threading import Lock
 
 
 class SpTracks:
@@ -35,6 +36,7 @@ class SpTracks:
         self._total = 0
         self._spotify_tracks = set()
         self._tracks_info = {}
+        self._lock = Lock()
 
     def start(self):
         try:
@@ -65,7 +67,8 @@ class SpTracks:
 
                         try:
                             runs[i].result()
-                        except Exception:
+                        except Exception as ex:
+                            print(ex)
                             pool.shutdown(cancel_futures=True)
 
                             raise Errors.TracksGetError
@@ -93,6 +96,7 @@ class SpTracks:
             if name in local_ignore_list:
                 continue
 
+            self._lock.acquire()
             self._tracks_info[name.translate(str.maketrans(SpTracks.dict_for_replace))] = {
                 'id': track['track']['id'],
                 'name': track['track']['name'],
@@ -101,6 +105,7 @@ class SpTracks:
                 'release_date': track['track']['album']['release_date'][:4]
             }
             self._spotify_tracks.add((name.translate(str.maketrans(SpTracks.dict_for_replace)), track['track']['id']))
+            self._lock.release()
 
     def refresh_track_list(self):
         settings = Settings()
