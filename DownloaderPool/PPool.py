@@ -59,7 +59,9 @@ class PlaylistPool:
         }
 
     def start(self, track_list):
-        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track, self._sync), track[0]] for track in track_list]
+        lock = threading.Lock()
+
+        self._pool_results = [[self._pool.submit(TrackDownloader.Downloader, *track, self._sync, lock if self._sync else None), track[0]] for track in track_list]
         checked = [False for _ in track_list]
 
         downloaded_count = 0
