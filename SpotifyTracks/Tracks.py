@@ -86,7 +86,21 @@ class SpTracks:
             raise Errors.TracksGetError
 
     def _get_tracks(self, offset, local_ignore_list):
-        for track in self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']:
+        attempts = 0
+        while True:
+            try:
+                tracks = self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']
+
+                break
+            except Exception as ex:
+                if attempts == 3:
+                    raise ex
+                else:
+                    time.sleep(0.5)
+
+            attempts += 1
+
+        for track in tracks:
             name = track['track']['name'] + ' - '
 
             artists = [aut['name'] for aut in track['track']['artists']]
