@@ -92,19 +92,20 @@ class SpTracks:
             artists = [aut['name'] for aut in track['track']['artists']]
 
             name += '\u29f8'.join(artists)
+            name = name.translate(str.maketrans(SpTracks.dict_for_replace))
 
             if name in local_ignore_list:
                 continue
 
             self._lock.acquire()
-            self._tracks_info[name.translate(str.maketrans(SpTracks.dict_for_replace))] = {
+            self._tracks_info[name] = {
                 'id': track['track']['id'],
                 'name': track['track']['name'],
                 'artists': [aut['name'] for aut in track['track']['artists']],
                 'album_name': track['track']['album']['name'],
                 'release_date': track['track']['album']['release_date'][:4]
             }
-            self._spotify_tracks.add((name.translate(str.maketrans(SpTracks.dict_for_replace)), track['track']['id']))
+            self._spotify_tracks.add((name, track['track']['id']))
             self._lock.release()
 
     def refresh_track_list(self):
