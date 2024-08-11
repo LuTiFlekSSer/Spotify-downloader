@@ -86,25 +86,40 @@ class SpTracks:
             raise Errors.TracksGetError
 
     def _get_tracks(self, offset, local_ignore_list):
-        for track in self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']:
+        attempts = 0
+        while True:
+            try:
+                tracks = self._client.current_user_saved_tracks(limit=self._limit, offset=offset)['items']
+
+                break
+            except Exception as ex:
+                if attempts == 3:
+                    raise ex
+                else:
+                    time.sleep(0.5)
+
+            attempts += 1
+
+        for track in tracks:
             name = track['track']['name'] + ' - '
 
             artists = [aut['name'] for aut in track['track']['artists']]
 
             name += '\u29f8'.join(artists)
+            name = name.translate(str.maketrans(SpTracks.dict_for_replace))
 
             if name in local_ignore_list:
                 continue
 
             self._lock.acquire()
-            self._tracks_info[name.translate(str.maketrans(SpTracks.dict_for_replace))] = {
+            self._tracks_info[name] = {
                 'id': track['track']['id'],
                 'name': track['track']['name'],
                 'artists': [aut['name'] for aut in track['track']['artists']],
                 'album_name': track['track']['album']['name'],
                 'release_date': track['track']['album']['release_date'][:4]
             }
-            self._spotify_tracks.add((name.translate(str.maketrans(SpTracks.dict_for_replace)), track['track']['id']))
+            self._spotify_tracks.add((name, track['track']['id']))
             self._lock.release()
 
     def refresh_track_list(self):
