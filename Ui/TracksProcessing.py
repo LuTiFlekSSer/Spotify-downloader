@@ -260,7 +260,8 @@ class TracksProcessing(ctk.CTkFrame):
 
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
         if not (self._mode == Utils.DownloadMode.MULTIPLE or self._mode == Utils.DownloadMode.PLAYLIST):
-            if (res := self._spotify_login.spotify_login()) is None and (self._mode == Utils.DownloadMode.COMP or self._mode == Utils.DownloadMode.SYNC):
+            if (res := self._spotify_login.spotify_login()) is None and (
+                    self._mode == Utils.DownloadMode.COMP or self._mode == Utils.DownloadMode.SYNC):
                 return self._spotify_login.grid(row=1, column=1, sticky='nsew')
 
             elif not res:
@@ -406,7 +407,8 @@ class TracksProcessing(ctk.CTkFrame):
         self._update_table_for_multiple()
 
     def _update_table_for_multiple(self):
-        for row, track in enumerate(self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)]):
+        for row, track in enumerate(
+                self._table_data[self._table_limit * self._page:self._table_limit * (self._page + 1)]):
             try:
                 status = self._get_status_str(self._mtp.pool_status()['all_tracks'][track])
                 self._table.insert(row + 1, 2, status)
@@ -513,7 +515,8 @@ class TracksProcessing(ctk.CTkFrame):
                 self._next_button.configure(text=self._locales.get_string('retry'), command=_retry_multiple)
                 return
 
-        self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+        self._next_button.configure(text=self._locales.get_string('go_to_menu'),
+                                    command=lambda: self._exit_callback(self))
 
     def _start_playlist_download(self):
         self._back_button.grid(row=0, column=0, sticky='w', padx=2)
@@ -609,7 +612,9 @@ class TracksProcessing(ctk.CTkFrame):
                 return
 
             separator = '\u29f8'
-            self._update_table([f"{track['title']} - {separator.join([aut.strip() for aut in track['artists'].split(',')])}" for track in self._playlist])
+            self._update_table(
+                [f"{track['title']} - {separator.join([aut.strip() for aut in track['artists'].split(',')])}" for track
+                 in self._playlist])
 
             self._input_entry.delete(0, 'end')
             self._playlist_error = False
@@ -679,7 +684,8 @@ class TracksProcessing(ctk.CTkFrame):
         self._tracks_frame.grid_forget()
         self._get_tracks_frame.grid(row=1, column=0, padx=5, pady=5, sticky='we')
 
-        self._tracks_for_downloading = [TrackDownloader.create_download_query(track, self._path) for track in self._playlist]
+        self._tracks_for_downloading = [TrackDownloader.create_download_query(track, self._path) for track in
+                                        self._playlist]
 
         self._pp = DownloaderPool.PlaylistPool(False)
         self._completed_count = 0
@@ -814,7 +820,8 @@ class TracksProcessing(ctk.CTkFrame):
                     track_name = self._input_entry.get().strip()
 
                     try:
-                        Utils.add_tracks_to_ignore(self._server_missing_tracks, self._settings.add_track_to_server_ignore, track_name)
+                        Utils.add_tracks_to_ignore(self._server_missing_tracks,
+                                                   self._settings.add_track_to_server_ignore, track_name)
                         self._settings.save()
                         self._server_missing_tracks = self._comp.get_server_missing_tracks(refresh=True)
 
@@ -854,7 +861,8 @@ class TracksProcessing(ctk.CTkFrame):
                 self._update_table(self._server_missing_tracks)
 
             if self._mode == Utils.DownloadMode.COMP:
-                self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+                self._next_button.configure(text=self._locales.get_string('go_to_menu'),
+                                            command=lambda: self._exit_callback(self))
             else:
                 self._next_button.configure(command=self._sync_local)
         else:
@@ -869,7 +877,8 @@ class TracksProcessing(ctk.CTkFrame):
         if len(self._local_missing_tracks) == 0:
             self._set_description(self._locales.get_string('no_missing_tracks'))
 
-            self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+            self._next_button.configure(text=self._locales.get_string('go_to_menu'),
+                                        command=lambda: self._exit_callback(self))
             self._update_table([])
             self._input_entry.grid_forget()
             self._input_button.grid_forget()
@@ -881,7 +890,8 @@ class TracksProcessing(ctk.CTkFrame):
                 track_name = self._input_entry.get().strip()
 
                 try:
-                    Utils.add_tracks_to_ignore(sorted(self._local_missing_tracks), self._settings.add_track_to_local_ignore, track_name)
+                    Utils.add_tracks_to_ignore(sorted(self._local_missing_tracks),
+                                               self._settings.add_track_to_local_ignore, track_name)
                     self._settings.save()
 
                     self._spt.refresh_track_list()
@@ -895,7 +905,8 @@ class TracksProcessing(ctk.CTkFrame):
                         self._set_description(self._locales.get_string('no_missing_tracks'))
                         self._input_entry.grid_forget()
                         self._input_button.grid_forget()
-                        self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+                        self._next_button.configure(text=self._locales.get_string('go_to_menu'),
+                                                    command=lambda: self._exit_callback(self))
                         self._no_missing_canvas.grid(row=2, column=0)
 
                 except ValueError:
@@ -926,7 +937,9 @@ class TracksProcessing(ctk.CTkFrame):
             self._next_button.configure(command=self._start_download)
 
     def _start_download(self):
-        self._tracks_for_downloading = [(track, self._settings.get_setting('path_for_sync'), self._local_missing_tracks[track]) for track in sorted(self._local_missing_tracks)]
+        self._tracks_for_downloading = [
+            (track, self._settings.get_setting('path_for_sync'), self._local_missing_tracks[track]) for track in
+            sorted(self._local_missing_tracks)]
 
         self._pp = DownloaderPool.PlaylistPool(True)
         self._completed_count = 0
@@ -1002,10 +1015,12 @@ class TracksProcessing(ctk.CTkFrame):
         self._next_button.configure(state='normal')
 
         pp_status = self._pp.pool_status()
-        self._tracks_for_downloading = [track for track in self._tracks_for_downloading if track[0] not in pp_status['ok']['list']]
+        self._tracks_for_downloading = [track for track in self._tracks_for_downloading if
+                                        track[0] not in pp_status['ok']['list']]
 
         if len(self._tracks_for_downloading) == 0:
-            self._next_button.configure(text=self._locales.get_string('go_to_menu'), command=lambda: self._exit_callback(self))
+            self._next_button.configure(text=self._locales.get_string('go_to_menu'),
+                                        command=lambda: self._exit_callback(self))
         else:
             self._next_button.configure(text=self._locales.get_string('retry'), command=self._retry)
 
