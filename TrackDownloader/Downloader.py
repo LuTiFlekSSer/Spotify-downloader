@@ -38,16 +38,19 @@ def create_download_query(track, directory):
         'release_date': track['releaseDate'][:4]
     }
 
-    return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
+    return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(
+        str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
 def _get_track_info(track_info, method='download'):
-    response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}', headers=Downloader.headers).json()
+    response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}',
+                            headers=Downloader.headers).json()
 
     attempts = 0
 
     while attempts < 3 and not (response['success'] and 'link' in response):
-        response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}', headers=Downloader.headers).json()
+        response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}',
+                                headers=Downloader.headers).json()
         attempts += 1
 
     return response
@@ -97,7 +100,8 @@ class Downloader:
                 lock.acquire()
 
             if (sync and
-                    (self._settings.get_local_tracks_db()[name] == 'None' or self._settings.get_local_tracks_db()[name] != track_info['id'])):
+                    (self._settings.get_local_tracks_db()[name] == 'None' or self._settings.get_local_tracks_db()[
+                        name] != track_info['id'])):
                 self._settings.change_local_track_id(name, track_info['id'])
 
                 self._settings.save()
@@ -195,7 +199,12 @@ class Downloader:
         track.tag.title = track_info['name']
         track.tag.artist = '/'.join(track_info['artists'])
         track.tag.album = track_info['album_name']
-        track.tag.release_date = track_info['release_date']
+
+        try:
+            track.tag.release_date = track_info['release_date']
+        except ValueError:
+            pass
+
         if sync:
             if lock is not None:
                 lock.acquire()
