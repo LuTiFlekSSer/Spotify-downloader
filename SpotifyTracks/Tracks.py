@@ -50,7 +50,8 @@ class SpTracks:
 
             pool = ThreadPoolExecutor(int(settings.get_setting('threads')))
 
-            runs = [pool.submit(self._get_tracks, offset, local_ignore_list) for offset in range(0, self._total, self._limit)]
+            runs = [pool.submit(self._get_tracks, offset, local_ignore_list) for offset in
+                    range(0, self._total, self._limit)]
             checked = [False for _ in runs]
 
             completed = 0
@@ -117,7 +118,8 @@ class SpTracks:
                 'name': track['track']['name'],
                 'artists': [aut['name'] for aut in track['track']['artists']],
                 'album_name': track['track']['album']['name'],
-                'release_date': track['track']['album']['release_date'][:4]
+                'release_date': track['track']['album']['release_date'][:4],
+                'cover': track['track']['album']['images'][0]['url']
             }
             self._spotify_tracks.add((name, track['track']['id']))
             self._lock.release()
