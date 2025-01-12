@@ -35,22 +35,25 @@ def create_download_query(track, directory):
         'name': track['title'],
         'artists': [aut.strip() for aut in track['artists'].split(',')],
         'album_name': track['album'],
-        'release_date': track['releaseDate'][:4]
+        'release_date': track['releaseDate'][:4],
+        'cover': track['cover']
     }
 
     return f"{track_info['name']} - {separator.join(track_info['artists'])}".translate(
         str.maketrans(SpotifyTracks.SpTracks.dict_for_replace)), directory, track_info
 
 
-def _get_track_info(track_info, method='download'):
-    response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}',
-                            headers=Downloader.headers).json()
+def _get_track_info(track_info):
+    data = {
+        'url': f'https://open.spotify.com/track/{track_info["id"]}',
+    }
+
+    response = requests.post('https://spotymp3.app/api/download-track', json=data)
 
     attempts = 0
 
-    while attempts < 3 and not (response['success'] and 'link' in response):
-        response = requests.get(f'https://api.spotifydown.com/{method}/{track_info["id"]}',
-                                headers=Downloader.headers).json()
+    while attempts < 3 and not (response.status_code == 200 and 'file_url' in response.json()):
+        response = requests.post('https://spotymp3.app/api/download-track', json=data).json()
         attempts += 1
 
     return response
@@ -68,7 +71,7 @@ def isfile_case_sensitive(path, name):
 
 
 class Downloader:
-    headers = {
+    metadata_headers = {
         'authority': 'api.spotifydown.com',
         'origin': 'https://spotifydown.com',
         'referer': 'https://spotifydown.com/'
@@ -111,58 +114,24 @@ class Downloader:
 
             return
 
-        self._download_from_y2api(name, path, track_info, sync, lock)
+        self._download_track(name, path, track_info, sync, lock)
 
-    def _download_from_y2api(self, name, path, track_info, sync, lock):
+    def _download_track(self, name, path, track_info, sync, lock):
         try:
             response = _get_track_info(track_info)
 
-            if not response['success']:
+            if not response.status_code == 200:
                 self._status = Status.NF_ERR
                 return False
 
-            # domains = [
-            #     'https://cdn1.tik.live/api/stream?',
-            #     'https://cdn2.tik.live/api/stream?',
-            #     'https://cdn3.tik.live/api/stream?'
-            # ]
-            #
-            # query = urlparse(response['link']).query
-            #
-            # try:
-            #     for i, domain in enumerate(domains):
-            #         attempts = 0
-            #
-            #         header = Downloader.headers.copy()
-            #         header['authority'] = urlparse(domain).hostname
-            #
-            #         track = requests.get(domain + query, headers=header)
-            #
-            #         while attempts < 5 and track.status_code != 200:
-            #             track = requests.get(domain + query, headers=header)
-            #             attempts += 1
-            #
-            #         if track.status_code != 200:
-            #             if i == len(domains) - 1:
-            #                 self._status = Status.GET_ERR
-            #                 return False
-            #             else:
-            #                 continue
-            #
-            #         with open(f'{path}/{name}.mp3', 'wb') as file:
-            #             file.write(track.content)
-            #             break
-            query = response['link']
+            query = response.json()['file_url']
 
             try:
                 attempts = 0
-
-                header = Downloader.headers.copy()
-
-                track = requests.get(query, headers=header)
+                track = requests.get(query)
 
                 while attempts < 5 and track.status_code != 200:
-                    track = requests.get(query, headers=header)
+                    track = requests.get(query)
                     attempts += 1
 
                 if track.status_code != 200:
@@ -192,7 +161,7 @@ class Downloader:
             return False
 
         try:
-            track.tag.images.set(3, requests.get(response['metadata']['cover']).content, 'image/jpeg')
+            track.tag.images.set(3, requests.get(track_info['cover']).content, 'image/jpeg')
         except Exception:
             self._status = Status.JPG_ERR
 

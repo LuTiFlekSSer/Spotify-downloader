@@ -560,7 +560,7 @@ class TracksProcessing(ctk.CTkFrame):
                     while True:
                         playlist_info = requests.get(
                             f'https://api.spotifydown.com/trackList/playlist/{playlist_id}?offset={offset}',
-                            headers=TrackDownloader.Downloader.headers
+                            headers=TrackDownloader.Downloader.metadata_headers
                         ).json()
 
                         if not playlist_info['success']:

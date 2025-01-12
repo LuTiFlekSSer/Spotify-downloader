@@ -87,7 +87,7 @@ class MultipleTracksPool:
         track_id = track_id[track_id.rfind('/') + 1:]
 
         try:
-            track = requests.get(f'https://api.spotifydown.com/metadata/track/{track_id}', headers=TrackDownloader.Downloader.headers).json()
+            track = requests.get(f'https://api.spotifydown.com/metadata/track/{track_id}', headers=TrackDownloader.Downloader.metadata_headers).json()
 
             if not track['success']:
                 self._lock.acquire()
