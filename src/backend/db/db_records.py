@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
 
 
@@ -37,23 +37,37 @@ TRACK_STATUS_LOCALE: dict[TrackStatus, str] = {
 @dataclass
 class Track:
     """Каноническая модель трека через все слои (fetch -> download -> UI).
-    Поля совпадают с формой нового API spotidownloader (/tracks, /download.metadata)
-    и со старым create_download_query."""
+
+    artists — СПИСОК имён (а не строка): для liked-треков берётся из spotipy как
+    есть, что сохраняет имена с запятыми (напр. 'Tyler, The Creator') и
+    гарантирует совпадение имени файла со старым приложением."""
     id: str
     title: str
-    artists: str = ''          # как отдаёт API — через запятую: 'Artist1, Artist2'
+    artists: list[str] = field(default_factory=list)
     album: str = ''
     release_date: str = ''     # год (YYYY)
     cover: str = ''            # URL обложки
     status: TrackStatus = TrackStatus.MISSING
 
+    @property
+    def artists_str(self) -> str:
+        return ', '.join(self.artists)
+
     @classmethod
     def from_api(cls, data: dict) -> 'Track':
+        """Из ответа spotidownloader (/tracks, /download.metadata), где artists —
+        строка через запятую."""
+        raw = data.get('artists', '')
+        if isinstance(raw, str):
+            artists = [a.strip() for a in raw.split(',') if a.strip()]
+        else:
+            artists = [str(a) for a in raw]
+
         return cls(
             id=data.get('id', ''),
             title=data.get('title', ''),
-            artists=data.get('artists', ''),
-            album=data.get('album', '') or '',
+            artists=artists,
+            album=data.get('album') or '',
             release_date=(data.get('releaseDate') or '')[:4],
-            cover=data.get('cover', '') or '',
+            cover=data.get('cover') or '',
         )

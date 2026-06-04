@@ -575,6 +575,30 @@
         "PB": {
             "ru": "ПБ",
             "en": "PB"
+        },
+        "login_button": {
+            "ru": "Войти в Spotify",
+            "en": "Log in to Spotify"
+        },
+        "logout_button": {
+            "ru": "Выйти из аккаунта",
+            "en": "Log out"
+        },
+        "spotify_not_configured": {
+            "ru": "Spotify: не настроен",
+            "en": "Spotify: not configured"
+        },
+        "spotify_connected": {
+            "ru": "Spotify: подключён",
+            "en": "Spotify: connected"
+        },
+        "spotify_not_logged_in": {
+            "ru": "Spotify: требуется вход",
+            "en": "Spotify: not logged in"
+        },
+        "login_success": {
+            "ru": "Вход выполнен",
+            "en": "Logged in"
         }
     }
 }
