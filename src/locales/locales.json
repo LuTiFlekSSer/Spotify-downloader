@@ -615,6 +615,66 @@
         "code_step_hint": {
             "ru": "После перехода по ссылке и входа Spotify перенаправит на ваш Redirect URI — скопируйте ПОЛНЫЙ адрес из адресной строки и вставьте сюда.",
             "en": "After following the link and logging in, Spotify will redirect to your Redirect URI — copy the FULL address from the address bar and paste it here."
+        },
+        "login_action_desc": {
+            "ru": "Подключите аккаунт Spotify",
+            "en": "Connect your Spotify account"
+        },
+        "logout_action_desc": {
+            "ru": "Отключить текущий аккаунт",
+            "en": "Disconnect current account"
+        },
+        "sync_action": {
+            "ru": "Синхронизация",
+            "en": "Sync library"
+        },
+        "sync_action_desc": {
+            "ru": "Любимые ⇄ локальная папка",
+            "en": "Liked ⇄ local folder"
+        },
+        "tracks_action": {
+            "ru": "Треки и плейлисты",
+            "en": "Tracks & playlists"
+        },
+        "tracks_action_desc": {
+            "ru": "Скачать по ссылке",
+            "en": "Download by link"
+        },
+        "open_folder": {
+            "ru": "Папка загрузок",
+            "en": "Downloads folder"
+        },
+        "open_folder_desc": {
+            "ru": "Открыть в проводнике",
+            "en": "Open in explorer"
+        },
+        "github": {
+            "ru": "GitHub",
+            "en": "GitHub"
+        },
+        "github_desc": {
+            "ru": "Исходный код проекта",
+            "en": "Project source code"
+        },
+        "card_spotify": {
+            "ru": "Spotify",
+            "en": "Spotify"
+        },
+        "card_folder": {
+            "ru": "Папка загрузок",
+            "en": "Download folder"
+        },
+        "card_threads": {
+            "ru": "Потоки загрузки",
+            "en": "Download threads"
+        },
+        "folder_not_set": {
+            "ru": "Не задана",
+            "en": "Not set"
+        },
+        "threads_value": {
+            "ru": "{n} потоков",
+            "en": "{n} threads"
         }
     }
 }

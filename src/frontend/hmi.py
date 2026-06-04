@@ -51,6 +51,10 @@ class MainWindow(MSFluentWindow):
 
         self.setWindowTitle(f'{Config.APP_NAME} v{__version__}')
         self.setWindowIcon(QIcon(Config.WINDOW_ICON))
+        try:
+            self.setMicaEffectEnabled(True)   # полупрозрачный фон Mica (Windows 11)
+        except Exception:
+            pass
         self._center()
 
         self._splashscreen: SplashScreen = SplashScreen(self.windowIcon(), self)
