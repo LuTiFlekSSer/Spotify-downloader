@@ -1,8 +1,8 @@
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QGuiApplication
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QStackedWidget
-from qfluentwidgets import (MessageBoxBase, SubtitleLabel, BodyLabel, LineEdit, PasswordLineEdit,
-                            HyperlinkLabel, TeachingTipView, PopupTeachingTip, InfoBarIcon)
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget
+from qfluentwidgets import (MessageBoxBase, SubtitleLabel, BodyLabel, CaptionLabel, LineEdit,
+                            PasswordLineEdit, HyperlinkLabel, TeachingTipView, PopupTeachingTip, InfoBarIcon)
 
 from src.backend.spotify import errors
 from src.backend.spotify.session import SpotifySession
@@ -39,12 +39,29 @@ class LoginDialog(MessageBoxBase):
         layout = QVBoxLayout(page)
         layout.setContentsMargins(0, 0, 0, 0)
 
+        # гайд + ссылки на страницу разработчика Spotify (перенесено из README)
+        guide = CaptionLabel(self._locales.get_string('login_guide'))
+        guide.setWordWrap(True)
+        layout.addWidget(guide)
+
+        links_row = QHBoxLayout()
+        links_row.addWidget(HyperlinkLabel(
+            QUrl('https://developer.spotify.com/dashboard'),
+            self._locales.get_string('link_dashboard'), self))
+        links_row.addWidget(HyperlinkLabel(
+            QUrl('https://developer.spotify.com/dashboard/create'),
+            self._locales.get_string('link_create_app'), self))
+        links_row.addStretch(1)
+        layout.addLayout(links_row)
+        layout.addSpacing(10)
+
         self._cid = LineEdit()
         self._cid.setText(self._session._db.get_setting('client_id'))
         self._secret = PasswordLineEdit()
         self._secret.setText(self._session._db.get_setting('client_secret'))
         self._uri = LineEdit()
         self._uri.setText(self._session._db.get_setting('redirect_uri'))
+        self._uri.setPlaceholderText('http://127.0.0.1:8888/callback')
 
         layout.addWidget(BodyLabel('Client ID:'))
         layout.addWidget(self._cid)
@@ -61,12 +78,15 @@ class LoginDialog(MessageBoxBase):
 
         self._desc = BodyLabel(self._locales.get_string('code_description'))
         self._desc.setWordWrap(True)
+        self._hint = CaptionLabel(self._locales.get_string('code_step_hint'))
+        self._hint.setWordWrap(True)
         self._link = HyperlinkLabel(QUrl('https://accounts.spotify.com'), 'URL', self)
         self._url_edit = LineEdit()
-        self._url_edit.setPlaceholderText('URL')
+        self._url_edit.setPlaceholderText('http://127.0.0.1:8888/callback?code=...')
 
         layout.addWidget(self._desc)
         layout.addWidget(self._link)
+        layout.addWidget(self._hint)
         layout.addWidget(BodyLabel('URL:'))
         layout.addWidget(self._url_edit)
         return page

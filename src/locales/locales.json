@@ -599,6 +599,22 @@
         "login_success": {
             "ru": "Вход выполнен",
             "en": "Logged in"
+        },
+        "login_guide": {
+            "ru": "Данные приложения Spotify нужно получить на странице разработчика:\n1. Войдите в свой аккаунт Spotify\n2. Откройте Dashboard и создайте приложение\n3. В настройках приложения добавьте Redirect URI (например http://127.0.0.1:8888/callback) и сохраните\n4. Скопируйте Client ID и Client Secret из настроек приложения\n\nRedirect URI ниже должен ТОЧНО совпадать с указанным в приложении.",
+            "en": "Get your Spotify app credentials on the developer page:\n1. Log in to your Spotify account\n2. Open the Dashboard and create an app\n3. In the app settings add a Redirect URI (e.g. http://127.0.0.1:8888/callback) and save\n4. Copy the Client ID and Client Secret from the app settings\n\nThe Redirect URI below must EXACTLY match the one set in the app."
+        },
+        "link_dashboard": {
+            "ru": "Открыть Dashboard",
+            "en": "Open Dashboard"
+        },
+        "link_create_app": {
+            "ru": "Создать приложение",
+            "en": "Create an app"
+        },
+        "code_step_hint": {
+            "ru": "После перехода по ссылке и входа Spotify перенаправит на ваш Redirect URI — скопируйте ПОЛНЫЙ адрес из адресной строки и вставьте сюда.",
+            "en": "After following the link and logging in, Spotify will redirect to your Redirect URI — copy the FULL address from the address bar and paste it here."
         }
     }
 }
