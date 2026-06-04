@@ -13,7 +13,7 @@ class ActionCard(CardWidget):
     def __init__(self, icon: FluentIcon, title: str, description: str,
                  link_icon: bool = False, callback=None, parent=None):
         super().__init__(parent=parent)
-        self.setFixedSize(196, 152)
+        self.setFixedSize(196, 170)
         self._callback = callback
 
         layout = QVBoxLayout(self)
@@ -46,7 +46,7 @@ class ActionCard(CardWidget):
             link = IconWidget(self)
             link.setIcon(FluentIcon.LINK.colored(QColor(Config.GRAY_COLOR_900), QColor(Config.GRAY_COLOR_50)))
             link.setFixedSize(14, 14)
-            link.move(170, 128)
+            link.move(170, 146)
 
         self.clicked.connect(self._on_clicked)
 
@@ -80,7 +80,7 @@ class ActionCardView(SingleDirectionScrollArea):
 
         self.setWidget(self._w_view)
         self.setWidgetResizable(True)
-        self.setFixedHeight(168)
+        self.setFixedHeight(186)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         try:

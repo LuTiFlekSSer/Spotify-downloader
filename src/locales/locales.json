@@ -581,7 +581,7 @@
             "en": "Log in to Spotify"
         },
         "logout_button": {
-            "ru": "Выйти из аккаунта",
+            "ru": "Выйти",
             "en": "Log out"
         },
         "spotify_not_configured": {
@@ -621,8 +621,8 @@
             "en": "Connect your Spotify account"
         },
         "logout_action_desc": {
-            "ru": "Отключить текущий аккаунт",
-            "en": "Disconnect current account"
+            "ru": "Отключить аккаунт",
+            "en": "Disconnect account"
         },
         "sync_action": {
             "ru": "Синхронизация",
