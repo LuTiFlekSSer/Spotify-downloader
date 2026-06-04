@@ -3,3 +3,12 @@
 /settings.db
 /output/
 /icon.psd
+
+# python / venv / build
+.venv/
+__pycache__/
+*.pyc
+/build/
+/dist/
+*.spec
+/Spotify downloader.exe

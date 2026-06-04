@@ -1,9 +1,9 @@
-requests>=2.31.0
-spotipy>=2.23.0
+PySide6>=6.7,<6.9
+PySide6-Fluent-Widgets[full]>=1.8.1
+spotipy>=2.24.0
 eyed3>=0.9.7
+requests>=2.31.0
 pywin32>=306
-pyperclip>=1.8.2
-customtkinter>=5.2.1
-Pillow>=10.1.0
-CTkMessagebox>=2.5
-CTkMenuBar>=0.3
+packaging>=24.0
+camoufox>=0.4.11
+browserforge>=1.2.3

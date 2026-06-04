@@ -1,0 +1,46 @@
+{
+    "languages": {
+        "ru": "Русский",
+        "en": "English"
+    },
+    "strings": {
+        "home": {
+            "ru": "Главная",
+            "en": "Home"
+        },
+        "tracks": {
+            "ru": "Треки",
+            "en": "Tracks"
+        },
+        "settings": {
+            "ru": "Настройки",
+            "en": "Settings"
+        },
+        "error": {
+            "ru": "Ошибка",
+            "en": "Error"
+        },
+        "close_error_message": {
+            "ru": "Дождитесь завершения загрузки",
+            "en": "Wait for the download to finish"
+        },
+        "home_subtitle": {
+            "ru": "Загрузка любимых треков и плейлистов из Spotify",
+            "en": "Download liked tracks and playlists from Spotify"
+        },
+        "tracks_placeholder": {
+            "ru": "Список треков появится здесь (Фаза 4)",
+            "en": "The tracks list will appear here (Phase 4)"
+        },
+        "settings_placeholder": {
+            "ru": "Настройки появятся здесь (Фаза 4)",
+            "en": "Settings will appear here (Phase 4)"
+        },
+        "B": {"ru": "Б", "en": "B"},
+        "KB": {"ru": "КБ", "en": "KB"},
+        "MB": {"ru": "МБ", "en": "MB"},
+        "GB": {"ru": "ГБ", "en": "GB"},
+        "TB": {"ru": "ТБ", "en": "TB"},
+        "PB": {"ru": "ПБ", "en": "PB"}
+    }
+}

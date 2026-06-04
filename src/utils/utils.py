@@ -1,0 +1,49 @@
+import os
+import re
+import sys
+
+from PySide6.QtWidgets import QWidget
+from qfluentwidgets import MSFluentWindow
+
+
+def resource_path(relative_path: str) -> str:
+    """Путь к бандл-ресурсу: работает и из исходников (cwd закреплён в main.py),
+    и из onefile-сборки (sys._MEIPASS)."""
+    base = getattr(sys, '_MEIPASS', os.path.abspath('.'))
+    return os.path.join(base, relative_path)
+
+
+def compare_versions(current: str, new: str) -> bool:
+    """True, если `new` строго новее `current`. Сравнение по числовым сегментам
+    (исправляет старый баг лексикографического сравнения '10' < '9')."""
+
+    def parse(v: str) -> tuple[int, ...]:
+        return tuple(int(x) for x in re.findall(r'\d+', v))
+
+    return parse(new) > parse(current)
+
+
+def get_normalized_size(locales, size: float) -> str:
+    for unit in (locales.get_string('B'),
+                 locales.get_string('KB'),
+                 locales.get_string('MB'),
+                 locales.get_string('GB'),
+                 locales.get_string('TB')):
+        if size < 1024:
+            return f'{size:.2f} {unit}'
+        size /= 1024
+
+    return f'{size:.2f} {locales.get_string("PB")}'
+
+
+def find_mega_parent(widget: QWidget) -> QWidget:
+    """Идёт вверх по .parent() до MSFluentWindow с маркером ULTRA_MEGA_PARENT."""
+    tmp_widget = widget
+
+    while True:
+        if isinstance(tmp_widget, MSFluentWindow) and hasattr(tmp_widget, 'ULTRA_MEGA_PARENT'):
+            return tmp_widget
+        if tmp_widget is None:
+            return widget
+
+        tmp_widget = tmp_widget.parent()
