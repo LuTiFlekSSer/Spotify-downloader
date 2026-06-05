@@ -13,6 +13,18 @@ def resource_path(relative_path: str) -> str:
     return os.path.join(base, relative_path)
 
 
+def is_frozen() -> bool:
+    return getattr(sys, 'frozen', False)
+
+
+def get_executable_path() -> str:
+    """Путь к текущему исполняемому файлу: .exe в сборке, иначе main.py."""
+    if is_frozen():
+        return sys.executable
+    import __main__
+    return getattr(__main__, '__file__', None) or os.path.abspath('main.py')
+
+
 def compare_versions(current: str, new: str) -> bool:
     """True, если `new` строго новее `current`. Сравнение по числовым сегментам
     (исправляет старый баг лексикографического сравнения '10' < '9')."""

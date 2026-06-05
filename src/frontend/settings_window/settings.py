@@ -14,6 +14,9 @@ from src.locales.locales import Locales
 from src.utils.config import Config
 from src.utils.utils import find_mega_parent
 from src.version import __version__
+from src.backend.updater.updater import Updater
+from src.backend.updater.workers import UpdateCheckWorker
+from src.frontend.sub_windows.update_dialog.update_dialog import UpdateDownloadDialog
 
 _QSS_LIGHT = f'#setting-content{{color: {Config.GRAY_COLOR_700}; font-size: 12px;}}'
 _QSS_DARK = f'#setting-content{{color: {Config.GRAY_COLOR_200}; font-size: 12px;}}'
@@ -119,6 +122,64 @@ class ClearAccountCard(PushSettingCard):
                         position=InfoBarPosition.BOTTOM_RIGHT, duration=3000, parent=hmi)
 
 
+class AboutUpdateCard(PrimaryPushSettingCard):
+    """Карточка «О программе» с реальной проверкой обновлений на GitHub."""
+
+    def __init__(self, parent=None):
+        self._locales = Locales()
+        super().__init__(
+            self._locales.get_string('check_for_updates'),
+            FluentIcon.INFO.colored(QColor(Config.GRAY_COLOR_900), QColor(Config.GRAY_COLOR_50)),
+            self._locales.get_string('about'),
+            self._locales.get_string('about_desc').format(version=__version__), parent)
+        self._updater = Updater()
+        self._checker = None
+        self.clicked.connect(self._check)
+
+    def _check(self):
+        if self._checker is not None and self._checker.isRunning():
+            return
+        self.button.setEnabled(False)
+        self.button.setText(self._locales.get_string('checking'))
+        self._checker = UpdateCheckWorker(self._updater, self)
+        self._checker.sig_result.connect(self._on_result)
+        self._checker.sig_error.connect(self._on_error)
+        self._checker.finished.connect(self._restore)
+        self._checker.start()
+
+    def _restore(self):
+        self.button.setEnabled(True)
+        self.button.setText(self._locales.get_string('check_for_updates'))
+
+    def _on_error(self, *_):
+        InfoBar.error(title=self._locales.get_string('error'),
+                      content=self._locales.get_string('update_check_error'),
+                      position=InfoBarPosition.BOTTOM_RIGHT, duration=4000, parent=find_mega_parent(self))
+
+    def _on_result(self, release):
+        hmi = find_mega_parent(self)
+        if release is None:
+            InfoBar.success(title=self._locales.get_string('check'),
+                            content=self._locales.get_string('last_update_installed'),
+                            position=InfoBarPosition.BOTTOM_RIGHT, duration=4000, parent=hmi)
+            return
+
+        box = MessageBox(
+            self._locales.get_string('update_available').format(version=release.version),
+            self._locales.get_string('update_title'), hmi)
+        box.yesButton.setText(self._locales.get_string('yes'))
+        box.cancelButton.setText(self._locales.get_string('no'))
+        if not box.exec():
+            return
+
+        if not self._updater.is_frozen():
+            # из исходников самоподмена невозможна — открываем страницу релизов
+            QDesktopServices.openUrl(QUrl(Config.GITHUB_RELEASES_HTML))
+            return
+
+        UpdateDownloadDialog(self._updater, hmi).exec()
+
+
 class SettingSection(QWidget):
     def __init__(self, title: str, parent=None):
         super().__init__(parent=parent)
@@ -198,11 +259,7 @@ class AppSettings(SettingSection):
             loc.get_string('auto_update_title'), loc.get_string('auto_update_desc'),
             spotify_config.auto_update, self)
 
-        self._about = PrimaryPushSettingCard(
-            loc.get_string('check_for_updates'),
-            FluentIcon.INFO.colored(QColor(Config.GRAY_COLOR_900), QColor(Config.GRAY_COLOR_50)),
-            loc.get_string('about'), loc.get_string('about_desc').format(version=__version__), self)
-        self._about.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(Config.GITHUB_URL)))
+        self._about = AboutUpdateCard(self)
 
         for card in (self._theme, self._language, self._auto_update, self._about):
             _dim(card)

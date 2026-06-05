@@ -13,6 +13,24 @@ sys.path.insert(0, _app_dir())
 
 
 def main():
+    # самоподмена при обновлении: новый .exe запущен с `-U "<старый путь>"`.
+    # Копируем себя поверх старого файла и перезапускаем его — до всего остального.
+    if '-U' in sys.argv:
+        idx = sys.argv.index('-U')
+        if idx + 1 < len(sys.argv):
+            target = sys.argv[idx + 1]
+            import subprocess
+            from src.backend.updater.updater import Updater
+            try:
+                Updater.install_update(target)
+            except Exception:
+                pass
+            try:
+                subprocess.Popen([target], creationflags=subprocess.CREATE_NEW_CONSOLE)
+            except Exception:
+                pass
+        sys.exit(0)
+
     from src.frontend.instance_manager import InstanceManager
 
     instance_manager = InstanceManager()

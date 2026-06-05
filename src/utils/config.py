@@ -8,6 +8,7 @@ class Config(metaclass=Singleton):
 
     GITHUB_URL = 'https://github.com/LuTiFlekSSer/Spotify-downloader'
     GITHUB_RELEASES_URL = 'https://api.github.com/repos/LuTiFlekSSer/Spotify-downloader/releases/latest'
+    GITHUB_RELEASES_HTML = 'https://github.com/LuTiFlekSSer/Spotify-downloader/releases/latest'
 
     SPLASH_SCREEN_TIME = 2
 

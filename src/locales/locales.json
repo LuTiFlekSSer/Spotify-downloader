@@ -807,6 +807,14 @@
         "restart_notification": {
             "ru": "Перезапустите приложение, чтобы применить",
             "en": "Restart the app to apply"
+        },
+        "checking": {
+            "ru": "Проверка…",
+            "en": "Checking…"
+        },
+        "update_available": {
+            "ru": "Доступно обновление {version}",
+            "en": "Update available: {version}"
         }
     }
 }
