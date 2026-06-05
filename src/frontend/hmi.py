@@ -96,6 +96,19 @@ class MainWindow(MSFluentWindow):
         self.activateWindow()
         self.raise_()
 
+    def set_navigation_locked(self, locked: bool):
+        """Блокирует переход на Home/Settings во время работы (загрузка/синхронизация)."""
+        for attr in ('_home_window', '_settings_window'):
+            page = getattr(self, attr, None)
+            if page is None:
+                continue
+            try:
+                item = self.navigationInterface.widget(page.objectName())
+                if item is not None:
+                    item.setEnabled(not locked)
+            except Exception:
+                pass
+
     def _center(self):
         screen = QGuiApplication.primaryScreen()
         window_geometry = self.frameGeometry()

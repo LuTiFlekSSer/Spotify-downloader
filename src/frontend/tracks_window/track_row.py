@@ -1,17 +1,17 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QFontMetrics
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QStackedWidget
 from qfluentwidgets import (SimpleCardWidget, IconWidget, StrongBodyLabel, CaptionLabel,
-                            FluentIcon, InfoBarIcon)
+                            ImageLabel, IndeterminateProgressRing, FluentIcon, InfoBarIcon)
 
 from src.backend.db.db_records import Track, TrackStatus, TRACK_STATUS_LOCALE
+from src.frontend.tracks_window.cover_cache import cover_cache
 from src.locales.locales import Locales
 from src.utils.config import Config
 
-# статус -> (иконка, цвет-светлый, цвет-тёмный)
 _OK = ('#107C10', '#6CCB5F')
 _ERR = ('#C42B1C', '#FF99A4')
-_WARN = ('#9D5D00', '#FCE100')
+_WARN = ('#9D5D00', '#E8B900')
 _NEUTRAL = (Config.GRAY_COLOR_600, Config.GRAY_COLOR_300)
 _ACCENT = ('#0067C0', '#4CC2FF')
 
@@ -28,10 +28,21 @@ _STATUS_STYLE = {
     TrackStatus.CANCELLED: (InfoBarIcon.WARNING, _WARN),
     TrackStatus.LINK_ERROR: (InfoBarIcon.ERROR, _ERR),
 }
+_DONE = (TrackStatus.DOWNLOADED, TrackStatus.SKIPPED)
+
+
+def _centered(widget: QWidget) -> QWidget:
+    box = QWidget()
+    box.setFixedSize(40, 40)
+    layout = QHBoxLayout(box)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(widget, 0, Qt.AlignmentFlag.AlignCenter)
+    return box
 
 
 class TrackRow(SimpleCardWidget):
-    """Строка таблицы треков. Реализует set_data(track) для PagedListView."""
+    """Строка таблицы: слева иконка статуса / прогресс-ринг (загрузка) / обложка
+    (после загрузки). Реализует set_data(track) для PagedListView."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -39,11 +50,22 @@ class TrackRow(SimpleCardWidget):
         self._track: Track | None = None
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(16, 8, 16, 8)
+        layout.setContentsMargins(14, 8, 16, 8)
         layout.setSpacing(14)
 
-        self._iw_status = IconWidget(self)
-        self._iw_status.setFixedSize(22, 22)
+        self._visual = QStackedWidget(self)
+        self._visual.setFixedSize(40, 40)
+        self._iw_status = IconWidget()
+        self._iw_status.setFixedSize(24, 24)
+        self._cover = ImageLabel()
+        self._cover.setFixedSize(40, 40)
+        self._cover.setBorderRadius(6, 6, 6, 6)
+        self._ring = IndeterminateProgressRing()
+        self._ring.setFixedSize(26, 26)
+        self._ring.setStrokeWidth(3)
+        self._visual.addWidget(_centered(self._iw_status))   # 0
+        self._visual.addWidget(self._cover)                  # 1
+        self._visual.addWidget(_centered(self._ring))        # 2
 
         text_box = QVBoxLayout()
         text_box.setContentsMargins(0, 0, 0, 0)
@@ -56,11 +78,12 @@ class TrackRow(SimpleCardWidget):
 
         self._l_status = CaptionLabel(self)
 
-        layout.addWidget(self._iw_status)
+        layout.addWidget(self._visual)
         layout.addLayout(text_box, 1)
         layout.addWidget(self._l_status, 0, Qt.AlignmentFlag.AlignRight)
 
         self._locales = Locales()
+        cover_cache.loaded.connect(self._on_cover_loaded)
 
     def set_data(self, track: Track):
         self._track = track
@@ -68,12 +91,37 @@ class TrackRow(SimpleCardWidget):
         self._l_artists.setText(self._elide(self._l_artists, track.artists_str))
 
         icon, (light, dark) = _STATUS_STYLE.get(track.status, (FluentIcon.MUSIC, _NEUTRAL))
+        self._l_status.setText(self._locales.get_string(TRACK_STATUS_LOCALE.get(track.status, 'state_missing')))
+        self._l_status.setTextColor(QColor(light), QColor(dark))
+
+        if track.status == TrackStatus.DOWNLOADING:
+            self._visual.setCurrentIndex(2)
+            self._ring.start()
+            return
+
+        self._ring.stop()
+
+        if track.status in _DONE and track.cover:
+            pixmap = cover_cache.get(track.cover)
+            if pixmap is not None:
+                self._cover.setImage(pixmap)
+                self._cover.scaledToHeight(40)
+                self._visual.setCurrentIndex(1)
+                return
+            cover_cache.request(track.cover)
+
         try:
             self._iw_status.setIcon(icon.colored(QColor(light), QColor(dark)))
         except Exception:
             self._iw_status.setIcon(icon)
-        self._l_status.setText(self._locales.get_string(TRACK_STATUS_LOCALE.get(track.status, 'state_missing')))
-        self._l_status.setTextColor(QColor(light), QColor(dark))
+        self._visual.setCurrentIndex(0)
+
+    def _on_cover_loaded(self, url: str, pixmap):
+        if (self._track is not None and self._track.cover == url
+                and self._track.status in _DONE):
+            self._cover.setImage(pixmap)
+            self._cover.scaledToHeight(40)
+            self._visual.setCurrentIndex(1)
 
     @staticmethod
     def _elide(label, text: str) -> str:

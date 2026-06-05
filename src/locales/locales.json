@@ -907,6 +907,14 @@
         "check_hint": {
             "ru": "Показать любимые треки, которых нет в папке (без загрузки)",
             "en": "Show liked tracks missing from your folder (no download)"
+        },
+        "getting_token": {
+            "ru": "Получение токена…",
+            "en": "Getting token…"
+        },
+        "retry_short": {
+            "ru": "Повторить",
+            "en": "Retry"
         }
     }
 }

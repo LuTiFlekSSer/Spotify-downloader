@@ -41,7 +41,8 @@ class TracksWindow(QWidget):
         self._db = DataBase()
         self._session = SpotifySession()
         self._pool = DownloaderPool()
-        self._api = ApiClient(SpotiSession())
+        self._spotidl = SpotiSession()
+        self._api = ApiClient(self._spotidl)
         self._flags = GlobalFlags()
 
         self._tracks: dict[str, Track] = {}
@@ -49,6 +50,7 @@ class TracksWindow(QWidget):
         self._state = 'idle'          # idle | loading | loaded | downloading | done
         self._resolving = False       # multiple-режим: идёт резолв ссылки
         self._run_id = 0              # эпоха: результаты воркеров из старой эпохи игнорируются
+        self._base_step = ''          # «базовый» статус (под наложение «получение токена»)
         self._workers: list = []
 
         self.__init_widgets()
@@ -87,8 +89,10 @@ class TracksWindow(QWidget):
         self._progress.hide()
         self._l_count = CaptionLabel('')
         self._stop_btn = PushButton(self._locales.get_string('stop'))
+        self._stop_btn.setFixedWidth(150)
         self._stop_btn.hide()
         self._action_btn = PrimaryPushButton(self._locales.get_string('start_action'))
+        self._action_btn.setFixedWidth(150)
 
         bottom = QHBoxLayout()
         bottom.setSpacing(12)
@@ -124,6 +128,7 @@ class TracksWindow(QWidget):
         edit.setPlaceholderText(self._locales.get_string(
             'playlist_link_ph' if mode == 'playlist' else 'track_link_ph'))
         button = PushButton(self._locales.get_string('confirm' if mode == 'playlist' else 'add'))
+        button.setFixedWidth(130)
         layout.addWidget(edit, 1)
         layout.addWidget(button)
         if mode == 'playlist':
@@ -141,6 +146,18 @@ class TracksWindow(QWidget):
         self._pool.events.sig_track_status.connect(self._on_track_status)
         self._pool.events.sig_progress.connect(self._on_progress)
         self._pool.events.sig_finished.connect(self._on_finished)
+        self._spotidl.events.sig_refreshing.connect(self._on_token_refreshing)
+        self._spotidl.events.sig_refreshed.connect(self._on_token_refreshed)
+
+    def _set_step(self, text: str):
+        self._base_step = text
+        self._l_step.setText(text)
+
+    def _on_token_refreshing(self):
+        self._l_step.setText(self._locales.get_string('getting_token'))   # наложение поверх базового
+
+    def _on_token_refreshed(self):
+        self._l_step.setText(self._base_step)
 
     # ---------------- mode / state ----------------
     def _is_busy(self) -> bool:
@@ -162,13 +179,14 @@ class TracksWindow(QWidget):
         self._tracks = {}
         self._table.set_items({})
         self._state = 'idle'
-        self._l_step.setText('')
+        self._set_step('')
         self._l_count.setText('')
         self._progress.hide()
         self._update_buttons()
 
     def _update_buttons(self):
         s = self._locales.get_string
+        self._lock_navigation(self._is_busy())
         if self._state == 'downloading':
             self._action_btn.hide()
             self._stop_btn.show()
@@ -190,10 +208,10 @@ class TracksWindow(QWidget):
                 self._action_btn.setText(s('refresh_action'))
                 self._action_btn.setEnabled(True)
             else:  # sync loaded/done
-                self._action_btn.setText(s('retry') if (failed and self._state == 'done') else s('download_btn'))
+                self._action_btn.setText(s('retry_short') if (failed and self._state == 'done') else s('download_btn'))
                 self._action_btn.setEnabled(has)
         else:  # playlist / multiple
-            self._action_btn.setText(s('retry') if (failed and self._state == 'done') else s('download_btn'))
+            self._action_btn.setText(s('retry_short') if (failed and self._state == 'done') else s('download_btn'))
             self._action_btn.setEnabled(has and self._state in ('loaded', 'done') and not self._resolving)
 
     def _on_action(self):
@@ -223,7 +241,7 @@ class TracksWindow(QWidget):
             return
         spotify_by_name = {build_filename(t.title, t.artists): t for t in tracks}
         directory = self._db.get_setting('download_dir')
-        self._l_step.setText(self._locales.get_string('scanning_folder'))
+        self._set_step(self._locales.get_string('scanning_folder'))
         worker = ScanCompareWorker(directory, spotify_by_name)
         self._track_worker(worker)
         worker.sig_finished.connect(lambda sm, lm, r=rid: self._on_compared(sm, lm, r))
@@ -236,7 +254,7 @@ class TracksWindow(QWidget):
         self._populate(local_missing)
         self._state = 'loaded'
         self._progress.hide()
-        self._l_step.setText(self._locales.get_string('no_missing') if not local_missing else '')
+        self._set_step(self._locales.get_string('no_missing') if not local_missing else '')
         self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(local_missing)))
         self._update_buttons()
 
@@ -259,7 +277,7 @@ class TracksWindow(QWidget):
         self._populate(tracks)
         self._state = 'loaded'
         self._progress.hide()
-        self._l_step.setText('')
+        self._set_step('')
         self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(tracks)))
         self._update_buttons()
 
@@ -271,7 +289,7 @@ class TracksWindow(QWidget):
             return
         self._resolving = True
         self._multiple_btn.setEnabled(False)
-        self._l_step.setText(self._locales.get_string('resolving_track'))
+        self._set_step(self._locales.get_string('resolving_track'))
         self._update_buttons()
         rid = self._run_id
         worker = TrackResolveWorker(self._api, track_id)
@@ -293,7 +311,7 @@ class TracksWindow(QWidget):
     def _after_add(self, error_key, rid: int):
         self._resolving = False
         self._multiple_btn.setEnabled(True)
-        self._l_step.setText('')
+        self._set_step('')
         if error_key and rid == self._run_id:
             self._toast_error(error_key)
         self._update_buttons()
@@ -313,7 +331,7 @@ class TracksWindow(QWidget):
         self._state = 'downloading'
         self._progress.show()
         self._progress.setValue(0)
-        self._l_step.setText('')
+        self._set_step(self._locales.get_string('tracks_downloading'))
         self._update_buttons()
 
     def _on_track_status(self, track_id: str, status: TrackStatus):
@@ -333,7 +351,7 @@ class TracksWindow(QWidget):
             return
         self._state = 'done'
         self._progress.hide()
-        self._l_step.setText(self._locales.get_string('download_done'))
+        self._set_step(self._locales.get_string('download_done'))
         self._update_buttons()
 
     # ---------------- helpers ----------------
@@ -347,7 +365,7 @@ class TracksWindow(QWidget):
         self._tracks = {}
         self._table.set_items({})
         self._state = 'loading'
-        self._l_step.setText(step)
+        self._set_step(step)
         self._l_count.setText('')
         self._progress.show()
         self._progress.setValue(0)
@@ -363,7 +381,7 @@ class TracksWindow(QWidget):
             return
         self._state = 'idle'
         self._progress.hide()
-        self._l_step.setText('')
+        self._set_step('')
         self._toast_error(key)
         self._update_buttons()
 
@@ -397,3 +415,8 @@ class TracksWindow(QWidget):
         fn(title=self._locales.get_string('check' if success else 'error'),
            content=self._locales.get_string(key), position=InfoBarPosition.BOTTOM_RIGHT,
            duration=3500, parent=hmi)
+
+    def _lock_navigation(self, locked: bool):
+        hmi = find_mega_parent(self)
+        if hasattr(hmi, 'set_navigation_locked'):
+            hmi.set_navigation_locked(locked)
