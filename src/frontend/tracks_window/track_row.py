@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QFontMetrics
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QStackedWidget
 from qfluentwidgets import (SimpleCardWidget, IconWidget, StrongBodyLabel, CaptionLabel,
-                            ImageLabel, IndeterminateProgressRing, FluentIcon, InfoBarIcon)
+                            ImageLabel, IndeterminateProgressRing, FluentIcon)
 
 from src.backend.db.db_records import Track, TrackStatus, TRACK_STATUS_LOCALE
 from src.frontend.tracks_window.cover_cache import cover_cache
@@ -15,18 +15,19 @@ _WARN = ('#9D5D00', '#E8B900')
 _NEUTRAL = (Config.GRAY_COLOR_600, Config.GRAY_COLOR_300)
 _ACCENT = ('#0067C0', '#4CC2FF')
 
+# только FluentIcon (стандартный набор), без заливных кружков InfoBarIcon
 _STATUS_STYLE = {
     TrackStatus.MISSING: (FluentIcon.MUSIC, _NEUTRAL),
     TrackStatus.QUEUED: (FluentIcon.HISTORY, _NEUTRAL),
     TrackStatus.DOWNLOADING: (FluentIcon.DOWNLOAD, _ACCENT),
-    TrackStatus.DOWNLOADED: (InfoBarIcon.SUCCESS, _OK),
-    TrackStatus.SKIPPED: (InfoBarIcon.SUCCESS, _OK),
-    TrackStatus.DOWNLOAD_ERROR: (InfoBarIcon.ERROR, _ERR),
-    TrackStatus.NOT_FOUND: (InfoBarIcon.ERROR, _ERR),
-    TrackStatus.JPG_ERROR: (InfoBarIcon.WARNING, _WARN),
-    TrackStatus.TAG_ERROR: (InfoBarIcon.WARNING, _WARN),
-    TrackStatus.CANCELLED: (InfoBarIcon.WARNING, _WARN),
-    TrackStatus.LINK_ERROR: (InfoBarIcon.ERROR, _ERR),
+    TrackStatus.DOWNLOADED: (FluentIcon.ACCEPT, _OK),
+    TrackStatus.SKIPPED: (FluentIcon.ACCEPT, _OK),
+    TrackStatus.DOWNLOAD_ERROR: (FluentIcon.CLOSE, _ERR),
+    TrackStatus.NOT_FOUND: (FluentIcon.CLOSE, _ERR),
+    TrackStatus.JPG_ERROR: (FluentIcon.PHOTO, _WARN),
+    TrackStatus.TAG_ERROR: (FluentIcon.TAG, _WARN),
+    TrackStatus.CANCELLED: (FluentIcon.CANCEL, _WARN),
+    TrackStatus.LINK_ERROR: (FluentIcon.CLOSE, _ERR),
 }
 _DONE = (TrackStatus.DOWNLOADED, TrackStatus.SKIPPED)
 

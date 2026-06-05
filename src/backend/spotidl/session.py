@@ -3,11 +3,10 @@ import json
 import time
 from threading import RLock
 
-import requests
 from PySide6.QtCore import QObject, Signal
 
 from src.backend.db.data_base import DataBase
-from src.backend.spotidl import constants, errors
+from src.backend.spotidl import errors
 from src.backend.spotidl.turnstile import SessionMinter
 from src.utils.config import Config
 from src.utils.singleton import Singleton
@@ -90,12 +89,4 @@ class SpotiSession(metaclass=Singleton):
 
     def _default_provider(self) -> str:
         headless = DataBase().get_setting('turnstile_headless') == 'True'
-        cf_token = SessionMinter(headless=headless).solve()      # браузер: только cf-токен
-
-        response = requests.post(constants.SESSION_URL, json={'token': cf_token},
-                                 headers=constants.api_headers(), timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        if not data.get('success') or not data.get('token'):
-            raise errors.SessionError('session token was not granted')
-        return data['token']
+        return SessionMinter(headless=headless).mint()
