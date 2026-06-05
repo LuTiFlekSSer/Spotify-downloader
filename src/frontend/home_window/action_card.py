@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QVBoxLayout, QWidget
+from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
 from qfluentwidgets import CardWidget, FluentIcon, IconWidget, CaptionLabel, SubtitleLabel, FlowLayout
 
 from src.utils.config import Config
@@ -69,6 +69,7 @@ class ActionCardView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self._flow = FlowLayout(self, needAni=False)
         self._flow.setContentsMargins(0, 0, 0, 0)
         self._flow.setHorizontalSpacing(12)

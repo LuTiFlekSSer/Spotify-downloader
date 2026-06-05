@@ -19,7 +19,7 @@ class Banner(QWidget):
         layout = QVBoxLayout(self)
         layout.setSpacing(6)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)   # без AlignLeft, чтобы лента действий заняла всю ширину
 
         self._l_app_name = DisplayLabel(self)
         self._l_app_name.setText(Config.APP_NAME)
