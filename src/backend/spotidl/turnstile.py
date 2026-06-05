@@ -70,27 +70,37 @@ class SessionMinter:
         raise errors.SessionError('could not obtain Turnstile token')
 
     def _trigger_download(self, page):
-        try:
-            field = page.query_selector('input[placeholder], input[type="text"], input:not([type])')
-            if field and field.is_visible():
-                field.click()
-                field.fill(Config.SESSION_PRIMER_URL)
-                time.sleep(0.4)
-                # сайт может очистить поле (React) -> печатаем посимвольно
+        # Сайт очищает поле со ссылкой через ~1с, а кнопка Download активна ТОЛЬКО
+        # пока поле заполнено. Поэтому держим поле заполненным и жмём Download в тот
+        # момент, когда она стала активной (тугой цикл, перезаполняем при очистке).
+        field = page.query_selector('input[placeholder], input[type="text"], input:not([type])')
+        if field is None:
+            return
+
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            try:
                 if not (field.input_value() or '').strip():
                     field.click()
-                    page.keyboard.type(Config.SESSION_PRIMER_URL, delay=15)
-                    time.sleep(0.4)
-        except Exception:
-            pass
+                    field.fill(Config.SESSION_PRIMER_URL)
 
-        for button in page.query_selector_all('button'):
-            try:
-                if 'download' in (button.inner_text() or '').strip().lower() and button.is_visible():
-                    button.click()
+                button = self._download_button(page)
+                if button is not None and button.is_enabled():
+                    button.click(timeout=3000)
                     return
             except Exception:
                 pass
+            time.sleep(0.15)
+
+    @staticmethod
+    def _download_button(page):
+        for button in page.query_selector_all('button'):
+            try:
+                if 'download' in (button.inner_text() or '').strip().lower() and button.is_visible():
+                    return button
+            except Exception:
+                pass
+        return None
 
     @staticmethod
     def _click_turnstile(page):
