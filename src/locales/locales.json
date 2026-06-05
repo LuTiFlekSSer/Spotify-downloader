@@ -675,6 +675,138 @@
         "threads_value": {
             "ru": "{n} потоков",
             "en": "{n} threads"
+        },
+        "download_params": {
+            "ru": "Загрузка",
+            "en": "Downloading"
+        },
+        "account_params": {
+            "ru": "Аккаунт",
+            "en": "Account"
+        },
+        "application": {
+            "ru": "Приложение",
+            "en": "Application"
+        },
+        "download_folder": {
+            "ru": "Папка загрузок",
+            "en": "Download folder"
+        },
+        "download_folder_desc": {
+            "ru": "Куда сохранять треки",
+            "en": "Where tracks are saved"
+        },
+        "threads_title": {
+            "ru": "Потоки загрузки",
+            "en": "Download threads"
+        },
+        "threads_desc": {
+            "ru": "Сколько треков качать одновременно",
+            "en": "How many tracks to download at once"
+        },
+        "overwrite_title": {
+            "ru": "Перезапись треков",
+            "en": "Overwrite tracks"
+        },
+        "overwrite_desc": {
+            "ru": "Перезаписывать уже существующие файлы",
+            "en": "Overwrite files that already exist"
+        },
+        "auto_compare_title": {
+            "ru": "Проверка любимых в Spotify",
+            "en": "Check missing in Spotify"
+        },
+        "auto_compare_desc": {
+            "ru": "При синхронизации искать треки, удалённые из любимых",
+            "en": "On sync, find tracks removed from liked"
+        },
+        "headless_title": {
+            "ru": "Скрытый браузер",
+            "en": "Headless browser"
+        },
+        "headless_desc": {
+            "ru": "Решать капчу Cloudflare без окна браузера (Camoufox)",
+            "en": "Solve the Cloudflare captcha without a browser window (Camoufox)"
+        },
+        "auto_update_title": {
+            "ru": "Автообновление",
+            "en": "Auto-update"
+        },
+        "auto_update_desc": {
+            "ru": "Проверять обновления при запуске",
+            "en": "Check for updates on startup"
+        },
+        "app_theme": {
+            "ru": "Тема",
+            "en": "Theme"
+        },
+        "app_theme_desc": {
+            "ru": "Оформление приложения",
+            "en": "Application appearance"
+        },
+        "dark_theme": {
+            "ru": "Тёмная",
+            "en": "Dark"
+        },
+        "light_theme": {
+            "ru": "Светлая",
+            "en": "Light"
+        },
+        "auto_theme": {
+            "ru": "Системная",
+            "en": "System"
+        },
+        "app_language": {
+            "ru": "Язык",
+            "en": "Language"
+        },
+        "app_language_desc": {
+            "ru": "Язык интерфейса",
+            "en": "Interface language"
+        },
+        "about": {
+            "ru": "О программе",
+            "en": "About"
+        },
+        "about_desc": {
+            "ru": "Spotify Downloader v{version}",
+            "en": "Spotify Downloader v{version}"
+        },
+        "clear_account": {
+            "ru": "Данные Spotify",
+            "en": "Spotify account"
+        },
+        "clear_account_desc": {
+            "ru": "Удалить client id/secret и выйти из аккаунта",
+            "en": "Remove client id/secret and log out"
+        },
+        "clear_account_btn": {
+            "ru": "Очистить",
+            "en": "Clear"
+        },
+        "clear_account_confirm": {
+            "ru": "Очистить данные авторизации Spotify?",
+            "en": "Clear Spotify authorization data?"
+        },
+        "account_cleared": {
+            "ru": "Данные очищены",
+            "en": "Account data cleared"
+        },
+        "turn_on": {
+            "ru": "Вкл",
+            "en": "On"
+        },
+        "turn_off": {
+            "ru": "Выкл",
+            "en": "Off"
+        },
+        "notification": {
+            "ru": "Уведомление",
+            "en": "Notice"
+        },
+        "restart_notification": {
+            "ru": "Перезапустите приложение, чтобы применить",
+            "en": "Restart the app to apply"
         }
     }
 }

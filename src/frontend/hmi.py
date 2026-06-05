@@ -10,6 +10,7 @@ from qfluentwidgets import (SplashScreen, FluentIcon, MSFluentWindow, Navigation
 from src.backend.db.data_base import DataBase
 from src.frontend.home_window.home_window import HomeWindow
 from src.frontend.placeholder import PlaceholderPage
+from src.frontend.settings_window.settings_window import SettingsWindow
 from src.global_flags import GlobalFlags
 from src.locales.locales import Locales
 from src.utils.config import Config
@@ -81,9 +82,7 @@ class MainWindow(MSFluentWindow):
             self._locales.get_string('tracks_placeholder'), parent=self)
         self.addSubInterface(self._tracks_window, FluentIcon.MUSIC, self._locales.get_string('tracks'))
 
-        self._settings_window = PlaceholderPage(
-            'settings', self._locales.get_string('settings'),
-            self._locales.get_string('settings_placeholder'), parent=self)
+        self._settings_window = SettingsWindow(self._locales.get_string('settings'), parent=self)
         self.addSubInterface(self._settings_window, FluentIcon.SETTING,
                              self._locales.get_string('settings'),
                              position=NavigationItemPosition.BOTTOM)
