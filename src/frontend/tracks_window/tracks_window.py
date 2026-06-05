@@ -4,7 +4,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget
 from qfluentwidgets import (LargeTitleLabel, SegmentedWidget, SimpleCardWidget, BodyLabel, CaptionLabel,
-                            LineEdit, PushButton, PrimaryPushButton, ProgressBar, InfoBar, InfoBarPosition)
+                            LineEdit, PushButton, PrimaryPushButton, ProgressBar, InfoBar, InfoBarPosition,
+                            PipsPager, PipsScrollButtonDisplayMode)
 
 from src.backend.db.data_base import DataBase
 from src.backend.db.db_records import Track, TrackStatus
@@ -78,10 +79,16 @@ class TracksWindow(QWidget):
         self._input_stack.addWidget(self._build_link_page('multiple'))
 
         self._table = PagedListView(TrackRow, self)
+        self._pager = PipsPager(self)
+        self._pager.setNextButtonDisplayMode(PipsScrollButtonDisplayMode.ALWAYS)
+        self._pager.setPreviousButtonDisplayMode(PipsScrollButtonDisplayMode.ALWAYS)
+        self._pager.hide()
         table_card = SimpleCardWidget(self)
         card_layout = QVBoxLayout(table_card)
         card_layout.setContentsMargins(8, 8, 8, 8)
+        card_layout.setSpacing(6)
         card_layout.addWidget(self._table)
+        card_layout.addWidget(self._pager, 0, Qt.AlignmentFlag.AlignCenter)
 
         self._l_step = CaptionLabel('')
         self._progress = ProgressBar(self)
@@ -148,6 +155,8 @@ class TracksWindow(QWidget):
         self._pool.events.sig_finished.connect(self._on_finished)
         self._spotidl.events.sig_refreshing.connect(self._on_token_refreshing)
         self._spotidl.events.sig_refreshed.connect(self._on_token_refreshed)
+        self._table.pagination_changed.connect(self._on_pagination_changed)
+        self._pager.currentIndexChanged.connect(self._table.set_page)
 
     def _set_step(self, text: str):
         self._base_step = text
@@ -187,6 +196,7 @@ class TracksWindow(QWidget):
         self._resolving = False
         self._tracks = {}
         self._table.set_items({})
+        self._pager.hide()
         self._state = 'idle'
         self._set_step('')
         self._l_count.setText('')
@@ -363,6 +373,14 @@ class TracksWindow(QWidget):
         self._set_step(self._locales.get_string('download_done'))
         self._update_buttons()
 
+    def _on_pagination_changed(self, current_page: int, total_pages: int):
+        self._pager.blockSignals(True)
+        self._pager.setPageNumber(total_pages)
+        self._pager.setVisibleNumber(min(total_pages, 10))
+        self._pager.setCurrentIndex(current_page)
+        self._pager.blockSignals(False)
+        self._pager.setVisible(total_pages > 1)
+
     # ---------------- helpers ----------------
     def _populate(self, tracks: list):
         self._tracks = {t.id: t for t in tracks}
@@ -373,6 +391,7 @@ class TracksWindow(QWidget):
         self._resolving = False
         self._tracks = {}
         self._table.set_items({})
+        self._pager.hide()
         self._state = 'loading'
         self._set_step(step)
         self._l_count.setText('')
