@@ -31,6 +31,7 @@ _RETRYABLE = {TrackStatus.MISSING, TrackStatus.QUEUED, TrackStatus.DOWNLOAD_ERRO
               TrackStatus.NOT_FOUND, TrackStatus.CANCELLED, TrackStatus.LINK_ERROR}
 _FAILED = {TrackStatus.DOWNLOAD_ERROR, TrackStatus.NOT_FOUND,
            TrackStatus.CANCELLED, TrackStatus.LINK_ERROR}
+_DONE = {TrackStatus.DOWNLOADED, TrackStatus.SKIPPED}
 
 
 class TracksWindow(QWidget):
@@ -52,6 +53,7 @@ class TracksWindow(QWidget):
         self._resolving = False       # multiple-режим: идёт резолв ссылки
         self._run_id = 0              # эпоха: результаты воркеров из старой эпохи игнорируются
         self._base_step = ''          # «базовый» статус (под наложение «получение токена»)
+        self._is_retry = False        # текущая загрузка — это повтор (после неё убираем удачные)
         self._workers: list = []
 
         self.__init_widgets()
@@ -343,6 +345,8 @@ class TracksWindow(QWidget):
         if not to_download:
             self._toast('nothing_to_download', success=True)
             return
+        # повтор = в таблице уже есть удачно скачанные (их после повтора уберём)
+        self._is_retry = any(t.status in _DONE for t in self._tracks.values())
         directory = self._db.get_setting('download_dir')
         if not self._pool.download(to_download, directory, sync=(self._mode == 'sync')):
             self._toast_error('program_is_busy')        # пул уже занят
@@ -370,6 +374,12 @@ class TracksWindow(QWidget):
             return
         self._state = 'done'
         self._progress.hide()
+        if self._is_retry:
+            self._tracks = {tid: t for tid, t in self._tracks.items() if t.status not in _DONE}
+            self._table.set_items(self._tracks)
+            if not self._tracks:
+                self._pager.hide()
+            self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(self._tracks)))
         self._set_step(self._locales.get_string('download_done'))
         self._update_buttons()
 

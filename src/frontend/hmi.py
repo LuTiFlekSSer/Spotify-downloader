@@ -1,15 +1,19 @@
 import sys
 import time
 
-from PySide6.QtCore import QSize, QEventLoop, QTimer, Qt, Signal, QEvent
-from PySide6.QtGui import QIcon, QGuiApplication
+from PySide6.QtCore import QSize, QEventLoop, QTimer, Qt, Signal, QEvent, QUrl
+from PySide6.QtGui import QIcon, QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QApplication
 from qfluentwidgets import (SplashScreen, FluentIcon, MSFluentWindow, NavigationItemPosition,
-                            setTheme, Theme, setThemeColor, SystemThemeListener, InfoBar, InfoBarPosition)
+                            setTheme, Theme, setThemeColor, SystemThemeListener, InfoBar, InfoBarPosition,
+                            MessageBox)
 
 from src.backend.db.data_base import DataBase
+from src.backend.updater.updater import Updater
+from src.backend.updater.workers import UpdateCheckWorker
 from src.frontend.home_window.home_window import HomeWindow
 from src.frontend.settings_window.settings_window import SettingsWindow
+from src.frontend.sub_windows.update_dialog.update_dialog import UpdateDownloadDialog
 from src.frontend.tracks_window.tracks_window import TracksWindow
 from src.global_flags import GlobalFlags
 from src.locales.locales import Locales
@@ -70,6 +74,31 @@ class MainWindow(MSFluentWindow):
 
         if self._db.get_setting('window_mode') == 'maximized':
             self.showMaximized()
+
+        QTimer.singleShot(2500, self._auto_update_check)   # авто-проверка обновлений на старте
+
+    def _auto_update_check(self):
+        if self._db.get_setting('auto_update') != 'True':
+            return
+        self._updater = Updater()
+        self._update_checker = UpdateCheckWorker(self._updater, self)
+        self._update_checker.sig_result.connect(self._on_auto_update_result)
+        self._update_checker.start()
+
+    def _on_auto_update_result(self, release):
+        if release is None:                # актуальная версия — молча, без уведомления
+            return
+        box = MessageBox(
+            self._locales.get_string('update_available').format(version=release.version),
+            self._locales.get_string('update_title'), self)
+        box.yesButton.setText(self._locales.get_string('yes'))
+        box.cancelButton.setText(self._locales.get_string('no'))
+        if not box.exec():
+            return
+        if not self._updater.is_frozen():
+            QDesktopServices.openUrl(QUrl(Config.GITHUB_RELEASES_HTML))
+            return
+        UpdateDownloadDialog(self._updater, self).exec()
 
     def _init_screen(self):
         init_start = time.time()

@@ -127,6 +127,20 @@ class PagedListView(QWidget):
                 self._items[key] = data
         self._update_widgets()
 
+    def remove_item(self, key) -> bool:
+        with self._lock:
+            if key not in self._items:
+                return False
+            del self._items[key]
+            self._keys.remove(key)
+            if self._first_visible_index >= len(self._keys):
+                self._first_visible_index = max(0, len(self._keys) - self._visible_count)
+        if not self._keys:
+            self.clear_items()
+        else:
+            self.update_view()
+        return True
+
     def clear_items(self):
         with self._lock:
             self._items.clear()
