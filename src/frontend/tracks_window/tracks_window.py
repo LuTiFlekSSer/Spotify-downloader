@@ -160,6 +160,15 @@ class TracksWindow(QWidget):
         self._l_step.setText(self._base_step)
 
     # ---------------- mode / state ----------------
+    def open_mode(self, key: str):
+        """Открыть конкретный режим (вызов с карточки на Home)."""
+        if self._is_busy():
+            return
+        if self._segment.currentRouteKey() == key:
+            self._select_mode(key)                  # сегмент уже здесь — сигнал не сработает
+        else:
+            self._segment.setCurrentItem(key)       # сменит сегмент -> currentItemChanged -> _select_mode
+
     def _is_busy(self) -> bool:
         return self._state in ('loading', 'downloading') or self._resolving
 

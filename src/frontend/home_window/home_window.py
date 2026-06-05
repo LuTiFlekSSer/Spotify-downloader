@@ -55,12 +55,16 @@ class HomeWindow(ScrollArea):
         s = self._locales.get_string
         cards = self._banner.card_view
 
-        self._login_card = cards.add_card(
-            FluentIcon.PEOPLE, s('login_button'), s('login_action_desc'), callback=self._on_login)
-        cards.add_card(FluentIcon.SYNC, s('sync_action'), s('sync_action_desc'), callback=self._go_tracks)
-        cards.add_card(FluentIcon.ALBUM, s('tracks_action'), s('tracks_action_desc'), callback=self._go_tracks)
-        cards.add_card(FluentIcon.FOLDER, s('open_folder'), s('open_folder_desc'), callback=self._open_folder)
-        cards.add_card(FluentIcon.GITHUB, s('github'), s('github_desc'), link_icon=True, callback=self._open_github)
+        cards.add_card(FluentIcon.SYNC, s('sync_action'), s('sync_action_desc'),
+                       callback=lambda: self._go_tracks_mode('sync'))
+        cards.add_card(FluentIcon.MUSIC, s('tracks_action'), s('tracks_action_desc'),
+                       callback=lambda: self._go_tracks_mode('multiple'))
+        cards.add_card(FluentIcon.ALBUM, s('playlist_action'), s('playlist_action_desc'),
+                       callback=lambda: self._go_tracks_mode('playlist'))
+        cards.add_card(FluentIcon.FOLDER, s('open_folder'), s('open_folder_desc'),
+                       callback=self._open_folder)
+        self._login_card = cards.add_card(FluentIcon.PEOPLE, s('login_button'), s('login_action_desc'),
+                                          callback=self._on_login)
 
     def _refresh(self):
         s = self._locales.get_string
@@ -115,7 +119,7 @@ class HomeWindow(ScrollArea):
             )
         self._refresh()
 
-    def _go_tracks(self):
+    def _go_tracks_mode(self, key: str):
         hmi = find_mega_parent(self)
         target = getattr(hmi, '_tracks_window', None)
         if target is None:
@@ -124,6 +128,8 @@ class HomeWindow(ScrollArea):
             hmi.switchTo(target)
         else:
             hmi.stackedWidget.setCurrentWidget(target)
+        if hasattr(target, 'open_mode'):
+            target.open_mode(key)
 
     def _open_folder(self):
         hmi = find_mega_parent(self)
@@ -138,7 +144,3 @@ class HomeWindow(ScrollArea):
                 duration=3000,
                 parent=hmi,
             )
-
-    @staticmethod
-    def _open_github():
-        QDesktopServices.openUrl(QUrl(Config.GITHUB_URL))

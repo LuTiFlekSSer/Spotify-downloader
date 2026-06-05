@@ -633,12 +633,12 @@
             "en": "Liked ⇄ local folder"
         },
         "tracks_action": {
-            "ru": "Треки и плейлисты",
-            "en": "Tracks & playlists"
+            "ru": "Треки",
+            "en": "Tracks"
         },
         "tracks_action_desc": {
-            "ru": "Скачать по ссылке",
-            "en": "Download by link"
+            "ru": "Скачать треки по ссылкам",
+            "en": "Download tracks by link"
         },
         "open_folder": {
             "ru": "Папка загрузок",
@@ -915,6 +915,14 @@
         "retry_short": {
             "ru": "Повторить",
             "en": "Retry"
+        },
+        "playlist_action": {
+            "ru": "Плейлисты",
+            "en": "Playlists"
+        },
+        "playlist_action_desc": {
+            "ru": "Скачать плейлист по ссылке",
+            "en": "Download a playlist by link"
         }
     }
 }

@@ -1,8 +1,7 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QWheelEvent
-from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget
-from qfluentwidgets import (CardWidget, FluentIcon, IconWidget, CaptionLabel,
-                            SingleDirectionScrollArea, SubtitleLabel)
+from PySide6.QtGui import QColor
+from PySide6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import CardWidget, FluentIcon, IconWidget, CaptionLabel, SubtitleLabel, FlowLayout
 
 from src.utils.config import Config
 
@@ -65,36 +64,17 @@ class ActionCard(CardWidget):
         self._apply_icon(icon)
 
 
-class ActionCardView(SingleDirectionScrollArea):
-    """Горизонтальная лента карточек-действий."""
+class ActionCardView(QWidget):
+    """Карточки-действия в FlowLayout — переносятся на новую строку, если не влезают."""
 
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.Orientation.Horizontal)
-        self._w_view = QWidget(self)
-        self._w_view.setObjectName('w_view')
-
-        self._layout = QHBoxLayout(self._w_view)
-        self._layout.setContentsMargins(0, 0, 0, 0)
-        self._layout.setSpacing(12)
-        self._layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-        self.setWidget(self._w_view)
-        self.setWidgetResizable(True)
-        self.setFixedHeight(186)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        try:
-            self.enableTransparentBackground()
-        except Exception:
-            pass
+        super().__init__(parent)
+        self._flow = FlowLayout(self, needAni=False)
+        self._flow.setContentsMargins(0, 0, 0, 0)
+        self._flow.setHorizontalSpacing(12)
+        self._flow.setVerticalSpacing(12)
 
     def add_card(self, icon, title, description, link_icon=False, callback=None) -> ActionCard:
         card = ActionCard(icon, title, description, link_icon, callback, self)
-        self._layout.addWidget(card, 0, Qt.AlignmentFlag.AlignLeft)
+        self._flow.addWidget(card)
         return card
-
-    def wheelEvent(self, e: QWheelEvent):
-        if self.horizontalScrollBar().maximum() == 0:
-            e.ignore()
-        else:
-            super().wheelEvent(e)
