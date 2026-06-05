@@ -28,6 +28,8 @@ class Config(metaclass=Singleton):
     SPOTIDL_BASE = 'https://api.spotidownloader.com'
     SPOTIDL_SITE = 'https://spotidownloader.com'
     TURNSTILE_PAGE = 'https://spotidownloader.com/en'
+    # стабильная ссылка-праймер: вставляется на сайт, чтобы клик Download инициировал сессию
+    SESSION_PRIMER_URL = 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT'
     SESSION_REFRESH_MARGIN = 30.0       # обновлять сессию за N секунд до exp
     TURNSTILE_HEADLESS = True           # дефолт; флаг — в настройках
     USER_AGENT = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
