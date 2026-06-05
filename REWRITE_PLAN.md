@@ -299,6 +299,18 @@ solve → session → tracks(плейлист) → download(id) → mp3, зат�
 
 ---
 
+## Статус выполнения
+
+- ✅ **Фаза 0–5** — реализованы и проверены (загрузка/синхронизация прогнаны вживую).
+- ✅ **Фаза 6** — `build.bat` (Nuitka `--enable-plugin=pyside6`, `--include-data-*` для locales/qss/icons,
+  `--include-package-data=camoufox,browserforge`), `installer.iss` (Inno Setup, en/ru, per-user, вшивает
+  браузер Camoufox из `%LOCALAPPDATA%\camoufox\camoufox\Cache` в кэш пользователя), `change_iss_version.py`
+  (версия из `src.version`). Старые CTk-пакеты удалены, приложение импортируется/стартует без них.
+  README (en/ru) обновлены, скриншоты пересняты под новый Fluent-UI.
+  Финальный прогон `build.bat` выполняется на машине сборки (Nuitka + ISCC требуют локального окружения).
+
+---
+
 ## 8. Решения, которые нужно подтвердить
 
 Ниже — мои рекомендации по умолчанию; план написан под них. Если что-то поменяешь — скорректирую.

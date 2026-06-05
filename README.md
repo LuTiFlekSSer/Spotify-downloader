@@ -30,6 +30,7 @@ and also synchronize a local folder with tracks with your favorite tracks on Spo
 * Customizable number of download threads
 * Automatic renaming of tracks during synchronization if they have been renamed in Spotify
 * Automatic update
+* Modern Fluent interface with light and dark themes
 
 ## Screenshots :camera:
 
@@ -46,7 +47,7 @@ and also synchronize a local folder with tracks with your favorite tracks on Spo
     2. Go to the [Dashboard](https://developer.spotify.com/dashboard/) section
     3. [Create](https://developer.spotify.com/dashboard/create) a new application and fill in the fields
     4. Go to the page of the created application and click **settings**, where you can copy the necessary data
-4. In the program, go to `Sync tracks` or `Checks tracks`
+4. In the program, open the `Tracks` section and choose the `Sync` or `Check` tab
 5. Follow the further instructions of the program to complete logging into your account
 
 P.S. If you don't perform the actions from steps 3 and beyond, only downloading playlists and individual tracks will work
