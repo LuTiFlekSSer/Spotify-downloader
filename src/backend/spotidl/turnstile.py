@@ -1,4 +1,3 @@
-import json
 import time
 
 from src.backend.spotidl import errors
@@ -6,41 +5,39 @@ from src.utils.config import Config
 
 
 class SessionMinter:
-    """Получает сессионный JWT spotidownloader.
+    """Достаёт cf-turnstile-response с spotidownloader.com.
 
-    Капча Turnstile появляется только после вставки ссылки и клика по Download —
-    тогда сайт сам решает капчу и делает POST /session. Мы открываем сайт
-    (Camoufox), вставляем ссылку-праймер, жмём Download и ПЕРЕХВАТЫВАЕМ ответ
-    /session, доставая из него token. Возвращаемся сразу же — браузер закрывается,
-    не дожидаясь самой загрузки.
+    Капча появляется только после вставки ссылки и клика по Download. Мы открываем
+    сайт (Camoufox), БЛОКИРУЕМ собственный POST /session сайта (чтобы он не
+    израсходовал токен), вставляем ссылку-праймер, жмём Download — сайт решает
+    Turnstile и заполняет input[name=cf-turnstile-response]. Забираем значение
+    СРАЗУ и закрываем браузер; обмен токена на сессионный JWT делает уже Python
+    (SpotiSession через requests) — это быстрее, чем ждать сетевой round-trip сайта.
 
-    Важно: НЕ блокируем /session сайта (иначе сайт сбрасывает форму и очищает поле).
-    camoufox импортируется ЛЕНИВО внутри mint()."""
+    Ранее ломалось из-за того, что сайт очищал поле со ссылкой и капча не
+    появлялась — лечится повторным посимвольным вводом в _trigger_download.
+
+    camoufox импортируется ЛЕНИВО внутри solve()."""
 
     def __init__(self, headless: bool | None = None, timeout: float = 120.0):
         self._headless = Config.TURNSTILE_HEADLESS if headless is None else headless
         self._timeout = timeout
 
-    def mint(self) -> str:
+    def solve(self) -> str:
         from browserforge.fingerprints import Screen
         from camoufox.sync_api import Camoufox
 
-        captured: dict = {}
         with Camoufox(headless=self._headless,
                       screen=Screen(max_width=1920, max_height=1080)) as browser:
             page = browser.new_page()
 
-            def _on_response(response):
-                try:
-                    if ('api.spotidownloader.com/session' in response.url
-                            and response.request.method == 'POST'):
-                        token = json.loads(response.text()).get('token')
-                        if token:
-                            captured['jwt'] = token
-                except Exception:
-                    pass
+            def _route(route, request):
+                if request.method == 'POST' and 'api.spotidownloader.com/session' in request.url:
+                    route.abort()          # не даём сайту израсходовать токен
+                else:
+                    route.continue_()
 
-            page.on('response', _on_response)
+            page.route('**/*', _route)
             page.goto(Config.TURNSTILE_PAGE, wait_until='domcontentloaded')
 
             try:
@@ -55,20 +52,22 @@ class SessionMinter:
             last_retrigger = time.monotonic()
             challenge_seen = False
             while time.monotonic() < deadline:
-                if 'jwt' in captured:
-                    return captured['jwt']
-
                 if any(f.url.startswith('https://challenges.cloudflare.com') for f in page.frames):
                     challenge_seen = True
                 self._click_turnstile(page)
 
-                # повторно жмём Download только пока капча так и не появилась (клик не прошёл)
+                token_input = page.query_selector('input[name="cf-turnstile-response"]')
+                value = token_input.get_attribute('value') if token_input else None
+                if value:
+                    return value           # токен есть -> сразу выходим (браузер закрывается)
+
+                # повторно жмём Download только пока капча так и не появилась (клик/поле не прошли)
                 if not challenge_seen and time.monotonic() - last_retrigger > 6:
                     self._trigger_download(page)
                     last_retrigger = time.monotonic()
                 time.sleep(0.4)
 
-        raise errors.SessionError('could not obtain session (Turnstile)')
+        raise errors.SessionError('could not obtain Turnstile token')
 
     def _trigger_download(self, page):
         try:
@@ -77,7 +76,7 @@ class SessionMinter:
                 field.click()
                 field.fill(Config.SESSION_PRIMER_URL)
                 time.sleep(0.4)
-                # если сайт очистил поле — печатаем посимвольно (надёжнее для React-инпутов)
+                # сайт может очистить поле (React) -> печатаем посимвольно
                 if not (field.input_value() or '').strip():
                     field.click()
                     page.keyboard.type(Config.SESSION_PRIMER_URL, delay=15)
