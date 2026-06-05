@@ -815,6 +815,98 @@
         "update_available": {
             "ru": "Доступно обновление {version}",
             "en": "Update available: {version}"
+        },
+        "mode_sync": {
+            "ru": "Синхронизация",
+            "en": "Sync"
+        },
+        "mode_check": {
+            "ru": "Проверка",
+            "en": "Check"
+        },
+        "mode_playlist": {
+            "ru": "Плейлист",
+            "en": "Playlist"
+        },
+        "mode_multiple": {
+            "ru": "По ссылке",
+            "en": "By link"
+        },
+        "start_action": {
+            "ru": "Старт",
+            "en": "Start"
+        },
+        "download_btn": {
+            "ru": "Скачать",
+            "en": "Download"
+        },
+        "refresh_action": {
+            "ru": "Обновить",
+            "en": "Refresh"
+        },
+        "need_login": {
+            "ru": "Сначала войдите в аккаунт Spotify",
+            "en": "Log in to Spotify first"
+        },
+        "need_folder": {
+            "ru": "Задайте папку загрузок в настройках",
+            "en": "Set the download folder in settings"
+        },
+        "playlist_link_ph": {
+            "ru": "Ссылка на плейлист Spotify",
+            "en": "Spotify playlist link"
+        },
+        "track_link_ph": {
+            "ru": "Ссылка на трек Spotify",
+            "en": "Spotify track link"
+        },
+        "no_missing": {
+            "ru": "Отсутствующих треков нет",
+            "en": "No missing tracks"
+        },
+        "nothing_to_download": {
+            "ru": "Нечего скачивать",
+            "en": "Nothing to download"
+        },
+        "fetching_liked": {
+            "ru": "Получение любимых треков…",
+            "en": "Fetching liked tracks…"
+        },
+        "scanning_folder": {
+            "ru": "Сканирование папки…",
+            "en": "Scanning folder…"
+        },
+        "enumerating": {
+            "ru": "Получение треков плейлиста…",
+            "en": "Getting playlist tracks…"
+        },
+        "resolving_track": {
+            "ru": "Получение трека…",
+            "en": "Resolving track…"
+        },
+        "tracks_count": {
+            "ru": "Треков: {n}",
+            "en": "Tracks: {n}"
+        },
+        "progress_count": {
+            "ru": "{done} из {total}",
+            "en": "{done} of {total}"
+        },
+        "download_done": {
+            "ru": "Загрузка завершена",
+            "en": "Download complete"
+        },
+        "invalid_link": {
+            "ru": "Некорректная ссылка",
+            "en": "Invalid link"
+        },
+        "sync_hint": {
+            "ru": "Скачать недостающие любимые треки в папку загрузок",
+            "en": "Download missing liked tracks to your folder"
+        },
+        "check_hint": {
+            "ru": "Показать любимые треки, которых нет в папке (без загрузки)",
+            "en": "Show liked tracks missing from your folder (no download)"
         }
     }
 }
