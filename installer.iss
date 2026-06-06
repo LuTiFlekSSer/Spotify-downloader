@@ -6,6 +6,12 @@
 #define MyAppPublisher "LuTiFlekSSer"
 #define MyAppURL "https://github.com/LuTiFlekSSer/Spotify-downloader"
 #define MyAppExeName "Spotify Downloader.exe"
+; Каталог с Nuitka-сборкой. build.bat подставляет ЛОКАЛЬНУЮ копию через /DDistDir=...,
+; чтобы ISCC не читал placeholder'ы из облачной папки (OneDrive/Synology) и не вшил
+; битый поток. По умолчанию — сборка прямо в проекте.
+#ifndef DistDir
+  #define DistDir "build\main.dist"
+#endif
 
 [Setup]
 AppId={{7F2E9C44-1A3B-4D6E-9C2A-5B8E1F0A7C31}
@@ -37,15 +43,16 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Само приложение (Nuitka standalone)
-Source: ".\build\main.dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: ".\build\main.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#DistDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#DistDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Браузер Camoufox: вшивается из кэша сборочной машины (camoufox fetch) в кэш пользователя.
 ; camoufox ищет браузер строго в %LOCALAPPDATA%\camoufox\camoufox\Cache.
 ; Source раскрывается на этапе компиляции -> читаем %LOCALAPPDATA% сборочной машины через ISPP GetEnv;
 ; DestDir раскрывается на этапе установки -> {localappdata} целевого пользователя.
+; uninsneveruninstall: не удалять браузер при деинсталляции (это общий для машины кэш camoufox).
 Source: "{#GetEnv('LOCALAPPDATA')}\camoufox\camoufox\Cache\*"; DestDir: "{localappdata}\camoufox\camoufox\Cache"; \
-    Flags: ignoreversion recursesubdirs createallsubdirs
+    Flags: ignoreversion recursesubdirs createallsubdirs uninsneveruninstall
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
