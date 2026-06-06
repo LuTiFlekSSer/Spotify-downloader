@@ -15,6 +15,7 @@
 __pycache__/
 *.pyc
 /build/
+/build_*.log
 /dist/
 *.spec
 /Spotify downloader.exe

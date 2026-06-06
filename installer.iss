@@ -42,7 +42,9 @@ Source: ".\build\main.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesub
 
 ; Браузер Camoufox: вшивается из кэша сборочной машины (camoufox fetch) в кэш пользователя.
 ; camoufox ищет браузер строго в %LOCALAPPDATA%\camoufox\camoufox\Cache.
-Source: "{localappdata}\camoufox\camoufox\Cache\*"; DestDir: "{localappdata}\camoufox\camoufox\Cache"; \
+; Source раскрывается на этапе компиляции -> читаем %LOCALAPPDATA% сборочной машины через ISPP GetEnv;
+; DestDir раскрывается на этапе установки -> {localappdata} целевого пользователя.
+Source: "{#GetEnv('LOCALAPPDATA')}\camoufox\camoufox\Cache\*"; DestDir: "{localappdata}\camoufox\camoufox\Cache"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
