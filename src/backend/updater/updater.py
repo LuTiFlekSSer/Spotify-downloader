@@ -1,14 +1,12 @@
 import os
-import shutil
 import subprocess
-import time
 from dataclasses import dataclass
 from typing import Optional
 
 import requests
 
 from src.utils.config import Config
-from src.utils.utils import compare_versions, get_executable_path, is_frozen
+from src.utils.utils import compare_versions, is_frozen
 from src.version import __version__
 
 
@@ -31,9 +29,10 @@ class Updater:
     """Самообновление приложения (Windows, frozen .exe).
 
     Поток: check() сравнивает версию с последним релизом GitHub; при наличии
-    обновления — start_download()/download() качают новый .exe в %TEMP%, затем
-    launch_installer() запускает его с `-U "<текущий exe>"` и приложение выходит.
-    Новый .exe (через main.py: -U) копирует себя поверх старого пути и перезапускает.
+    обновления — start_download()/download() качают Inno-установщик в %TEMP%, затем
+    launch_installer() запускает его в тихом режиме (/VERYSILENT /CLOSEAPPLICATIONS):
+    установщик закрывает текущее приложение, обновляет файлы на месте (тот же AppId)
+    и перезапускает приложение ([Run] в installer.iss без skipifsilent).
     """
 
     _HEADERS = {
@@ -68,13 +67,16 @@ class Updater:
         if not newer:
             return None
 
+        # выбираем именно Inno-установщик ("...Setup.exe"), а не любой .exe-ассет
         assets = data.get('assets') or []
-        exe = next((a for a in assets if a.get('name', '').lower().endswith('.exe')),
-                   assets[0] if assets else None)
-        if not exe:
+        installer = next((a for a in assets if a.get('name', '').lower().endswith('.exe')
+                          and 'setup' in a.get('name', '').lower()), None)
+        if installer is None:
+            installer = next((a for a in assets if a.get('name', '').lower().endswith('.exe')), None)
+        if installer is None:
             raise UpdateCheckError
 
-        self._release = ReleaseInfo(tag, exe['browser_download_url'], exe['name'])
+        self._release = ReleaseInfo(tag, installer['browser_download_url'], installer['name'])
         return self._release
 
     @property
@@ -114,26 +116,22 @@ class Updater:
             raise UpdateError
 
     def launch_installer(self):
-        """Запускает скачанный .exe с `-U <текущий путь>` для самоподмены."""
+        """Запускает скачанный Inno-установщик в тихом режиме. Он сам закрывает текущее
+        приложение (/CLOSEAPPLICATIONS + AppMutex), обновляет файлы на месте (тот же
+        AppId) и перезапускает приложение. Старый механизм самоподмены `-U` удалён —
+        он не работал с standalone-сборкой (папка из ~270 файлов) и Inno-установщиком."""
         if self._release is None:
             raise UpdateError
-        target = get_executable_path()
-        if target is None or target.endswith('.py'):
-            raise UpdateError       # не frozen — самоподмена невозможна
+        if not is_frozen():
+            raise UpdateError       # из исходников самообновление не поддерживается
 
         dest = os.path.join(os.getenv('TEMP', '.'), self._release.name)
+        if not os.path.isfile(dest):
+            raise UpdateError
         try:
-            subprocess.Popen([dest, '-U', target], creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(
+                [dest, '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART',
+                 '/CLOSEAPPLICATIONS', '/FORCECLOSEAPPLICATIONS', '/NOICONS'],
+                creationflags=subprocess.CREATE_NEW_CONSOLE)
         except Exception:
             raise UpdateError
-
-    @staticmethod
-    def install_update(target_path: str):
-        """Вызывается новым .exe (main.py: -U): копирует себя поверх старого пути."""
-        for _ in range(3):
-            try:
-                shutil.copy(get_executable_path(), target_path)
-                return
-            except Exception:
-                time.sleep(2)
-        raise UpdateError

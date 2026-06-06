@@ -8,8 +8,9 @@ from src.utils.utils import find_mega_parent, get_normalized_size
 
 
 class UpdateDownloadDialog(MessageBoxBase):
-    """Скачивание обновления с прогрессом. По завершении запускает установщик
-    (новый .exe с -U) и закрывает приложение, чтобы освободить старый файл."""
+    """Скачивание обновления с прогрессом. По завершении запускает Inno-установщик
+    в тихом режиме и закрывает приложение; установщик обновляет файлы на месте и
+    перезапускает приложение."""
 
     def __init__(self, updater: Updater, parent=None):
         super().__init__(parent)

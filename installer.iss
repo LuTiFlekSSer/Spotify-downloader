@@ -26,6 +26,9 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
+; Имя мьютекса (приложение создаёт его на старте): при тихом обновлении установщик
+; обнаруживает работающее приложение и закрывает его (/CLOSEAPPLICATIONS) перед перезаписью.
+AppMutex=Spotify_Downloader_Mutex
 ; Per-user, чтобы браузер Camoufox лёг в кэш текущего пользователя
 PrivilegesRequired=lowest
 OutputBaseFilename=Spotify Downloader {#MyAppVersion} Setup
@@ -59,4 +62,5 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; без skipifsilent — чтобы при тихом обновлении приложение перезапускалось автоматически
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall

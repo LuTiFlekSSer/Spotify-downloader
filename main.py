@@ -13,24 +13,8 @@ sys.path.insert(0, _app_dir())
 
 
 def main():
-    # самоподмена при обновлении: новый .exe запущен с `-U "<старый путь>"`.
-    # Копируем себя поверх старого файла и перезапускаем его — до всего остального.
-    if '-U' in sys.argv:
-        idx = sys.argv.index('-U')
-        if idx + 1 < len(sys.argv):
-            target = sys.argv[idx + 1]
-            import subprocess
-            from src.backend.updater.updater import Updater
-            try:
-                Updater.install_update(target)
-            except Exception:
-                pass
-            try:
-                subprocess.Popen([target], creationflags=subprocess.CREATE_NEW_CONSOLE)
-            except Exception:
-                pass
-        sys.exit(0)
-
+    # Обновление выполняет Inno-установщик (он закрывает приложение, обновляет файлы
+    # на месте и перезапускает) — старый механизм самоподмены `-U` удалён.
     import logging
     from src.utils.utils import setup_logging
 
@@ -52,6 +36,16 @@ def main():
         if len(sys.argv) > 1:
             instance_manager.send('open', sys.argv[1])
         sys.exit(0)
+
+    # именованный мьютекс для Inno AppMutex: установщик обновления по нему обнаруживает
+    # работающее приложение и закрывает его перед перезаписью файлов. Держим ссылку живой.
+    _update_mutex = None
+    try:
+        import win32event
+        from src.utils.config import Config
+        _update_mutex = win32event.CreateMutex(None, False, Config.APP_MUTEX)
+    except Exception:
+        pass
 
     from src.frontend.hmi import create_ui
     from src.singleton_storage import SingletonStorage

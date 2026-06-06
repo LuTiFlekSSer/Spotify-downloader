@@ -24,6 +24,10 @@ class Config(metaclass=Singleton):
 
     WINDOW_ICON = 'icons/icon.ico'
 
+    # именованный мьютекс — должен совпадать с AppMutex в installer.iss, чтобы
+    # установщик обновления обнаружил и закрыл работающее приложение перед перезаписью.
+    APP_MUTEX = 'Spotify_Downloader_Mutex'
+
     # --- download-API spotidownloader.com (см. REWRITE_PLAN.md §4) ---
     SPOTIDL_BASE = 'https://api.spotidownloader.com'
     SPOTIDL_SITE = 'https://spotidownloader.com'
