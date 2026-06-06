@@ -26,9 +26,10 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
-; Имя мьютекса (приложение создаёт его на старте): при тихом обновлении установщик
-; обнаруживает работающее приложение и закрывает его (/CLOSEAPPLICATIONS) перед перезаписью.
-AppMutex=Spotify_Downloader_Mutex
+; БЕЗ AppMutex: в тихом режиме (/VERYSILENT /SUPPRESSMSGBOXES) наличие мьютекса заставляет
+; Inno аварийно прерваться (exit 1), а не закрыть приложение. Вместо этого закрытие
+; работающего приложения делает RestartManager через /CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS
+; (плюс само приложение завершается перед запуском установщика обновления).
 ; Per-user, чтобы браузер Camoufox лёг в кэш текущего пользователя
 PrivilegesRequired=lowest
 OutputBaseFilename=Spotify Downloader {#MyAppVersion} Setup

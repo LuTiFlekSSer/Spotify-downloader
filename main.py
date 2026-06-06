@@ -39,16 +39,6 @@ def main() -> None:
             instance_manager.send('open', sys.argv[1])
         sys.exit(0)
 
-    # именованный мьютекс для Inno AppMutex: установщик обновления по нему обнаруживает
-    # работающее приложение и закрывает его перед перезаписью файлов. Держим ссылку живой.
-    _update_mutex = None
-    try:
-        import win32event
-        from src.utils.config import Config
-        _update_mutex = win32event.CreateMutex(None, False, Config.APP_MUTEX)
-    except Exception:
-        pass
-
     from src.frontend.hmi import create_ui
     from src.singleton_storage import SingletonStorage
 
