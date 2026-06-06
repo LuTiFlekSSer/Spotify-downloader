@@ -53,7 +53,7 @@ class DataBase(metaclass=Singleton):
       server_ignore(name PK)          — игнор при поиске отсутствующих на сервере
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock: Lock = Lock()
 
         os.makedirs(Config.DB_PATH, exist_ok=True)
@@ -64,7 +64,7 @@ class DataBase(metaclass=Singleton):
 
         self._create_db()
 
-    def _create_db(self):
+    def _create_db(self) -> None:
         with self._lock:
             curr = self._connection.cursor()
 
@@ -99,7 +99,7 @@ class DataBase(metaclass=Singleton):
 
             return row[0]
 
-    def set_setting(self, setting: TSettingName, value: str):
+    def set_setting(self, setting: TSettingName, value: str) -> None:
         with self._lock:
             curr = self._connection.cursor()
             curr.execute('''INSERT INTO settings (name, value) VALUES (?, ?)
@@ -114,7 +114,7 @@ class DataBase(metaclass=Singleton):
             curr.execute('SELECT name, track_id FROM library')
             return dict(curr.fetchall())
 
-    def set_library_track(self, name: str, track_id: str):
+    def set_library_track(self, name: str, track_id: str) -> None:
         """Upsert: добавить/обновить запись имя -> spotify id."""
         with self._lock:
             curr = self._connection.cursor()
@@ -123,7 +123,7 @@ class DataBase(metaclass=Singleton):
                          (name, track_id))
             self._connection.commit()
 
-    def delete_library_track(self, name: str):
+    def delete_library_track(self, name: str) -> None:
         with self._lock:
             curr = self._connection.cursor()
             curr.execute('DELETE FROM library WHERE name = ?', (name,))
@@ -133,19 +133,19 @@ class DataBase(metaclass=Singleton):
     def get_local_ignore(self) -> set[str]:
         return self._get_ignore('local_ignore')
 
-    def add_local_ignore(self, name: str):
+    def add_local_ignore(self, name: str) -> None:
         self._add_ignore('local_ignore', name)
 
-    def delete_local_ignore(self, name: str):
+    def delete_local_ignore(self, name: str) -> None:
         self._delete_ignore('local_ignore', name)
 
     def get_server_ignore(self) -> set[str]:
         return self._get_ignore('server_ignore')
 
-    def add_server_ignore(self, name: str):
+    def add_server_ignore(self, name: str) -> None:
         self._add_ignore('server_ignore', name)
 
-    def delete_server_ignore(self, name: str):
+    def delete_server_ignore(self, name: str) -> None:
         self._delete_ignore('server_ignore', name)
 
     def _get_ignore(self, table: str) -> set[str]:
@@ -154,13 +154,13 @@ class DataBase(metaclass=Singleton):
             curr.execute(f'SELECT name FROM {table}')
             return {row[0] for row in curr.fetchall()}
 
-    def _add_ignore(self, table: str, name: str):
+    def _add_ignore(self, table: str, name: str) -> None:
         with self._lock:
             curr = self._connection.cursor()
             curr.execute(f'INSERT OR IGNORE INTO {table} (name) VALUES (?)', (name,))
             self._connection.commit()
 
-    def _delete_ignore(self, table: str, name: str):
+    def _delete_ignore(self, table: str, name: str) -> None:
         with self._lock:
             curr = self._connection.cursor()
             curr.execute(f'DELETE FROM {table} WHERE name = ?', (name,))

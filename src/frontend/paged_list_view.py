@@ -1,6 +1,8 @@
 from threading import Lock
+from typing import Any, Optional
 
 from PySide6.QtCore import Signal, Qt, QTimer
+from PySide6.QtGui import QResizeEvent, QShowEvent
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy, QScrollArea
 
 
@@ -12,21 +14,21 @@ class PagedListView(QWidget):
     page_changed: Signal = Signal()
     pagination_changed: Signal = Signal(int, int)
 
-    def __init__(self, item_widget_class, parent=None):
+    def __init__(self, item_widget_class: type[QWidget], parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self._lock = Lock()
         self._item_widget_class = item_widget_class
 
-        self._items: dict = {}
-        self._keys: list = []
+        self._items: dict[Any, Any] = {}
+        self._keys: list[Any] = []
         self._item_widgets: list[QWidget] = []
 
-        self._first_visible_index = 0
-        self._visible_count = 0
-        self._last_pagination_state = (-1, -1)
-        self._pending_pagination_emit = False
+        self._first_visible_index: int = 0
+        self._visible_count: int = 0
+        self._last_pagination_state: tuple[int, int] = (-1, -1)
+        self._pending_pagination_emit: bool = False
 
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
@@ -52,22 +54,22 @@ class PagedListView(QWidget):
         self._scroll_area.setWidget(self._container)
 
     @property
-    def items_dict(self) -> dict:
+    def items_dict(self) -> dict[Any, Any]:
         with self._lock:
             return self._items
 
-    def set_items(self, items: dict):
+    def set_items(self, items: dict[Any, Any]) -> None:
         with self._lock:
             self._items = items
             self._keys = list(items.keys())
             self._first_visible_index = 0
         self.update_view()
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event: QResizeEvent) -> None:
         self.update_view()
         return super().resizeEvent(event)
 
-    def update_view(self):
+    def update_view(self) -> None:
         if not self._items:
             self._update_widgets()      # модель пуста -> спрятать ранее показанные строки
             return
@@ -98,7 +100,7 @@ class PagedListView(QWidget):
         self._update_widgets()
         self._emit_pagination_changed()
 
-    def _update_widgets(self):
+    def _update_widgets(self) -> None:
         with self._lock:
             start = self._first_visible_index
             end = min(len(self._keys), start + self._visible_count)
@@ -117,14 +119,14 @@ class PagedListView(QWidget):
 
         self.page_changed.emit()
 
-    def add_item(self, key, data):
+    def add_item(self, key: Any, data: Any) -> None:
         with self._lock:
             if key not in self._items:
                 self._items[key] = data
                 self._keys.insert(0, key)
         self.update_view()
 
-    def update_item(self, key, data=None):
+    def update_item(self, key: Any, data: Any = None) -> None:
         """Обновить данные строки (если она видима — перерисовать)."""
         with self._lock:
             if key not in self._items:
@@ -133,7 +135,7 @@ class PagedListView(QWidget):
                 self._items[key] = data
         self._update_widgets()
 
-    def remove_item(self, key) -> bool:
+    def remove_item(self, key: Any) -> bool:
         with self._lock:
             if key not in self._items:
                 return False
@@ -147,7 +149,7 @@ class PagedListView(QWidget):
             self.update_view()
         return True
 
-    def clear_items(self):
+    def clear_items(self) -> None:
         with self._lock:
             self._items.clear()
             self._keys.clear()
@@ -158,7 +160,7 @@ class PagedListView(QWidget):
         with self._lock:
             return len(self._items)
 
-    def set_page(self, page_number):
+    def set_page(self, page_number: int) -> None:
         if self._visible_count == 0:
             self.update_view()
         with self._lock:
@@ -179,17 +181,17 @@ class PagedListView(QWidget):
         with self._lock:
             return max(1, (len(self._items) - 1) // max(1, self._visible_count) + 1)
 
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self.update_view()
 
-    def _emit_pagination_changed(self):
+    def _emit_pagination_changed(self) -> None:
         if self._pending_pagination_emit:
             return
         self._pending_pagination_emit = True
         QTimer.singleShot(0, self._emit_pagination_delayed)
 
-    def _emit_pagination_delayed(self):
+    def _emit_pagination_delayed(self) -> None:
         self._pending_pagination_emit = False
         state = (self.get_current_page(), self.get_total_pages())
         if state != self._last_pagination_state:

@@ -1,6 +1,7 @@
 import os
 import threading
-from concurrent.futures import ThreadPoolExecutor, CancelledError, as_completed
+from concurrent.futures import ThreadPoolExecutor, CancelledError, as_completed, Future
+from typing import Iterable
 
 from PySide6.QtCore import QObject, Signal
 
@@ -31,21 +32,21 @@ class DownloaderPool(metaclass=Singleton):
 
     events = Events()
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._db = DataBase()
         self._downloader = Downloader(ApiClient(SpotiSession()), self._db)
         self._global_flags = GlobalFlags()
 
         self._lock = threading.Lock()
         self._cancel = False
-        self._futures: dict = {}
+        self._futures: dict[Future[TrackStatus], Track] = {}
         self._done = 0
         self._total = 0
 
     def is_running(self) -> bool:
         return self._global_flags.is_running.is_set()
 
-    def download(self, tracks, directory: str, sync: bool = False) -> bool:
+    def download(self, tracks: Iterable[Track], directory: str, sync: bool = False) -> bool:
         tracks = list(tracks)
         # атомарный test-and-set: занимаем движок ДО старта потока, чтобы два
         # параллельных download() не пересеклись на общем состоянии синглтона.
@@ -63,15 +64,15 @@ class DownloaderPool(metaclass=Singleton):
             daemon=True, name='DownloaderPool').start()
         return True
 
-    def stop(self):
+    def stop(self) -> None:
         with self._lock:
             self._cancel = True
             for future in self._futures:
                 if not future.running():
                     future.cancel()
 
-    def _run(self, tracks: list[Track], directory: str, sync: bool):
-        summary: dict = {}
+    def _run(self, tracks: list[Track], directory: str, sync: bool) -> None:
+        summary: dict[TrackStatus, int] = {}
         try:
             pool = ThreadPoolExecutor(self._resolve_threads())
             try:

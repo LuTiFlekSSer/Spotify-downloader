@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Optional, Union
 
 from PySide6.QtCore import Qt, QUrl, QObject
 from PySide6.QtGui import QDesktopServices, QColor, QIcon
@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QFileDialog
 from qfluentwidgets import (TitleLabel, FluentIcon, FluentIconBase, PrimaryPushSettingCard, PushSettingCard,
                             SwitchSettingCard, ComboBoxSettingCard, SettingCard, SpinBox, MessageBox,
                             InfoBar, InfoBarPosition, setTheme, Theme, setCustomStyleSheet)
+from qfluentwidgets import RangeConfigItem
 
 from src.backend.db.data_base import DataBase
 from src.backend.spotify.session import SpotifySession
@@ -14,7 +15,7 @@ from src.locales.locales import Locales
 from src.utils.config import Config
 from src.utils.utils import find_mega_parent
 from src.version import __version__
-from src.backend.updater.updater import Updater
+from src.backend.updater.updater import Updater, ReleaseInfo
 from src.backend.updater.workers import UpdateCheckWorker
 from src.frontend.sub_windows.update_dialog.update_dialog import UpdateDownloadDialog
 
@@ -22,34 +23,34 @@ _QSS_LIGHT = f'#setting-content{{color: {Config.GRAY_COLOR_700}; font-size: 12px
 _QSS_DARK = f'#setting-content{{color: {Config.GRAY_COLOR_200}; font-size: 12px;}}'
 
 
-def _dim(card):
+def _dim(card: SettingCard) -> None:
     card.contentLabel.setObjectName('setting-content')
     setCustomStyleSheet(card, _QSS_LIGHT, _QSS_DARK)
 
 
 class CustomSwitchingCard(SwitchSettingCard):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._locales = Locales()          # до super(): база зовёт setValue() в __init__
         super().__init__(*args, **kwargs)
         self._update_text(self.switchButton.isChecked())
 
-    def setValue(self, is_checked: bool):
+    def setValue(self, is_checked: bool) -> None:
         if self.configItem:
             spotify_config.set(self.configItem, is_checked)
         self.switchButton.setChecked(is_checked)
         self._update_text(is_checked)
 
-    def _update_text(self, on: bool):
+    def _update_text(self, on: bool) -> None:
         self.switchButton.setText(
             self._locales.get_string('turn_on') if on else self._locales.get_string('turn_off'))
 
 
 class CustomComboBoxSettingCard(ComboBoxSettingCard):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._locales = Locales()          # до super(): на случай ранних вызовов
         super().__init__(*args, **kwargs)
 
-    def setValue(self, value):
+    def setValue(self, value: str) -> None:
         if value not in self.optionToText:
             return
         self.comboBox.setCurrentText(self.optionToText[value])
@@ -64,12 +65,13 @@ class CustomComboBoxSettingCard(ComboBoxSettingCard):
         elif self.configItem is spotify_config.app_theme:
             setTheme(getattr(Theme, value))
 
-    def _onCurrentIndexChanged(self, index: int):
+    def _onCurrentIndexChanged(self, index: int) -> None:
         spotify_config.set(self.configItem, self.comboBox.itemData(index))
 
 
 class SpinBoxSettingCard(SettingCard):
-    def __init__(self, config_item, icon: Union[str, QIcon, FluentIconBase], title, content=None, parent=None):
+    def __init__(self, config_item: RangeConfigItem, icon: Union[str, QIcon, FluentIconBase], title: str,
+                 content: Optional[str] = None, parent: Optional[QWidget] = None) -> None:
         super().__init__(icon, title, content, parent)
         self.configItem = config_item
         self.spin_box = SpinBox(self)
@@ -84,14 +86,14 @@ class SpinBoxSettingCard(SettingCard):
 
 
 class FolderSettingCard(PushSettingCard):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         self._locales = Locales()
         current = spotify_config.download_dir.value or self._locales.get_string('folder_not_set')
         super().__init__(self._locales.get_string('choose_folder'), FluentIcon.FOLDER,
                          self._locales.get_string('download_folder'), current, parent)
         self.clicked.connect(self._choose)
 
-    def _choose(self):
+    def _choose(self) -> None:
         directory = QFileDialog.getExistingDirectory(
             self, self._locales.get_string('choose_folder'), spotify_config.download_dir.value or '')
         if directory:
@@ -100,7 +102,7 @@ class FolderSettingCard(PushSettingCard):
 
 
 class ClearAccountCard(PushSettingCard):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         self._locales = Locales()
         super().__init__(self._locales.get_string('clear_account_btn'), FluentIcon.DELETE,
                          self._locales.get_string('clear_account'),
@@ -109,7 +111,7 @@ class ClearAccountCard(PushSettingCard):
         self._db = DataBase()
         self.clicked.connect(self._clear)
 
-    def _clear(self):
+    def _clear(self) -> None:
         hmi = find_mega_parent(self)
         box = MessageBox(self._locales.get_string('clear_account'),
                          self._locales.get_string('clear_account_confirm'), hmi)
@@ -125,7 +127,7 @@ class ClearAccountCard(PushSettingCard):
 class AboutUpdateCard(PrimaryPushSettingCard):
     """Карточка «О программе» с реальной проверкой обновлений на GitHub."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         self._locales = Locales()
         super().__init__(
             self._locales.get_string('check_for_updates'),
@@ -133,10 +135,10 @@ class AboutUpdateCard(PrimaryPushSettingCard):
             self._locales.get_string('about'),
             self._locales.get_string('about_desc').format(version=__version__), parent)
         self._updater = Updater()
-        self._checker = None
+        self._checker: Optional[UpdateCheckWorker] = None
         self.clicked.connect(self._check)
 
-    def _check(self):
+    def _check(self) -> None:
         if self._checker is not None and self._checker.isRunning():
             return
         self.button.setEnabled(False)
@@ -147,16 +149,16 @@ class AboutUpdateCard(PrimaryPushSettingCard):
         self._checker.finished.connect(self._restore)
         self._checker.start()
 
-    def _restore(self):
+    def _restore(self) -> None:
         self.button.setEnabled(True)
         self.button.setText(self._locales.get_string('check_for_updates'))
 
-    def _on_error(self, *_):
+    def _on_error(self, *_: str) -> None:
         InfoBar.error(title=self._locales.get_string('error'),
                       content=self._locales.get_string('update_check_error'),
                       position=InfoBarPosition.BOTTOM_RIGHT, duration=4000, parent=find_mega_parent(self))
 
-    def _on_result(self, release):
+    def _on_result(self, release: Optional[ReleaseInfo]) -> None:
         hmi = find_mega_parent(self)
         if release is None:
             InfoBar.success(title=self._locales.get_string('check'),
@@ -181,7 +183,7 @@ class AboutUpdateCard(PrimaryPushSettingCard):
 
 
 class SettingSection(QWidget):
-    def __init__(self, title: str, parent=None):
+    def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
@@ -196,7 +198,7 @@ class SettingSection(QWidget):
 
 
 class DownloadSettings(SettingSection):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         loc = Locales()
         super().__init__(loc.get_string('download_params'), parent)
 
@@ -228,7 +230,7 @@ class DownloadSettings(SettingSection):
 
 
 class AccountSettings(SettingSection):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         loc = Locales()
         super().__init__(loc.get_string('account_params'), parent)
         self._clear = ClearAccountCard(self)
@@ -237,7 +239,7 @@ class AccountSettings(SettingSection):
 
 
 class AppSettings(SettingSection):
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         loc = Locales()
         super().__init__(loc.get_string('application'), parent)
 

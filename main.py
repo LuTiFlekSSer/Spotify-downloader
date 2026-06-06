@@ -1,5 +1,7 @@
 import os
 import sys
+from types import TracebackType
+from typing import Optional
 
 
 def _app_dir() -> str:
@@ -12,7 +14,7 @@ os.chdir(_app_dir())
 sys.path.insert(0, _app_dir())
 
 
-def main():
+def main() -> None:
     # Обновление выполняет Inno-установщик (он закрывает приложение, обновляет файлы
     # на месте и перезапускает) — старый механизм самоподмены `-U` удалён.
     import logging
@@ -20,7 +22,7 @@ def main():
 
     setup_logging()
 
-    def _log_excepthook(exc_type, exc, tb):
+    def _log_excepthook(exc_type: type[BaseException], exc: BaseException, tb: Optional[TracebackType]) -> None:
         logging.getLogger('uncaught').error('uncaught exception', exc_info=(exc_type, exc, tb))
         sys.__excepthook__(exc_type, exc, tb)
 

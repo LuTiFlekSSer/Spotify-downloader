@@ -22,12 +22,12 @@ class SpotifyConfig(QConfig):
     turnstile_headless = ConfigItem('settings', 'turnstile_headless', True, BoolValidator())
     download_dir = ConfigItem('settings', 'download_dir', '')
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._db = DataBase()
         self._load()
 
-    def _load(self):
+    def _load(self) -> None:
         g = self._db.get_setting
 
         theme = g('theme')
@@ -47,7 +47,7 @@ class SpotifyConfig(QConfig):
         self.turnstile_headless.value = g('turnstile_headless') == 'True'
         self.download_dir.value = g('download_dir')
 
-    def save(self):
+    def save(self) -> None:
         # пишем в DataBase вместо json-файла QConfig
         for key, value in self.toDict()['settings'].items():
             self._db.set_setting(key, str(value))

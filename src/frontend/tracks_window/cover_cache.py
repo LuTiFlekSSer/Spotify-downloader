@@ -1,3 +1,5 @@
+from typing import Optional
+
 import requests
 from PySide6.QtCore import QObject, Signal, QRunnable, QThreadPool, Qt
 from PySide6.QtGui import QImage, QPixmap
@@ -8,12 +10,12 @@ class _FetchSignals(QObject):
 
 
 class _FetchTask(QRunnable):
-    def __init__(self, url: str, signals: _FetchSignals):
+    def __init__(self, url: str, signals: _FetchSignals) -> None:
         super().__init__()
         self._url = url
         self._signals = signals
 
-    def run(self):
+    def run(self) -> None:
         try:
             data = requests.get(self._url, timeout=15).content
             pixmap = QPixmap.fromImage(QImage.fromData(data))
@@ -31,7 +33,7 @@ class CoverCache(QObject):
 
     loaded = Signal(str, object)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._cache: dict[str, QPixmap] = {}
         self._pending: set[str] = set()
@@ -39,16 +41,16 @@ class CoverCache(QObject):
         self._signals = _FetchSignals()
         self._signals.loaded.connect(self._on_loaded)
 
-    def get(self, url: str):
+    def get(self, url: str) -> Optional[QPixmap]:
         return self._cache.get(url)
 
-    def request(self, url: str):
+    def request(self, url: str) -> None:
         if not url or url in self._cache or url in self._pending:
             return
         self._pending.add(url)
         self._pool.start(_FetchTask(url, self._signals))
 
-    def _on_loaded(self, url: str, pixmap: QPixmap):
+    def _on_loaded(self, url: str, pixmap: QPixmap) -> None:
         self._cache[url] = pixmap
         self._pending.discard(url)
         self.loaded.emit(url, pixmap)

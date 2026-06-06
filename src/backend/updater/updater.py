@@ -1,7 +1,7 @@
 import os
 import subprocess
 from dataclasses import dataclass
-from typing import Optional
+from typing import Iterator, Optional
 
 import requests
 
@@ -40,10 +40,10 @@ class Updater:
         'Accept': 'application/vnd.github+json',
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._current = __version__
         self._release: Optional[ReleaseInfo] = None
-        self._request = None
+        self._request: Optional[requests.Response] = None
         self._total = 0
 
     def check(self) -> Optional[ReleaseInfo]:
@@ -87,7 +87,7 @@ class Updater:
     def is_frozen() -> bool:
         return is_frozen()
 
-    def start_download(self):
+    def start_download(self) -> None:
         if self._release is None:
             raise UpdateError
         try:
@@ -98,7 +98,7 @@ class Updater:
             raise UpdateError
         self._total = int(self._request.headers.get('content-length', 0))
 
-    def download(self):
+    def download(self) -> Iterator[tuple[int, int]]:
         """Генератор: пишет .exe в %TEMP% чанками, yield (скачано, всего) в байтах."""
         if self._release is None or self._request is None:
             raise UpdateError
@@ -115,7 +115,7 @@ class Updater:
         except Exception:
             raise UpdateError
 
-    def launch_installer(self):
+    def launch_installer(self) -> None:
         """Запускает скачанный Inno-установщик в тихом режиме. Он сам закрывает текущее
         приложение (/CLOSEAPPLICATIONS + AppMutex), обновляет файлы на месте (тот же
         AppId) и перезапускает приложение. Старый механизм самоподмены `-U` удалён —

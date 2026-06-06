@@ -17,7 +17,7 @@ class Downloader:
     Логика skip/overwrite/sync-DB перенесена из старого TrackDownloader.Downloader,
     но без внешнего лока — новая DataBase потокобезопасна сама."""
 
-    def __init__(self, api: ApiClient, db: DataBase | None = None):
+    def __init__(self, api: ApiClient, db: DataBase | None = None) -> None:
         self._api = api
         self._db = db or DataBase()
 

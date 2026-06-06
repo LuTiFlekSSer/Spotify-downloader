@@ -1,6 +1,8 @@
+from typing import Optional
+
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QFontMetrics
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QStackedWidget
+from PySide6.QtGui import QColor, QFontMetrics, QPixmap, QResizeEvent
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QStackedWidget, QLabel
 from qfluentwidgets import (SimpleCardWidget, IconWidget, StrongBodyLabel, CaptionLabel,
                             ImageLabel, IndeterminateProgressRing, FluentIcon)
 
@@ -45,7 +47,7 @@ class TrackRow(SimpleCardWidget):
     """Строка таблицы: слева иконка статуса / прогресс-ринг (загрузка) / обложка
     (после загрузки). Реализует set_data(track) для PagedListView."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setFixedHeight(60)
         self._track: Track | None = None
@@ -86,7 +88,7 @@ class TrackRow(SimpleCardWidget):
         self._locales = Locales()
         cover_cache.loaded.connect(self._on_cover_loaded)
 
-    def set_data(self, track: Track):
+    def set_data(self, track: Track) -> None:
         self._track = track
         self._l_title.setText(self._elide(self._l_title, track.title))
         self._l_artists.setText(self._elide(self._l_artists, track.artists_str))
@@ -117,7 +119,7 @@ class TrackRow(SimpleCardWidget):
             self._iw_status.setIcon(icon)
         self._visual.setCurrentIndex(0)
 
-    def _on_cover_loaded(self, url: str, pixmap):
+    def _on_cover_loaded(self, url: str, pixmap: QPixmap) -> None:
         if (self._track is not None and self._track.cover == url
                 and self._track.status in _DONE):
             self._cover.setImage(pixmap)
@@ -125,11 +127,11 @@ class TrackRow(SimpleCardWidget):
             self._visual.setCurrentIndex(1)
 
     @staticmethod
-    def _elide(label, text: str) -> str:
+    def _elide(label: QLabel, text: str) -> str:
         width = label.maximumWidth() if label.maximumWidth() < 16777215 else 360
         return QFontMetrics(label.font()).elidedText(text, Qt.TextElideMode.ElideRight, width)
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, event: QResizeEvent) -> None:
         super().resizeEvent(event)
         if self._track is not None:
             self._l_title.setText(self._elide(self._l_title, self._track.title))

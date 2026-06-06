@@ -1,9 +1,13 @@
 import os
 import re
 import sys
+from typing import Optional, TYPE_CHECKING
 
 from PySide6.QtWidgets import QWidget
 from qfluentwidgets import MSFluentWindow
+
+if TYPE_CHECKING:
+    from src.locales.locales import Locales
 
 
 def resource_path(relative_path: str) -> str:
@@ -35,7 +39,7 @@ def compare_versions(current: str, new: str) -> bool:
     return parse(new) > parse(current)
 
 
-def get_normalized_size(locales, size: float) -> str:
+def get_normalized_size(locales: "Locales", size: float) -> str:
     for unit in (locales.get_string('B'),
                  locales.get_string('KB'),
                  locales.get_string('MB'),
@@ -48,7 +52,7 @@ def get_normalized_size(locales, size: float) -> str:
     return f'{size:.2f} {locales.get_string("PB")}'
 
 
-def setup_logging():
+def setup_logging() -> Optional[str]:
     """Логирование в файл — у frozen-сборки нет консоли, поэтому ошибки иначе теряются.
     Пишет в %APPDATA%/Spotify Downloader/debug.log (с ротацией). Возвращает путь к логу."""
     import logging

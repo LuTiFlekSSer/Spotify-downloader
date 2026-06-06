@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Any
 
 
 class TrackStatus(Enum):
@@ -54,7 +55,7 @@ class Track:
         return ', '.join(self.artists)
 
     @classmethod
-    def from_api(cls, data: dict) -> 'Track':
+    def from_api(cls, data: dict[str, Any]) -> 'Track':
         """Из ответа spotidownloader (/tracks, /download.metadata), где artists —
         строка через запятую."""
         raw = data.get('artists', '')

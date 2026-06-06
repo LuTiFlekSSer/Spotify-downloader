@@ -20,7 +20,7 @@ _SETTING_MAP: dict[str, str] = {
 }
 
 
-def migrate_old_settings_db():
+def migrate_old_settings_db() -> None:
     """Однократный импорт старой БД CustomTkinter-версии (%APPDATA%/Spotify downloader/settings.db).
     Переносит настройки, карту скачанного (tracks_id -> library) и оба игнор-листа.
     Старый OAuth 'code' НЕ переносим (переходим на refresh-token через spotipy .cache,

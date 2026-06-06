@@ -1,6 +1,9 @@
 import time
+from typing import Any, Optional
 
 from PySide6.QtCore import QThread, Signal
+from PySide6.QtWidgets import QWidget
+from spotipy import Spotify
 
 from src.backend.db.data_base import DataBase
 from src.backend.db.db_records import Track, TrackStatus
@@ -22,16 +25,16 @@ class LikedTracksFetcher(QThread):
     _LIMIT = 50
     _ATTEMPTS = 4
 
-    def __init__(self, session: SpotifySession, parent=None):
+    def __init__(self, session: SpotifySession, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._session = session
         self._db = DataBase()
         self._stop = False
 
-    def stop(self):
+    def stop(self) -> None:
         self._stop = True
 
-    def run(self):
+    def run(self) -> None:
         try:
             client = self._session.get_client()
             total = client.current_user_saved_tracks(limit=1)['total']
@@ -69,7 +72,7 @@ class LikedTracksFetcher(QThread):
         except Exception as e:
             self.sig_error.emit(str(e))
 
-    def _fetch_page(self, client, offset) -> list:
+    def _fetch_page(self, client: Spotify, offset: int) -> list[dict[str, Any]]:
         last_exc = None
         for attempt in range(self._ATTEMPTS):
             try:

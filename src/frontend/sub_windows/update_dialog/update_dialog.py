@@ -1,4 +1,5 @@
-from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QShowEvent
+from PySide6.QtWidgets import QApplication, QWidget
 from qfluentwidgets import MessageBoxBase, SubtitleLabel, BodyLabel, ProgressBar, InfoBar, InfoBarPosition
 
 from src.backend.updater.updater import Updater
@@ -12,7 +13,7 @@ class UpdateDownloadDialog(MessageBoxBase):
     в тихом режиме и закрывает приложение; установщик обновляет файлы на месте и
     перезапускает приложение."""
 
-    def __init__(self, updater: Updater, parent=None):
+    def __init__(self, updater: Updater, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._locales = Locales()
         self._updater = updater
@@ -37,19 +38,19 @@ class UpdateDownloadDialog(MessageBoxBase):
         self._worker.sig_finished.connect(self._on_finished)
         self._worker.sig_error.connect(self._on_error)
 
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         if not self._started:
             self._started = True
             self._worker.start()
 
-    def _on_progress(self, downloaded: int, total: int):
+    def _on_progress(self, downloaded: int, total: int) -> None:
         if total > 0:
             self._bar.setValue(int(downloaded / total * 100))
             self._size_label.setText(
                 f'{get_normalized_size(self._locales, downloaded)} / {get_normalized_size(self._locales, total)}')
 
-    def _on_finished(self):
+    def _on_finished(self) -> None:
         self._title.setText(self._locales.get_string('installing_update'))
         self.cancelButton.setEnabled(False)
         try:
@@ -58,10 +59,10 @@ class UpdateDownloadDialog(MessageBoxBase):
         except Exception:
             self._fail('update_install_error')
 
-    def _on_error(self, *_):
+    def _on_error(self, *_: object) -> None:
         self._fail('update_download_error')
 
-    def _fail(self, key: str):
+    def _fail(self, key: str) -> None:
         InfoBar.error(title=self._locales.get_string('error'),
                       content=self._locales.get_string(key),
                       position=InfoBarPosition.BOTTOM_RIGHT, duration=4000,

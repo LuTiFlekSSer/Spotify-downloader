@@ -8,5 +8,5 @@ class StyleSheet(StyleSheetBase, Enum):
     TRACKS_WINDOW = 'tracks_window'
     SETTINGS_WINDOW = 'settings_window'
 
-    def path(self, theme=Theme.AUTO):
+    def path(self, theme: Theme = Theme.AUTO) -> str:
         return f'src/frontend/style_sheets/qss/{self.value}.qss'

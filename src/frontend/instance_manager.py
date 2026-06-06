@@ -10,7 +10,7 @@ from src.utils.config import Config
 
 
 class InstanceLock:
-    def __init__(self, lockfile: str):
+    def __init__(self, lockfile: str) -> None:
         self.lockfile: str = lockfile
         self.fp: Optional[IOBase] = None
 
@@ -25,7 +25,7 @@ class InstanceLock:
             self.fp = None
             return False
 
-    def release(self):
+    def release(self) -> None:
         if self.fp:
             try:
                 msvcrt.locking(self.fp.fileno(), msvcrt.LK_UNLCK, 1)
@@ -46,7 +46,7 @@ class InstanceManager(QObject):
     # action, payload (например 'open', '<spotify-url>')
     sig_external_command = Signal(str, str)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._server_name: str = Config.APP_NAME
         self._server: QLocalServer = QLocalServer()
@@ -62,7 +62,7 @@ class InstanceManager(QObject):
         self.is_primary_instance = self._lock.acquire()
         return self.is_primary_instance
 
-    def release_lock(self):
+    def release_lock(self) -> None:
         self._lock.release()
 
     def send(self, action: str, payload: str) -> bool:
@@ -78,16 +78,16 @@ class InstanceManager(QObject):
         socket.disconnectFromServer()
         return True
 
-    def start_server(self):
+    def start_server(self) -> None:
         QLocalServer.removeServer(self._server_name)
         self._server.listen(self._server_name)
 
-    def _on_new_connection(self):
+    def _on_new_connection(self) -> None:
         client = self._server.nextPendingConnection()
         if client:
             client.readyRead.connect(lambda: self._on_client_ready_read(client))
 
-    def _on_client_ready_read(self, client: QLocalSocket):
+    def _on_client_ready_read(self, client: QLocalSocket) -> None:
         msg = bytes(client.readAll().data()).decode('utf-8')
         parts = msg.strip().split('|', 1)
 

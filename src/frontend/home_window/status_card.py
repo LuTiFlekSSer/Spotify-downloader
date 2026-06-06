@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QWidget
@@ -10,7 +12,7 @@ from src.utils.config import Config
 class StatusCard(SimpleCardWidget):
     """Статус-карточка: иконка ок/внимание + заголовок + описание."""
 
-    def __init__(self, title: str, description: str, ok: bool, parent=None):
+    def __init__(self, title: str, description: str, ok: bool, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setFixedSize(300, 80)
 
@@ -46,7 +48,7 @@ class StatusCard(SimpleCardWidget):
 class StatusCardView(QWidget):
     """Заголовок секции + сетка статус-карточек (FlowLayout)."""
 
-    def __init__(self, title: str, parent=None):
+    def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self._cards: list[StatusCard] = []
 
@@ -66,7 +68,7 @@ class StatusCardView(QWidget):
         v_layout.addWidget(self._l_title)
         v_layout.addLayout(self._flow, 1)
 
-    def set_cards(self, cards: list[tuple[str, str, bool]]):
+    def set_cards(self, cards: list[tuple[str, str, bool]]) -> None:
         self._flow.takeAllWidgets()
         for card in self._cards:
             card.setParent(None)

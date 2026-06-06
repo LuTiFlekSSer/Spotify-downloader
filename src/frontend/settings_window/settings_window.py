@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout
@@ -10,14 +12,14 @@ from src.utils.config import Config
 
 
 class SettingsWindow(ScrollArea):
-    def __init__(self, name: str, parent=None):
+    def __init__(self, name: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setObjectName(name.replace(' ', '-'))
         self._locales = Locales()
 
         self.__init_widgets()
 
-    def __init_widgets(self):
+    def __init_widgets(self) -> None:
         StyleSheet.SETTINGS_WINDOW.apply(self)
 
         self._w_view = QWidget(self)

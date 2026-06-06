@@ -11,7 +11,7 @@ class SingletonStorage:
     """Eager-init всех синглтонов на старте: держит strong-ref, чтобы
     WeakValueDictionary в Singleton не собрал их GC."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         DataBase()
         migrate_old_settings_db()   # импорт старого settings.db (до Locales: язык может прийти оттуда)
         GlobalFlags()

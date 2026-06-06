@@ -1,6 +1,7 @@
 import os
+from typing import Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget
 from qfluentwidgets import (LargeTitleLabel, SegmentedWidget, SimpleCardWidget, BodyLabel, CaptionLabel,
@@ -36,7 +37,7 @@ _DONE = {TrackStatus.DOWNLOADED, TrackStatus.SKIPPED}
 
 
 class TracksWindow(QWidget):
-    def __init__(self, name: str, parent=None):
+    def __init__(self, name: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setObjectName(name.replace(' ', '-'))
 
@@ -55,7 +56,7 @@ class TracksWindow(QWidget):
         self._run_id = 0              # эпоха: результаты воркеров из старой эпохи игнорируются
         self._base_step = ''          # «базовый» статус (под наложение «получение токена»)
         self._is_retry = False        # текущая загрузка — это повтор (после неё убираем удачные)
-        self._workers: list = []
+        self._workers: list[QThread] = []
 
         self.__init_widgets()
         StyleSheet.TRACKS_WINDOW.apply(self)
@@ -63,7 +64,7 @@ class TracksWindow(QWidget):
         self._select_mode('sync')
 
     # ---------------- UI ----------------
-    def __init_widgets(self):
+    def __init_widgets(self) -> None:
         root = QVBoxLayout(self)
         root.setContentsMargins(36, 28, 36, 28)
         root.setSpacing(16)
@@ -150,7 +151,7 @@ class TracksWindow(QWidget):
             button.clicked.connect(self._add_track)
         return page
 
-    def _connect(self):
+    def _connect(self) -> None:
         self._segment.currentItemChanged.connect(self._select_mode)
         self._action_btn.clicked.connect(self._on_action)
         self._stop_btn.clicked.connect(lambda: self._pool.stop())
@@ -162,18 +163,18 @@ class TracksWindow(QWidget):
         self._table.pagination_changed.connect(self._on_pagination_changed)
         self._pager.currentIndexChanged.connect(self._table.set_page)
 
-    def _set_step(self, text: str):
+    def _set_step(self, text: str) -> None:
         self._base_step = text
         self._l_step.setText(text)
 
-    def _on_token_refreshing(self):
+    def _on_token_refreshing(self) -> None:
         self._l_step.setText(self._locales.get_string('getting_token'))   # наложение поверх базового
 
-    def _on_token_refreshed(self):
+    def _on_token_refreshed(self) -> None:
         self._l_step.setText(self._base_step)
 
     # ---------------- mode / state ----------------
-    def open_mode(self, key: str):
+    def open_mode(self, key: str) -> None:
         """Открыть конкретный режим (вызов с карточки на Home)."""
         if self._is_busy():
             return
@@ -185,7 +186,7 @@ class TracksWindow(QWidget):
     def _is_busy(self) -> bool:
         return self._state in ('loading', 'downloading') or self._resolving
 
-    def _select_mode(self, key: str):
+    def _select_mode(self, key: str) -> None:
         if self._is_busy():
             self._segment.setCurrentItem(self._mode)     # смена режима запрещена во время работы
             return
@@ -195,7 +196,7 @@ class TracksWindow(QWidget):
             self._l_hint.setText(self._locales.get_string('sync_hint' if key == 'sync' else 'check_hint'))
         self._reset()
 
-    def _reset(self):
+    def _reset(self) -> None:
         self._run_id += 1                  # инвалидируем результаты идущих воркеров
         self._resolving = False
         self._tracks = {}
@@ -207,7 +208,7 @@ class TracksWindow(QWidget):
         self._progress.hide()
         self._update_buttons()
 
-    def _update_buttons(self):
+    def _update_buttons(self) -> None:
         s = self._locales.get_string
         self._lock_navigation(self._is_busy())
         if self._state == 'downloading':
@@ -237,7 +238,7 @@ class TracksWindow(QWidget):
             self._action_btn.setText(s('retry_short') if (failed and self._state == 'done') else s('download_btn'))
             self._action_btn.setEnabled(has and self._state in ('loaded', 'done') and not self._resolving)
 
-    def _on_action(self):
+    def _on_action(self) -> None:
         if self._mode == 'sync' and self._state in ('loaded', 'done'):
             self._start_download()
         elif self._mode in ('sync', 'check'):
@@ -246,7 +247,7 @@ class TracksWindow(QWidget):
             self._start_download()
 
     # ---------------- sync / check ----------------
-    def _start_sync_check(self):
+    def _start_sync_check(self) -> None:
         if not self._require_login():
             return
         if self._mode == 'sync' and not self._require_folder():
@@ -259,7 +260,7 @@ class TracksWindow(QWidget):
         fetcher.sig_error.connect(lambda e, r=rid: self._fail_if('get_spotify_tracks_error', r, e))
         fetcher.start()
 
-    def _on_liked_fetched(self, tracks: list, rid: int):
+    def _on_liked_fetched(self, tracks: list[Track], rid: int) -> None:
         if rid != self._run_id:
             return
         spotify_by_name = {build_filename(t.title, t.artists): t for t in tracks}
@@ -271,7 +272,7 @@ class TracksWindow(QWidget):
         worker.sig_error.connect(lambda e, r=rid: self._fail_if('error', r, e))
         worker.start()
 
-    def _on_compared(self, server_missing, local_missing, rid: int):
+    def _on_compared(self, server_missing: list[str], local_missing: list[Track], rid: int) -> None:
         if rid != self._run_id:
             return
         self._populate(local_missing)
@@ -282,7 +283,7 @@ class TracksWindow(QWidget):
         self._update_buttons()
 
     # ---------------- playlist ----------------
-    def _confirm_playlist(self):
+    def _confirm_playlist(self) -> None:
         playlist_id = parse_spotify_id(self._playlist_edit.text())
         if not playlist_id:
             self._toast_error('invalid_link')
@@ -294,7 +295,7 @@ class TracksWindow(QWidget):
         worker.sig_error.connect(lambda e, r=rid: self._fail_if('link_work_error', r, e))
         worker.start()
 
-    def _on_enumerated(self, tracks: list, rid: int):
+    def _on_enumerated(self, tracks: list[Track], rid: int) -> None:
         if rid != self._run_id:
             return
         self._populate(tracks)
@@ -305,7 +306,7 @@ class TracksWindow(QWidget):
         self._update_buttons()
 
     # ---------------- multiple ----------------
-    def _add_track(self):
+    def _add_track(self) -> None:
         track_id = parse_spotify_id(self._multiple_edit.text())
         if not track_id:
             self._toast_error('invalid_link')
@@ -321,7 +322,7 @@ class TracksWindow(QWidget):
         worker.sig_error.connect(lambda e, r=rid: self._after_add('get_track_error', r, e))
         worker.start()
 
-    def _on_resolved(self, track: Track, rid: int):
+    def _on_resolved(self, track: Track, rid: int) -> None:
         if rid == self._run_id and track.id not in self._tracks:
             self._tracks[track.id] = track
             self._table.add_item(track.id, track)
@@ -331,7 +332,7 @@ class TracksWindow(QWidget):
             self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(self._tracks)))
         self._after_add(None, rid)
 
-    def _after_add(self, error_key, rid: int, detail=None):
+    def _after_add(self, error_key: Optional[str], rid: int, detail: Optional[str] = None) -> None:
         self._resolving = False
         self._multiple_btn.setEnabled(True)
         self._set_step('')
@@ -340,7 +341,7 @@ class TracksWindow(QWidget):
         self._update_buttons()
 
     # ---------------- download ----------------
-    def _start_download(self):
+    def _start_download(self) -> None:
         if not self._require_folder():
             return
         to_download = [t for t in self._tracks.values() if t.status in _RETRYABLE]
@@ -359,19 +360,19 @@ class TracksWindow(QWidget):
         self._set_step(self._locales.get_string('tracks_downloading'))
         self._update_buttons()
 
-    def _on_track_status(self, track_id: str, status: TrackStatus):
+    def _on_track_status(self, track_id: str, status: TrackStatus) -> None:
         track = self._tracks.get(track_id)
         if track is None:
             return
         track.status = status
         self._table.update_item(track_id)
 
-    def _on_progress(self, done: int, total: int):
+    def _on_progress(self, done: int, total: int) -> None:
         if total:
             self._progress.setValue(int(done / total * 100))
         self._l_count.setText(self._locales.get_string('progress_count').format(done=done, total=total))
 
-    def _on_finished(self, summary):
+    def _on_finished(self, summary: dict[TrackStatus, int]) -> None:
         if self._state != 'downloading':
             return
         self._state = 'done'
@@ -385,7 +386,7 @@ class TracksWindow(QWidget):
         self._set_step(self._locales.get_string('download_done'))
         self._update_buttons()
 
-    def _on_pagination_changed(self, current_page: int, total_pages: int):
+    def _on_pagination_changed(self, current_page: int, total_pages: int) -> None:
         self._pager.blockSignals(True)
         self._pager.setPageNumber(total_pages)
         self._pager.setVisibleNumber(min(total_pages, 10))
@@ -394,7 +395,7 @@ class TracksWindow(QWidget):
         self._pager.setVisible(total_pages > 1)
 
     # ---------------- helpers ----------------
-    def _populate(self, tracks: list):
+    def _populate(self, tracks: list[Track]) -> None:
         self._tracks = {t.id: t for t in tracks}
         self._table.set_items(self._tracks)
 
@@ -412,11 +413,11 @@ class TracksWindow(QWidget):
         self._update_buttons()
         return self._run_id
 
-    def _on_indeterminate_progress(self, done: int, total: int):
+    def _on_indeterminate_progress(self, done: int, total: int) -> None:
         if total:
             self._progress.setValue(int(done / total * 100))
 
-    def _fail_if(self, key: str, rid: int, detail=None):
+    def _fail_if(self, key: str, rid: int, detail: Optional[str] = None) -> None:
         if rid != self._run_id:
             return
         self._state = 'idle'
@@ -425,7 +426,7 @@ class TracksWindow(QWidget):
         self._toast_error(key, detail)
         self._update_buttons()
 
-    def _track_worker(self, worker):
+    def _track_worker(self, worker: QThread) -> None:
         self._workers.append(worker)
         worker.finished.connect(lambda w=worker: self._workers.remove(w) if w in self._workers else None)
 
@@ -446,10 +447,10 @@ class TracksWindow(QWidget):
         self._toast_error('need_folder')
         return False
 
-    def _toast_error(self, key: str, detail=None):
+    def _toast_error(self, key: str, detail: Optional[str] = None) -> None:
         self._toast(key, success=False, detail=detail)
 
-    def _toast(self, key: str, success: bool, detail=None):
+    def _toast(self, key: str, success: bool, detail: Optional[str] = None) -> None:
         hmi = find_mega_parent(self)
         fn = InfoBar.success if success else InfoBar.warning
         content = self._locales.get_string(key)
@@ -464,7 +465,7 @@ class TracksWindow(QWidget):
            content=content, position=InfoBarPosition.BOTTOM_RIGHT,
            duration=duration, parent=hmi)
 
-    def _lock_navigation(self, locked: bool):
+    def _lock_navigation(self, locked: bool) -> None:
         hmi = find_mega_parent(self)
         if hasattr(hmi, 'set_navigation_locked'):
             hmi.set_navigation_locked(locked)

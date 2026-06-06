@@ -1,4 +1,6 @@
-from PySide6.QtCore import QThread, Signal
+from typing import Optional
+
+from PySide6.QtCore import QObject, QThread, Signal
 
 from src.backend.updater.updater import Updater
 
@@ -7,11 +9,11 @@ class UpdateCheckWorker(QThread):
     sig_result = Signal(object)   # ReleaseInfo | None
     sig_error = Signal(str)
 
-    def __init__(self, updater: Updater, parent=None):
+    def __init__(self, updater: Updater, parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
         self._updater = updater
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.sig_result.emit(self._updater.check())
         except Exception as e:
@@ -23,11 +25,11 @@ class UpdateDownloadWorker(QThread):
     sig_finished = Signal()
     sig_error = Signal(str)
 
-    def __init__(self, updater: Updater, parent=None):
+    def __init__(self, updater: Updater, parent: Optional[QObject] = None) -> None:
         super().__init__(parent)
         self._updater = updater
 
-    def run(self):
+    def run(self) -> None:
         try:
             self._updater.start_download()
             for downloaded, total in self._updater.download():

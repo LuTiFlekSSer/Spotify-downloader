@@ -1,8 +1,11 @@
+from typing import Any
+
+
 class _SpotifyError(Exception):
-    def __init__(self, *args):
+    def __init__(self, *args: Any) -> None:
         self.mes = args[0] if args else None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.mes}' if self.mes is not None else f'{self.__class__.__name__}'
 
 

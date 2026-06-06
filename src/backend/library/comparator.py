@@ -18,7 +18,7 @@ class Comparator:
     файл на диске, перетегировать и поправить library."""
 
     def __init__(self, local_tracks: set[tuple[str, str]], spotify_tracks: dict[str, Track],
-                 directory: str, db: DataBase | None = None):
+                 directory: str, db: DataBase | None = None) -> None:
         self._local = set(local_tracks)
         self._spotify = spotify_tracks            # name -> Track (name = build_filename)
         self._directory = directory

@@ -2,14 +2,16 @@ import sys
 import time
 
 from PySide6.QtCore import QSize, QEventLoop, QTimer, Qt, Signal, QEvent, QUrl
-from PySide6.QtGui import QIcon, QGuiApplication, QDesktopServices
+from PySide6.QtGui import QIcon, QGuiApplication, QDesktopServices, QCloseEvent
 from PySide6.QtWidgets import QApplication
 from qfluentwidgets import (SplashScreen, FluentIcon, MSFluentWindow, NavigationItemPosition,
                             setTheme, Theme, setThemeColor, SystemThemeListener, InfoBar, InfoBarPosition,
                             MessageBox)
 
+from typing import Optional
+
 from src.backend.db.data_base import DataBase
-from src.backend.updater.updater import Updater
+from src.backend.updater.updater import ReleaseInfo, Updater
 from src.backend.updater.workers import UpdateCheckWorker
 from src.frontend.home_window.home_window import HomeWindow
 from src.frontend.settings_window.settings_window import SettingsWindow
@@ -30,7 +32,7 @@ class MainWindow(MSFluentWindow):
     sig_external_command: Signal = Signal(str, str)
     sig_to_front: Signal = Signal()
 
-    def __init__(self, app: QApplication):
+    def __init__(self, app: QApplication) -> None:
         super().__init__()
 
         self.ULTRA_MEGA_PARENT: str = 'parent'
@@ -77,7 +79,7 @@ class MainWindow(MSFluentWindow):
 
         QTimer.singleShot(2500, self._auto_update_check)   # авто-проверка обновлений на старте
 
-    def _auto_update_check(self):
+    def _auto_update_check(self) -> None:
         if self._db.get_setting('auto_update') != 'True':
             return
         self._updater = Updater()
@@ -85,7 +87,7 @@ class MainWindow(MSFluentWindow):
         self._update_checker.sig_result.connect(self._on_auto_update_result)
         self._update_checker.start()
 
-    def _on_auto_update_result(self, release):
+    def _on_auto_update_result(self, release: Optional[ReleaseInfo]) -> None:
         if release is None:                # актуальная версия — молча, без уведомления
             return
         box = MessageBox(
@@ -100,7 +102,7 @@ class MainWindow(MSFluentWindow):
             return
         UpdateDownloadDialog(self._updater, self).exec()
 
-    def _init_screen(self):
+    def _init_screen(self) -> None:
         init_start = time.time()
 
         self._home_window = HomeWindow(self._locales.get_string('home'), parent=self)
@@ -121,11 +123,11 @@ class MainWindow(MSFluentWindow):
             QTimer.singleShot(int((Config.SPLASH_SCREEN_TIME - init_time) * 1000), loop.quit)
             loop.exec()
 
-    def _on_sig_to_front(self):
+    def _on_sig_to_front(self) -> None:
         self.activateWindow()
         self.raise_()
 
-    def set_navigation_locked(self, locked: bool):
+    def set_navigation_locked(self, locked: bool) -> None:
         """Блокирует переход на Home/Settings во время работы (загрузка/синхронизация)."""
         for attr in ('_home_window', '_settings_window'):
             page = getattr(self, attr, None)
@@ -138,19 +140,19 @@ class MainWindow(MSFluentWindow):
             except Exception:
                 pass
 
-    def _center(self):
+    def _center(self) -> None:
         screen = QGuiApplication.primaryScreen()
         window_geometry = self.frameGeometry()
         window_geometry.moveCenter(screen.availableGeometry().center())
         self.move(window_geometry.topLeft())
 
-    def changeEvent(self, event):
+    def changeEvent(self, event: QEvent) -> None:
         if event.type() == QEvent.Type.WindowStateChange and self.isMaximized():
             self._db.set_setting('window_mode', 'maximized')
 
         super().changeEvent(event)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
         if self._global_flags.is_running.is_set():
             InfoBar.error(
                 title=self._locales.get_string('error'),

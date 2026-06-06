@@ -18,7 +18,7 @@ class Locales(metaclass=Singleton):
 
     _language = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         db = DataBase()
@@ -41,7 +41,7 @@ class Locales(metaclass=Singleton):
         return 'ru' if system_language == 'ru_RU' else 'en'
 
     @staticmethod
-    def get_string(string_name) -> str:
+    def get_string(string_name: str) -> str:
         if not isinstance(string_name, str):
             raise TypeError
 
@@ -54,7 +54,7 @@ class Locales(metaclass=Singleton):
             raise errors.GetStringError(string_name)
 
     @staticmethod
-    def set_language(language):
+    def set_language(language: str) -> None:
         if not isinstance(language, str):
             raise TypeError
 
@@ -64,5 +64,5 @@ class Locales(metaclass=Singleton):
         Locales._language = language
 
     @staticmethod
-    def get_languages() -> dict:
+    def get_languages() -> dict[str, str]:
         return Locales._locales['languages']

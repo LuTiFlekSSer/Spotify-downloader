@@ -1,3 +1,5 @@
+from typing import Any, Callable, Optional
+
 import requests
 
 from src.backend.spotidl import constants, errors
@@ -10,11 +12,11 @@ class ApiClient:
 
     _MAX_TRACKS_PAGES = 200   # предохранитель от бесконечной пагинации
 
-    def __init__(self, session: SpotiSession):
+    def __init__(self, session: SpotiSession) -> None:
         self._session = session
         self._http = requests.Session()
 
-    def _post(self, url: str, payload: dict) -> dict:
+    def _post(self, url: str, payload: dict[str, Any]) -> dict[str, Any]:
         for attempt in range(2):
             token = self._session.get_token()
             response = self._http.post(url, json=payload,
@@ -33,13 +35,13 @@ class ApiClient:
 
         raise errors.ApiError(f'authorization failed for {url}')
 
-    def metadata(self, type_: str, id_: str) -> dict:
+    def metadata(self, type_: str, id_: str) -> dict[str, Any]:
         return self._post(constants.METADATA_URL, {'type': type_, 'id': id_})
 
-    def tracks_page(self, type_: str, id_: str, offset: int) -> dict:
+    def tracks_page(self, type_: str, id_: str, offset: int) -> dict[str, Any]:
         return self._post(constants.TRACKS_URL, {'type': type_, 'id': id_, 'offset': offset})
 
-    def download_link(self, track_id: str) -> dict:
+    def download_link(self, track_id: str) -> dict[str, Any]:
         return self._post(constants.DOWNLOAD_URL, {'id': track_id})
 
     def fetch_bytes(self, url: str, timeout: float = 180) -> bytes:
@@ -50,9 +52,10 @@ class ApiClient:
             raise errors.ApiError(str(e))
         return response.content
 
-    def all_tracks(self, id_: str, type_: str = 'playlist', progress=None) -> list[dict]:
+    def all_tracks(self, id_: str, type_: str = 'playlist',
+                   progress: Optional[Callable[[int], None]] = None) -> list[dict[str, Any]]:
         """Полный список треков плейлиста/альбома постранично по offset."""
-        collected: list[dict] = []
+        collected: list[dict[str, Any]] = []
         offset = 0
 
         for _ in range(self._MAX_TRACKS_PAGES):

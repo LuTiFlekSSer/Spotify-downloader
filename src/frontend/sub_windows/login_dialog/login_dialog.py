@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtGui import QGuiApplication, QKeyEvent
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget
 from qfluentwidgets import (MessageBoxBase, SubtitleLabel, BodyLabel, CaptionLabel, LineEdit,
                             PasswordLineEdit, HyperlinkLabel, TeachingTipView, PopupTeachingTip, InfoBarIcon)
@@ -14,7 +14,7 @@ class LoginDialog(MessageBoxBase):
     шаг 0 — ввод client_id/secret/redirect_uri; шаг 1 — вставка redirect-URL.
     Логика шагов — в validate(): вернуть False оставляет диалог открытым."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._locales: Locales = Locales()
         self._session: SpotifySession = SpotifySession()
@@ -132,7 +132,7 @@ class LoginDialog(MessageBoxBase):
             self._error_tip(self._url_edit, self._locales.get_string('authorization_error'))
         return False
 
-    def _error_tip(self, target, content: str):
+    def _error_tip(self, target: QWidget, content: str) -> None:
         view = TeachingTipView(
             title=self._locales.get_string('error'),
             content=content,
@@ -142,7 +142,7 @@ class LoginDialog(MessageBoxBase):
         tip = PopupTeachingTip.make(view=view, target=target, duration=3000, parent=self)
         view.closed.connect(tip.close)
 
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event: QKeyEvent) -> None:
         if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             self.yesButton.clicked.emit()
             return

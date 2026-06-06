@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QWidget, QVBoxLayout
@@ -11,7 +13,7 @@ from src.utils.config import Config
 class Banner(QWidget):
     """Шапка главного экрана: имя приложения + подзаголовок + лента действий."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setObjectName('w_banner')
         self._locales: Locales = Locales()

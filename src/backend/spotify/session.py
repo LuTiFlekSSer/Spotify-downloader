@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from urllib.parse import urlparse, parse_qs
 
 from spotipy import Spotify, SpotifyOAuth, CacheFileHandler, SpotifyOauthError
@@ -19,16 +20,16 @@ class SpotifySession(metaclass=Singleton):
 
     SCOPE = 'user-library-read'
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._db: DataBase = DataBase()
-        self._auth = None
-        self._client = None
+        self._auth: Optional[SpotifyOAuth] = None
+        self._client: Optional[Spotify] = None
         try:
             self._build_auth()          # на старте не валим приложение из-за битых кредов
         except errors.LoginDataError:
             self._auth = None
 
-    def _build_auth(self):
+    def _build_auth(self) -> None:
         self._client = None
         client_id = self._db.get_setting('client_id')
         client_secret = self._db.get_setting('client_secret')
@@ -70,7 +71,7 @@ class SpotifySession(metaclass=Singleton):
             raise errors.NotConfiguredError
         return self._auth.get_authorize_url()
 
-    def complete_login(self, redirect_url: str):
+    def complete_login(self, redirect_url: str) -> None:
         """Принимает URL, на который Spotify перенаправил после авторизации,
         извлекает ?code= и обменивает на токен (он же кэшируется с refresh-token)."""
         if self._auth is None:
@@ -95,13 +96,13 @@ class SpotifySession(metaclass=Singleton):
         return self._client
 
     # ---------- управление кредами ----------
-    def set_credentials(self, client_id: str, client_secret: str, redirect_uri: str):
+    def set_credentials(self, client_id: str, client_secret: str, redirect_uri: str) -> None:
         self._db.set_setting('client_id', client_id.strip())
         self._db.set_setting('client_secret', client_secret.strip())
         self._db.set_setting('redirect_uri', redirect_uri.strip())
         self._build_auth()
 
-    def logout(self):
+    def logout(self) -> None:
         try:
             os.remove(Config.SPOTIPY_CACHE)
         except OSError:

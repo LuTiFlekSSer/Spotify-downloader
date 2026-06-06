@@ -6,7 +6,7 @@ TRACKS_URL = f'{Config.SPOTIDL_BASE}/tracks'
 DOWNLOAD_URL = f'{Config.SPOTIDL_BASE}/download'
 
 
-def api_headers(bearer: str | None = None) -> dict:
+def api_headers(bearer: str | None = None) -> dict[str, str]:
     headers = {
         'accept': 'application/json',
         'content-type': 'application/json',

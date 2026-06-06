@@ -1,3 +1,5 @@
+from typing import Callable, Optional
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QSizePolicy
@@ -10,7 +12,8 @@ class ActionCard(CardWidget):
     """Кликабельная карточка-действие (иконка + заголовок + описание)."""
 
     def __init__(self, icon: FluentIcon, title: str, description: str,
-                 link_icon: bool = False, callback=None, parent=None):
+                 link_icon: bool = False, callback: Optional[Callable[[], None]] = None,
+                 parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setFixedSize(196, 170)
         self._callback = callback
@@ -49,25 +52,25 @@ class ActionCard(CardWidget):
 
         self.clicked.connect(self._on_clicked)
 
-    def _apply_icon(self, icon: FluentIcon):
+    def _apply_icon(self, icon: FluentIcon) -> None:
         self._iw_icon.setIcon(icon.colored(QColor(Config.GRAY_COLOR_900), QColor(Config.GRAY_COLOR_50)))
 
-    def _on_clicked(self):
+    def _on_clicked(self) -> None:
         if self._callback:
             self._callback()
 
-    def set_content(self, title: str, description: str):
+    def set_content(self, title: str, description: str) -> None:
         self._l_title.setText(title)
         self._l_desc.setText(description)
 
-    def set_icon(self, icon: FluentIcon):
+    def set_icon(self, icon: FluentIcon) -> None:
         self._apply_icon(icon)
 
 
 class ActionCardView(QWidget):
     """Карточки-действия в FlowLayout — переносятся на новую строку, если не влезают."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self._flow = FlowLayout(self, needAni=False)
@@ -75,7 +78,8 @@ class ActionCardView(QWidget):
         self._flow.setHorizontalSpacing(12)
         self._flow.setVerticalSpacing(12)
 
-    def add_card(self, icon, title, description, link_icon=False, callback=None) -> ActionCard:
+    def add_card(self, icon: FluentIcon, title: str, description: str, link_icon: bool = False,
+                 callback: Optional[Callable[[], None]] = None) -> ActionCard:
         card = ActionCard(icon, title, description, link_icon, callback, self)
         self._flow.addWidget(card)
         return card

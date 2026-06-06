@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from threading import RLock
+from typing import Callable
 
 import requests
 from PySide6.QtCore import QObject, Signal
@@ -37,14 +38,14 @@ class SpotiSession(metaclass=Singleton):
 
     events = Events()
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = RLock()
         self._token: str = ''
         self._exp: float = 0.0
         self._margin: float = Config.SESSION_REFRESH_MARGIN
-        self._provider = self._default_provider     # () -> jwt str (инъектируется в тестах)
+        self._provider: Callable[[], str] = self._default_provider     # () -> jwt str (инъектируется в тестах)
 
-    def set_provider(self, provider):
+    def set_provider(self, provider: Callable[[], str]) -> None:
         with self._lock:
             self._provider = provider
 
@@ -62,7 +63,7 @@ class SpotiSession(metaclass=Singleton):
                 self._refresh_locked()
             return self._token
 
-    def force_refresh(self, stale_token: str | None = None):
+    def force_refresh(self, stale_token: str | None = None) -> None:
         """Обновление по 401/403. Single-flight: если другой поток уже обновил
         токен (текущий отличается от переданного устаревшего) — капчу повторно
         НЕ решаем, просто используем свежий."""
@@ -71,12 +72,12 @@ class SpotiSession(metaclass=Singleton):
                 return
             self._refresh_locked()
 
-    def clear(self):
+    def clear(self) -> None:
         with self._lock:
             self._token = ''
             self._exp = 0.0
 
-    def _refresh_locked(self):
+    def _refresh_locked(self) -> None:
         self.events.sig_refreshing.emit()
         try:
             jwt = self._provider()

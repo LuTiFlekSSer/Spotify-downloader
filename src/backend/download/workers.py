@@ -1,15 +1,15 @@
 import logging
 from urllib.parse import urlparse
 
-from PySide6.QtCore import QThread, Signal
-
-_log = logging.getLogger(__name__)
+from PySide6.QtCore import QObject, QThread, Signal
 
 from src.backend.db.data_base import DataBase
 from src.backend.db.db_records import Track
 from src.backend.library.comparator import Comparator
 from src.backend.library.scanner import LocalScanner
 from src.backend.spotidl.api_client import ApiClient
+
+_log = logging.getLogger(__name__)
 
 
 def parse_spotify_id(url: str) -> str:
@@ -25,13 +25,14 @@ class ScanCompareWorker(QThread):
     sig_finished = Signal(object, object)   # server_missing: list[str], local_missing: list[Track]
     sig_error = Signal(str)
 
-    def __init__(self, directory: str, spotify_by_name: dict, parent=None):
+    def __init__(self, directory: str, spotify_by_name: dict[str, Track],
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._directory = directory
         self._spotify = spotify_by_name
         self._db = DataBase()
 
-    def run(self):
+    def run(self) -> None:
         try:
             local = LocalScanner(self._directory, self._db).scan(
                 progress=lambda i, t: self.sig_progress.emit(i, t))
@@ -50,12 +51,13 @@ class PlaylistEnumerateWorker(QThread):
     sig_finished = Signal(object)           # list[Track]
     sig_error = Signal(str)
 
-    def __init__(self, api: ApiClient, playlist_id: str, parent=None):
+    def __init__(self, api: ApiClient, playlist_id: str,
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._api = api
         self._playlist_id = playlist_id
 
-    def run(self):
+    def run(self) -> None:
         try:
             raw = self._api.all_tracks(self._playlist_id, 'playlist',
                                        progress=lambda n: self.sig_progress.emit(n))
@@ -71,12 +73,13 @@ class TrackResolveWorker(QThread):
     sig_finished = Signal(object)           # Track
     sig_error = Signal(str)
 
-    def __init__(self, api: ApiClient, track_id: str, parent=None):
+    def __init__(self, api: ApiClient, track_id: str,
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._api = api
         self._track_id = track_id
 
-    def run(self):
+    def run(self) -> None:
         try:
             data = self._api.metadata('track', self._track_id)
             data = dict(data)

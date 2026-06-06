@@ -1,7 +1,8 @@
 import os
+from typing import Optional
 
 from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QShowEvent
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from qfluentwidgets import ScrollArea, FluentIcon, InfoBar, InfoBarPosition
 
@@ -18,7 +19,7 @@ from src.utils.utils import find_mega_parent
 
 
 class HomeWindow(ScrollArea):
-    def __init__(self, name: str, parent=None):
+    def __init__(self, name: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
         self.setObjectName(name.replace(' ', '-'))
         self._locales: Locales = Locales()
@@ -30,7 +31,7 @@ class HomeWindow(ScrollArea):
         self._build_action_cards()
         self._refresh()
 
-    def __init_widget(self):
+    def __init_widget(self) -> None:
         StyleSheet.HOME_WINDOW.apply(self)
 
         self._w_view = QWidget(self)
@@ -51,7 +52,7 @@ class HomeWindow(ScrollArea):
         self._vl_view.addWidget(self._banner)
         self._vl_view.addWidget(self._status, 1)
 
-    def _build_action_cards(self):
+    def _build_action_cards(self) -> None:
         s = self._locales.get_string
         cards = self._banner.card_view
 
@@ -66,7 +67,7 @@ class HomeWindow(ScrollArea):
         self._login_card = cards.add_card(FluentIcon.PEOPLE, s('login_button'), s('login_action_desc'),
                                           callback=self._on_login)
 
-    def _refresh(self):
+    def _refresh(self) -> None:
         s = self._locales.get_string
 
         if self._session.is_authenticated():
@@ -91,12 +92,12 @@ class HomeWindow(ScrollArea):
             (s('card_threads'), s('threads_value').format(n=threads), True),
         ])
 
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self._refresh()
 
     # ---------- actions ----------
-    def _on_login(self):
+    def _on_login(self) -> None:
         hmi = find_mega_parent(self)
 
         if self._session.is_authenticated():
@@ -119,7 +120,7 @@ class HomeWindow(ScrollArea):
             )
         self._refresh()
 
-    def _go_tracks_mode(self, key: str):
+    def _go_tracks_mode(self, key: str) -> None:
         hmi = find_mega_parent(self)
         target = getattr(hmi, '_tracks_window', None)
         if target is None:
@@ -131,7 +132,7 @@ class HomeWindow(ScrollArea):
         if hasattr(target, 'open_mode'):
             target.open_mode(key)
 
-    def _open_folder(self):
+    def _open_folder(self) -> None:
         hmi = find_mega_parent(self)
         folder = self._db.get_setting('download_dir')
         if folder and os.path.isdir(folder):

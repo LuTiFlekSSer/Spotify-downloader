@@ -1,7 +1,11 @@
 import time
+from typing import TYPE_CHECKING, Optional
 
 from src.backend.spotidl import errors
 from src.utils.config import Config
+
+if TYPE_CHECKING:
+    from playwright.sync_api import ElementHandle, Page, Request, Route
 
 
 class SessionMinter:
@@ -19,7 +23,7 @@ class SessionMinter:
 
     camoufox импортируется ЛЕНИВО внутри solve()."""
 
-    def __init__(self, headless: bool | None = None, timeout: float = 120.0):
+    def __init__(self, headless: bool | None = None, timeout: float = 120.0) -> None:
         self._headless = Config.TURNSTILE_HEADLESS if headless is None else headless
         self._timeout = timeout
 
@@ -31,7 +35,7 @@ class SessionMinter:
                       screen=Screen(max_width=1920, max_height=1080)) as browser:
             page = browser.new_page()
 
-            def _route(route, request):
+            def _route(route: 'Route', request: 'Request') -> None:
                 if request.method == 'POST' and 'api.spotidownloader.com/session' in request.url:
                     route.abort()          # не даём сайту израсходовать токен
                 else:
@@ -69,7 +73,7 @@ class SessionMinter:
 
         raise errors.SessionError('could not obtain Turnstile token')
 
-    def _trigger_download(self, page):
+    def _trigger_download(self, page: 'Page') -> None:
         # Сайт очищает поле со ссылкой через ~1с, а кнопка Download активна ТОЛЬКО
         # пока поле заполнено. Поэтому держим поле заполненным и жмём Download в тот
         # момент, когда она стала активной (тугой цикл, перезаполняем при очистке).
@@ -93,7 +97,7 @@ class SessionMinter:
             time.sleep(0.15)
 
     @staticmethod
-    def _download_button(page):
+    def _download_button(page: 'Page') -> Optional['ElementHandle']:
         for button in page.query_selector_all('button'):
             try:
                 if 'download' in (button.inner_text() or '').strip().lower() and button.is_visible():
@@ -103,7 +107,7 @@ class SessionMinter:
         return None
 
     @staticmethod
-    def _click_turnstile(page):
+    def _click_turnstile(page: 'Page') -> None:
         for frame in page.frames:
             if frame.url.startswith('https://challenges.cloudflare.com'):
                 try:
