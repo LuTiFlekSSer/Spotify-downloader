@@ -14,6 +14,8 @@ python -m nuitka --standalone --assume-yes-for-downloads --enable-plugin=pyside6
   --include-data-dir=icons=icons ^
   --include-package-data=camoufox ^
   --include-package-data=browserforge ^
+  --include-package-data=apify_fingerprint_datapoints ^
+  --include-package-data=language_tags ^
   --output-filename="Spotify Downloader" ^
   --windows-icon-from-ico=icons/icon.ico .\main.py || exit /b 1
 
