@@ -31,6 +31,18 @@ def main():
                 pass
         sys.exit(0)
 
+    import logging
+    from src.utils.utils import setup_logging
+
+    setup_logging()
+
+    def _log_excepthook(exc_type, exc, tb):
+        logging.getLogger('uncaught').error('uncaught exception', exc_info=(exc_type, exc, tb))
+        sys.__excepthook__(exc_type, exc, tb)
+
+    sys.excepthook = _log_excepthook
+    logging.getLogger('startup').info('app start, frozen=%s', getattr(sys, 'frozen', False))
+
     from src.frontend.instance_manager import InstanceManager
 
     instance_manager = InstanceManager()

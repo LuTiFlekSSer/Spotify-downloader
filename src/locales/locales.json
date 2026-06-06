@@ -900,6 +900,10 @@
             "ru": "Некорректная ссылка",
             "en": "Invalid link"
         },
+        "get_track_error": {
+            "ru": "Не удалось получить трек",
+            "en": "Failed to get track info"
+        },
         "sync_hint": {
             "ru": "Скачать недостающие любимые треки в папку загрузок",
             "en": "Download missing liked tracks to your folder"

@@ -48,6 +48,27 @@ def get_normalized_size(locales, size: float) -> str:
     return f'{size:.2f} {locales.get_string("PB")}'
 
 
+def setup_logging():
+    """Логирование в файл — у frozen-сборки нет консоли, поэтому ошибки иначе теряются.
+    Пишет в %APPDATA%/Spotify Downloader/debug.log (с ротацией). Возвращает путь к логу."""
+    import logging
+    from logging.handlers import RotatingFileHandler
+    from src.utils.config import Config
+
+    try:
+        os.makedirs(Config.APP_DATA_DIR, exist_ok=True)
+        path = os.path.join(Config.APP_DATA_DIR, 'debug.log')
+        handler = RotatingFileHandler(path, maxBytes=1_000_000, backupCount=2, encoding='utf-8')
+        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(name)s: %(message)s'))
+        root = logging.getLogger()
+        root.setLevel(logging.INFO)
+        if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
+            root.addHandler(handler)
+        return path
+    except Exception:
+        return None
+
+
 def find_mega_parent(widget: QWidget) -> QWidget:
     """Идёт вверх по .parent() до MSFluentWindow с маркером ULTRA_MEGA_PARENT."""
     tmp_widget = widget

@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import time
 from threading import RLock
 
@@ -85,6 +86,7 @@ class SpotiSession(metaclass=Singleton):
         except Exception as e:
             self._token = ''
             self._exp = 0.0
+            logging.getLogger(__name__).exception('session refresh failed (Turnstile/Camoufox/network)')
             self.events.sig_refresh_failed.emit(str(e))
             raise errors.SessionError(str(e))
 

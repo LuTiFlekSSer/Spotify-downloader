@@ -18,6 +18,7 @@ from src.backend.spotify.constants import build_filename
 from src.backend.spotify.session import SpotifySession
 from src.backend.spotify.tracks import LikedTracksFetcher
 from src.frontend.paged_list_view import PagedListView
+from src.frontend.style_sheets.style_sheets import StyleSheet
 from src.frontend.sub_windows.login_dialog.login_dialog import LoginDialog
 from src.frontend.tracks_window.track_row import TrackRow
 from src.global_flags import GlobalFlags
@@ -57,6 +58,7 @@ class TracksWindow(QWidget):
         self._workers: list = []
 
         self.__init_widgets()
+        StyleSheet.TRACKS_WINDOW.apply(self)
         self._connect()
         self._select_mode('sync')
 
@@ -254,7 +256,7 @@ class TracksWindow(QWidget):
         self._track_worker(fetcher)
         fetcher.sig_progress.connect(self._on_indeterminate_progress)
         fetcher.sig_finished.connect(lambda tracks, r=rid: self._on_liked_fetched(tracks, r))
-        fetcher.sig_error.connect(lambda e, r=rid: self._fail_if('get_spotify_tracks_error', r))
+        fetcher.sig_error.connect(lambda e, r=rid: self._fail_if('get_spotify_tracks_error', r, e))
         fetcher.start()
 
     def _on_liked_fetched(self, tracks: list, rid: int):
@@ -266,7 +268,7 @@ class TracksWindow(QWidget):
         worker = ScanCompareWorker(directory, spotify_by_name)
         self._track_worker(worker)
         worker.sig_finished.connect(lambda sm, lm, r=rid: self._on_compared(sm, lm, r))
-        worker.sig_error.connect(lambda e, r=rid: self._fail_if('error', r))
+        worker.sig_error.connect(lambda e, r=rid: self._fail_if('error', r, e))
         worker.start()
 
     def _on_compared(self, server_missing, local_missing, rid: int):
@@ -289,7 +291,7 @@ class TracksWindow(QWidget):
         worker = PlaylistEnumerateWorker(self._api, playlist_id)
         self._track_worker(worker)
         worker.sig_finished.connect(lambda tracks, r=rid: self._on_enumerated(tracks, r))
-        worker.sig_error.connect(lambda e, r=rid: self._fail_if('link_work_error', r))
+        worker.sig_error.connect(lambda e, r=rid: self._fail_if('link_work_error', r, e))
         worker.start()
 
     def _on_enumerated(self, tracks: list, rid: int):
@@ -316,7 +318,7 @@ class TracksWindow(QWidget):
         worker = TrackResolveWorker(self._api, track_id)
         self._track_worker(worker)
         worker.sig_finished.connect(lambda track, r=rid: self._on_resolved(track, r))
-        worker.sig_error.connect(lambda e, r=rid: self._after_add('invalid_link', r))
+        worker.sig_error.connect(lambda e, r=rid: self._after_add('get_track_error', r, e))
         worker.start()
 
     def _on_resolved(self, track: Track, rid: int):
@@ -329,12 +331,12 @@ class TracksWindow(QWidget):
             self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(self._tracks)))
         self._after_add(None, rid)
 
-    def _after_add(self, error_key, rid: int):
+    def _after_add(self, error_key, rid: int, detail=None):
         self._resolving = False
         self._multiple_btn.setEnabled(True)
         self._set_step('')
         if error_key and rid == self._run_id:
-            self._toast_error(error_key)
+            self._toast_error(error_key, detail)
         self._update_buttons()
 
     # ---------------- download ----------------
@@ -414,13 +416,13 @@ class TracksWindow(QWidget):
         if total:
             self._progress.setValue(int(done / total * 100))
 
-    def _fail_if(self, key: str, rid: int):
+    def _fail_if(self, key: str, rid: int, detail=None):
         if rid != self._run_id:
             return
         self._state = 'idle'
         self._progress.hide()
         self._set_step('')
-        self._toast_error(key)
+        self._toast_error(key, detail)
         self._update_buttons()
 
     def _track_worker(self, worker):
@@ -444,15 +446,23 @@ class TracksWindow(QWidget):
         self._toast_error('need_folder')
         return False
 
-    def _toast_error(self, key: str):
-        self._toast(key, success=False)
+    def _toast_error(self, key: str, detail=None):
+        self._toast(key, success=False, detail=detail)
 
-    def _toast(self, key: str, success: bool):
+    def _toast(self, key: str, success: bool, detail=None):
         hmi = find_mega_parent(self)
         fn = InfoBar.success if success else InfoBar.warning
+        content = self._locales.get_string(key)
+        duration = 3500
+        if detail:                                  # реальная причина ошибки (диагностика)
+            text = str(detail).strip()
+            if len(text) > 300:
+                text = text[:300] + '…'
+            content = f'{content}: {text}'
+            duration = 12000
         fn(title=self._locales.get_string('check' if success else 'error'),
-           content=self._locales.get_string(key), position=InfoBarPosition.BOTTOM_RIGHT,
-           duration=3500, parent=hmi)
+           content=content, position=InfoBarPosition.BOTTOM_RIGHT,
+           duration=duration, parent=hmi)
 
     def _lock_navigation(self, locked: bool):
         hmi = find_mega_parent(self)

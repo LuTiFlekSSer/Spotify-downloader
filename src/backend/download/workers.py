@@ -1,6 +1,9 @@
+import logging
 from urllib.parse import urlparse
 
 from PySide6.QtCore import QThread, Signal
+
+_log = logging.getLogger(__name__)
 
 from src.backend.db.data_base import DataBase
 from src.backend.db.db_records import Track
@@ -36,6 +39,7 @@ class ScanCompareWorker(QThread):
                 local, self._spotify, self._directory, self._db).compute()
             self.sig_finished.emit(server_missing, local_missing)
         except Exception as e:
+            _log.exception('ScanCompareWorker failed')
             self.sig_error.emit(str(e))
 
 
@@ -57,6 +61,7 @@ class PlaylistEnumerateWorker(QThread):
                                        progress=lambda n: self.sig_progress.emit(n))
             self.sig_finished.emit([Track.from_api(t) for t in raw])
         except Exception as e:
+            _log.exception('PlaylistEnumerateWorker failed (playlist_id=%s)', self._playlist_id)
             self.sig_error.emit(str(e))
 
 
@@ -78,4 +83,5 @@ class TrackResolveWorker(QThread):
             data['id'] = self._track_id
             self.sig_finished.emit(Track.from_api(data))
         except Exception as e:
+            _log.exception('TrackResolveWorker failed (track_id=%s)', self._track_id)
             self.sig_error.emit(str(e))

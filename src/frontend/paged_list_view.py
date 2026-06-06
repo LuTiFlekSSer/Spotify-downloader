@@ -36,10 +36,16 @@ class PagedListView(QWidget):
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # Прозрачный фон: и сам QScrollArea, и его viewport (это отдельный QWidget — qss
+        # `QScrollArea{background}` его НЕ красит, поэтому по умолчанию он белый/Base).
+        # Иначе на чистой машине (без эффекта Mica) под таблицей видна белая подложка.
+        self._scroll_area.setStyleSheet('QScrollArea{border:none;background:transparent;}')
+        self._scroll_area.viewport().setStyleSheet('background:transparent;')
         self._layout.addWidget(self._scroll_area)
 
         self._container = QWidget(self)
         self._container.setObjectName('w_view')
+        self._container.setStyleSheet('#w_view{background:transparent;}')
         self._container_layout = QVBoxLayout(self._container)
         self._container_layout.setSpacing(8)
         self._container_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
