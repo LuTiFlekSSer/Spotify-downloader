@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from qfluentwidgets import ScrollArea, LargeTitleLabel
 
 from src.frontend.settings_window.settings import DownloadSettings, AccountSettings, AppSettings
+from src.frontend.settings_window.spotify_config import spotify_config
 from src.frontend.style_sheets.style_sheets import StyleSheet
 from src.locales.locales import Locales
 from src.utils.config import Config
@@ -16,6 +17,9 @@ class SettingsWindow(ScrollArea):
         super().__init__(parent)
         self.setObjectName(name.replace(' ', '-'))
         self._locales = Locales()
+        # spotify_config грузится на импорте (до определения языка) — пере-синхронизируем
+        # с DataBase здесь, чтобы карточки (особенно язык) отражали актуальные значения.
+        spotify_config.reload()
 
         self.__init_widgets()
 

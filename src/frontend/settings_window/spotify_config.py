@@ -27,6 +27,13 @@ class SpotifyConfig(QConfig):
         self._db = DataBase()
         self._load()
 
+    def reload(self) -> None:
+        """Перечитать значения из DataBase. Нужно, т.к. `spotify_config` создаётся на
+        этапе импорта (до того как SingletonStorage/Locales определят системный язык и
+        запишут его в settings) — иначе комбобокс языка покажет дефолт 'en', хотя
+        интерфейс уже на русском. Вызывается при сборке окна настроек (после Locales)."""
+        self._load()
+
     def _load(self) -> None:
         g = self._db.get_setting
 
