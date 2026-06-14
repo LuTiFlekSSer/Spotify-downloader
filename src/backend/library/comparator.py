@@ -1,12 +1,11 @@
 import os
 import time
 
-import eyed3
+from mutagen import File as MutagenFile
 
 from src.backend.db.data_base import DataBase
 from src.backend.db.db_records import Track
-
-eyed3.log.setLevel('ERROR')
+from src.backend.library.formats import AUDIO_EXTENSIONS
 
 
 class Comparator:
@@ -50,9 +49,20 @@ class Comparator:
 
         return server_missing, local_missing
 
+    def _find_file(self, name: str) -> tuple[str, str] | None:
+        """Возвращает (путь, расширение) первого существующего файла трека по имени."""
+        for ext in AUDIO_EXTENSIONS:
+            path = os.path.join(self._directory, name + ext)
+            if os.path.exists(path):
+                return path, ext
+        return None
+
     def _rename(self, old_name: str, new_name: str, track: Track) -> bool:
-        old_path = os.path.join(self._directory, f'{old_name}.mp3')
-        new_path = os.path.join(self._directory, f'{new_name}.mp3')
+        found = self._find_file(old_name)
+        if found is None:
+            return False                           # файла нет ни в одном формате
+        old_path, ext = found
+        new_path = os.path.join(self._directory, new_name + ext)   # сохраняем формат
 
         ok = False
         for _ in range(3):
@@ -65,17 +75,22 @@ class Comparator:
         if not ok:
             return False
 
-        try:
-            audio = eyed3.load(new_path)
-            if audio is not None:
-                if audio.tag is None:
-                    audio.initTag()
-                audio.tag.title = track.title
-                audio.tag.artist = '/'.join(track.artists)
-                audio.tag.save()
-        except Exception:
-            pass                                   # тег не критичен — файл уже переименован
+        self._retag(new_path, track)               # апгрейд метаданных (любой формат)
 
         self._db.delete_library_track(old_name)
         self._db.set_library_track(new_name, track.id)
         return True
+
+    @staticmethod
+    def _retag(path: str, track: Track) -> None:
+        """Обновляет title/artist у файла любого формата через mutagen (тег не критичен —
+        файл уже переименован, поэтому ошибки глотаем)."""
+        try:
+            audio = MutagenFile(path, easy=True)
+            if audio is None:
+                return
+            audio['title'] = [track.title]
+            audio['artist'] = ['/'.join(track.artists)]
+            audio.save()
+        except Exception:
+            pass

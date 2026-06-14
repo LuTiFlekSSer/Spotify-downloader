@@ -2,6 +2,7 @@ PySide6>=6.7,<6.9
 PySide6-Fluent-Widgets[full]>=1.8.1
 spotipy>=2.24.0
 eyed3>=0.9.7
+mutagen>=1.47.0
 requests>=2.31.0
 pywin32>=306
 packaging>=24.0
