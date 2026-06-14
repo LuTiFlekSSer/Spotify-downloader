@@ -1,10 +1,10 @@
 from typing import Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFontMetrics, QPixmap, QResizeEvent
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QStackedWidget, QLabel
 from qfluentwidgets import (SimpleCardWidget, IconWidget, StrongBodyLabel, CaptionLabel,
-                            ImageLabel, IndeterminateProgressRing, FluentIcon)
+                            ImageLabel, IndeterminateProgressRing, FluentIcon, TransparentToolButton)
 
 from src.backend.db.db_records import Track, TrackStatus, TRACK_STATUS_LOCALE
 from src.frontend.tracks_window.cover_cache import cover_cache
@@ -45,12 +45,18 @@ def _centered(widget: QWidget) -> QWidget:
 
 class TrackRow(SimpleCardWidget):
     """Строка таблицы: слева иконка статуса / прогресс-ринг (загрузка) / обложка
-    (после загрузки). Реализует set_data(track) для PagedListView."""
+    (после загрузки). Реализует set_data(track) для PagedListView.
+
+    sig_hide(track) — нажата кнопка «скрыть» (добавить в игнор-лист). Кнопка видна
+    только когда строка `hideable` и трек ещё не качается (status == MISSING)."""
+
+    sig_hide: Signal = Signal(object)
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.setFixedHeight(60)
         self._track: Track | None = None
+        self._hideable: bool = False
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(14, 8, 16, 8)
@@ -81,15 +87,31 @@ class TrackRow(SimpleCardWidget):
 
         self._l_status = CaptionLabel(self)
 
+        self._hide_btn = TransparentToolButton(FluentIcon.HIDE, self)
+        self._hide_btn.setFixedSize(30, 30)
+        self._hide_btn.hide()
+        self._hide_btn.clicked.connect(lambda: self._track is not None and self.sig_hide.emit(self._track))
+
         layout.addWidget(self._visual)
         layout.addLayout(text_box, 1)
         layout.addWidget(self._l_status, 0, Qt.AlignmentFlag.AlignRight)
+        layout.addWidget(self._hide_btn, 0, Qt.AlignmentFlag.AlignRight)
 
         self._locales = Locales()
+        self._hide_btn.setToolTip(self._locales.get_string('hide_tooltip'))
         cover_cache.loaded.connect(self._on_cover_loaded)
+
+    def set_hideable(self, value: bool) -> None:
+        self._hideable = value
+        self._update_hide_btn()
+
+    def _update_hide_btn(self) -> None:
+        self._hide_btn.setVisible(
+            self._hideable and self._track is not None and self._track.status == TrackStatus.MISSING)
 
     def set_data(self, track: Track) -> None:
         self._track = track
+        self._update_hide_btn()
         self._l_title.setText(self._elide(self._l_title, track.title))
         self._l_artists.setText(self._elide(self._l_artists, track.artists_str))
 

@@ -15,7 +15,7 @@ from src.backend.download.workers import (ScanCompareWorker, PlaylistEnumerateWo
                                           TrackResolveWorker, parse_spotify_id)
 from src.backend.spotidl.api_client import ApiClient
 from src.backend.spotidl.session import SpotiSession
-from src.backend.spotify.constants import build_filename
+from src.backend.spotify.constants import build_filename, ARTIST_SEPARATOR
 from src.backend.spotify.session import SpotifySession
 from src.backend.spotify.tracks import LikedTracksFetcher
 from src.frontend.paged_list_view import PagedListView
@@ -51,7 +51,9 @@ class TracksWindow(QWidget):
 
         self._tracks: dict[str, Track] = {}
         self._mode = 'sync'
-        self._state = 'idle'          # idle | loading | loaded | downloading | done
+        self._state = 'idle'          # idle | loading | review | loaded | downloading | done
+        self._phase = 'missing'       # 'missing' (к загрузке) | 'removed' (удалённые любимые)
+        self._pending_missing: list[Track] = []   # local_missing, отложенные на шаг «Продолжить»
         self._resolving = False       # multiple-режим: идёт резолв ссылки
         self._run_id = 0              # эпоха: результаты воркеров из старой эпохи игнорируются
         self._base_step = ''          # «базовый» статус (под наложение «получение токена»)
@@ -105,6 +107,11 @@ class TracksWindow(QWidget):
         self._stop_btn.hide()
         self._action_btn = PrimaryPushButton(self._locales.get_string('start_action'))
         self._action_btn.setFixedWidth(150)
+        # «Продолжить»: показывается, когда при синхронизации сначала показаны
+        # удалённые любимые (auto_compare) — после просмотра ведёт к загрузке.
+        self._continue_btn = PrimaryPushButton(self._locales.get_string('continue_action'))
+        self._continue_btn.setFixedWidth(150)
+        self._continue_btn.hide()
 
         bottom = QHBoxLayout()
         bottom.setSpacing(12)
@@ -113,6 +120,7 @@ class TracksWindow(QWidget):
         bottom.addStretch(1)
         bottom.addWidget(self._l_count)
         bottom.addWidget(self._stop_btn)
+        bottom.addWidget(self._continue_btn)
         bottom.addWidget(self._action_btn)
 
         root.addWidget(self._l_title)
@@ -154,6 +162,8 @@ class TracksWindow(QWidget):
     def _connect(self) -> None:
         self._segment.currentItemChanged.connect(self._select_mode)
         self._action_btn.clicked.connect(self._on_action)
+        self._continue_btn.clicked.connect(self._on_continue)
+        self._table.item_hidden.connect(self._on_hide)
         self._stop_btn.clicked.connect(lambda: self._pool.stop())
         self._pool.events.sig_track_status.connect(self._on_track_status)
         self._pool.events.sig_progress.connect(self._on_progress)
@@ -199,6 +209,8 @@ class TracksWindow(QWidget):
     def _reset(self) -> None:
         self._run_id += 1                  # инвалидируем результаты идущих воркеров
         self._resolving = False
+        self._phase = 'missing'
+        self._pending_missing = []
         self._tracks = {}
         self._table.set_items({})
         self._pager.hide()
@@ -211,11 +223,21 @@ class TracksWindow(QWidget):
     def _update_buttons(self) -> None:
         s = self._locales.get_string
         self._lock_navigation(self._is_busy())
+
+        # кнопки «скрыть» в строках — только при просмотре отсутствующих/удалённых (sync/check)
+        self._table.set_hideable(self._state in ('review', 'loaded') and self._mode in ('sync', 'check'))
+        # «Продолжить» — только в фазе просмотра удалённых любимых при синхронизации
+        self._continue_btn.setVisible(self._state == 'review')
+
         if self._state == 'downloading':
             self._action_btn.hide()
             self._stop_btn.show()
             return
         self._stop_btn.hide()
+
+        if self._state == 'review':
+            self._action_btn.hide()              # вместо загрузки — «Продолжить»
+            return
         self._action_btn.show()
 
         failed = any(t.status in _FAILED for t in self._tracks.values())
@@ -250,7 +272,7 @@ class TracksWindow(QWidget):
     def _start_sync_check(self) -> None:
         if not self._require_login():
             return
-        if self._mode == 'sync' and not self._require_folder():
+        if not self._require_folder():       # и sync, и check сканируют папку загрузок
             return
         rid = self._reset_for_load(self._locales.get_string('fetching_liked'))
         fetcher = LikedTracksFetcher(self._session)
@@ -275,12 +297,78 @@ class TracksWindow(QWidget):
     def _on_compared(self, server_missing: list[str], local_missing: list[Track], rid: int) -> None:
         if rid != self._run_id:
             return
-        self._populate(local_missing)
-        self._state = 'loaded'
         self._progress.hide()
-        self._set_step(self._locales.get_string('no_missing') if not local_missing else '')
-        self._l_count.setText(self._locales.get_string('tracks_count').format(n=len(local_missing)))
+
+        if self._mode == 'check':
+            # проверка: удалённые любимые (на диске есть, из избранного Spotify убраны)
+            self._phase = 'removed'
+            self._populate_removed(server_missing)
+            self._state = 'loaded'
+            self._set_step('' if server_missing else self._locales.get_string('no_removed'))
+            self._count(len(server_missing))
+        else:  # sync
+            auto = self._db.get_setting('auto_compare') == 'True'
+            if auto and server_missing:
+                # сначала показать удалённые любимые на просмотр, затем «Продолжить» к загрузке
+                self._phase = 'removed'
+                self._pending_missing = local_missing
+                self._populate_removed(server_missing)
+                self._state = 'review'
+                self._set_step(self._locales.get_string('removed_review'))
+                self._count(len(server_missing))
+            else:
+                self._phase = 'missing'
+                self._populate(local_missing)
+                self._state = 'loaded'
+                self._set_step('' if local_missing else self._locales.get_string('no_missing'))
+                self._count(len(local_missing))
         self._update_buttons()
+
+    def _populate_removed(self, names: list[str]) -> None:
+        """Удалённые любимые (server_missing) — это имена файлов, не Spotify-треки.
+        Делаем лёгкие Track (id = имя файла = ключ для server_ignore)."""
+        self._tracks = {name: self._name_to_track(name) for name in names}
+        self._table.set_items(self._tracks)
+
+    @staticmethod
+    def _name_to_track(name: str) -> Track:
+        title, artists = name, []
+        head, sep, tail = name.rpartition(' - ')
+        if sep and tail:
+            title = head
+            artists = [a for a in tail.split(ARTIST_SEPARATOR) if a]
+        return Track(id=name, title=title, artists=artists, status=TrackStatus.MISSING)
+
+    def _on_continue(self) -> None:
+        if self._state != 'review':
+            return
+        self._phase = 'missing'
+        self._populate(self._pending_missing)
+        self._pending_missing = []
+        self._state = 'loaded'
+        self._set_step('' if self._tracks else self._locales.get_string('no_missing'))
+        self._count(len(self._tracks))
+        self._update_buttons()
+
+    def _on_hide(self, track: Track) -> None:
+        """Добавить трек в игнор-лист и убрать из таблицы.
+        Фаза 'removed' -> server_ignore (по имени), 'missing' -> local_ignore (по имени файла)."""
+        if self._state not in ('review', 'loaded'):
+            return
+        key = track.id                                   # removed: id == имя; missing: id == spotify id
+        if self._phase == 'removed':
+            self._db.add_server_ignore(key)              # key == имя файла
+        else:
+            self._db.add_local_ignore(build_filename(track.title, track.artists))
+        self._tracks.pop(key, None)
+        self._table.set_items(self._tracks)
+        if not self._tracks:
+            self._pager.hide()
+        self._count(len(self._tracks))
+        self._update_buttons()
+
+    def _count(self, n: int) -> None:
+        self._l_count.setText(self._locales.get_string('tracks_count').format(n=n))
 
     # ---------------- playlist ----------------
     def _confirm_playlist(self) -> None:
@@ -402,6 +490,8 @@ class TracksWindow(QWidget):
     def _reset_for_load(self, step: str) -> int:
         self._run_id += 1
         self._resolving = False
+        self._phase = 'missing'
+        self._pending_missing = []
         self._tracks = {}
         self._table.set_items({})
         self._pager.hide()

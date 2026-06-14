@@ -13,6 +13,7 @@ class PagedListView(QWidget):
 
     page_changed: Signal = Signal()
     pagination_changed: Signal = Signal(int, int)
+    item_hidden: Signal = Signal(object)        # строка попросила «скрыть» (если умеет sig_hide)
 
     def __init__(self, item_widget_class: type[QWidget], parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
@@ -20,6 +21,7 @@ class PagedListView(QWidget):
 
         self._lock = Lock()
         self._item_widget_class = item_widget_class
+        self._rows_hideable: bool = False
 
         self._items: dict[Any, Any] = {}
         self._keys: list[Any] = []
@@ -86,6 +88,10 @@ class PagedListView(QWidget):
         with self._lock:
             while len(self._item_widgets) < new_visible_count:
                 widget = self._item_widget_class()
+                if hasattr(widget, 'sig_hide'):
+                    widget.sig_hide.connect(self.item_hidden)
+                if hasattr(widget, 'set_hideable'):
+                    widget.set_hideable(self._rows_hideable)
                 self._container_layout.addWidget(widget)
                 self._item_widgets.append(widget)
 
@@ -99,6 +105,14 @@ class PagedListView(QWidget):
 
         self._update_widgets()
         self._emit_pagination_changed()
+
+    def set_hideable(self, value: bool) -> None:
+        """Показать/скрыть кнопки «скрыть» во всех строках (если строка их поддерживает)."""
+        self._rows_hideable = value
+        with self._lock:
+            for widget in self._item_widgets:
+                if hasattr(widget, 'set_hideable'):
+                    widget.set_hideable(value)
 
     def _update_widgets(self) -> None:
         with self._lock:

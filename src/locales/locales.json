@@ -864,6 +864,22 @@
             "ru": "Отсутствующих треков нет",
             "en": "No missing tracks"
         },
+        "no_removed": {
+            "ru": "Удалённых из любимых треков нет",
+            "en": "No tracks removed from liked"
+        },
+        "removed_review": {
+            "ru": "Удалены из любимых (на диске остались). Скройте лишние и нажмите «Продолжить»",
+            "en": "Removed from liked (still on disk). Hide any you want and press Continue"
+        },
+        "continue_action": {
+            "ru": "Продолжить",
+            "en": "Continue"
+        },
+        "hide_tooltip": {
+            "ru": "Скрыть (в игнор-лист)",
+            "en": "Hide (add to ignore list)"
+        },
         "nothing_to_download": {
             "ru": "Нечего скачивать",
             "en": "Nothing to download"
