@@ -1,11 +1,13 @@
-from typing import Any, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from PySide6.QtCore import Qt, QUrl, QObject
 from PySide6.QtGui import QDesktopServices, QColor, QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QFileDialog
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QFileDialog
 from qfluentwidgets import (TitleLabel, FluentIcon, FluentIconBase, PrimaryPushSettingCard, PushSettingCard,
                             SwitchSettingCard, ComboBoxSettingCard, SettingCard, SpinBox, MessageBox,
-                            InfoBar, InfoBarPosition, setTheme, Theme, setCustomStyleSheet)
+                            InfoBar, InfoBarPosition, setTheme, Theme, setCustomStyleSheet,
+                            MessageBoxBase, SubtitleLabel, BodyLabel, ScrollArea, SimpleCardWidget,
+                            TransparentToolButton, PushButton)
 from qfluentwidgets import RangeConfigItem
 
 from src.backend.db.data_base import DataBase
@@ -182,6 +184,110 @@ class AboutUpdateCard(PrimaryPushSettingCard):
         UpdateDownloadDialog(self._updater, hmi).exec()
 
 
+class IgnoreListDialog(MessageBoxBase):
+    """Просмотр и редактирование игнор-листа: список записей с кнопкой удаления + «очистить всё».
+    Позволяет «разскрыть» трек, ранее скрытый кнопкой в списке синхронизации."""
+
+    def __init__(self, title: str, entries: set[str], on_remove: Callable[[str], None],
+                 on_clear: Callable[[], None], parent: Optional[QWidget] = None) -> None:
+        super().__init__(parent)
+        self._locales = Locales()
+        self._on_remove = on_remove
+        self._on_clear = on_clear
+        self._rows: dict[str, QWidget] = {}
+
+        self.widget.setMinimumWidth(560)
+        self.viewLayout.addWidget(SubtitleLabel(title))
+
+        self._scroll = ScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setFixedHeight(340)
+        self._scroll.setStyleSheet('QScrollArea{border:none;background:transparent;}')
+        self._scroll.viewport().setStyleSheet('background:transparent;')
+        self._container = QWidget()
+        self._container.setStyleSheet('background:transparent;')
+        self._vbox = QVBoxLayout(self._container)
+        self._vbox.setContentsMargins(0, 0, 6, 0)
+        self._vbox.setSpacing(4)
+        self._vbox.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._scroll.setWidget(self._container)
+        self.viewLayout.addWidget(self._scroll)
+
+        self._empty = BodyLabel(self._locales.get_string('ignore_empty'))
+        self._empty.setTextColor(QColor(Config.GRAY_COLOR_600), QColor(Config.GRAY_COLOR_300))
+        self._vbox.addWidget(self._empty)
+
+        self._clear_btn = PushButton(self._locales.get_string('clear_all'))
+        self._clear_btn.clicked.connect(self._clear)
+        self.viewLayout.addWidget(self._clear_btn, 0, Qt.AlignmentFlag.AlignRight)
+
+        for name in sorted(entries):
+            self._add_row(name)
+        self._refresh_empty()                      # после создания _clear_btn
+
+        self.yesButton.hide()
+        self.cancelButton.setText(self._locales.get_string('close'))
+
+    def _add_row(self, name: str) -> None:
+        row = SimpleCardWidget()
+        row.setFixedHeight(42)
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(14, 0, 6, 0)
+        label = BodyLabel(name)
+        button = TransparentToolButton(FluentIcon.DELETE)
+        button.setFixedSize(30, 30)
+        button.clicked.connect(lambda _checked=False, n=name: self._remove(n))
+        layout.addWidget(label, 1)
+        layout.addWidget(button)
+        self._vbox.insertWidget(self._vbox.count() - 1, row)   # перед меткой «пусто»
+        self._rows[name] = row
+
+    def _remove(self, name: str) -> None:
+        self._on_remove(name)
+        row = self._rows.pop(name, None)
+        if row is not None:
+            row.setParent(None)
+            row.deleteLater()
+        self._refresh_empty()
+
+    def _clear(self) -> None:
+        self._on_clear()
+        for row in self._rows.values():
+            row.setParent(None)
+            row.deleteLater()
+        self._rows.clear()
+        self._refresh_empty()
+
+    def _refresh_empty(self) -> None:
+        self._empty.setVisible(not self._rows)
+        self._clear_btn.setEnabled(bool(self._rows))
+
+
+class IgnoreListCard(PushSettingCard):
+    """Карточка настроек, открывающая редактор игнор-листа (local или server)."""
+
+    def __init__(self, kind: str, parent: Optional[QWidget] = None) -> None:
+        loc = Locales()
+        self._kind = kind
+        self._db = DataBase()
+        title = loc.get_string('local_ignore_title' if kind == 'local' else 'server_ignore_title')
+        desc = loc.get_string('local_ignore_description' if kind == 'local' else 'server_ignore_description')
+        super().__init__(loc.get_string('manage_ignore_btn'), FluentIcon.HIDE, title, desc, parent)
+        self._locales = loc
+        self.clicked.connect(self._open)
+
+    def _open(self) -> None:
+        if self._kind == 'local':
+            entries, on_remove, on_clear, title = (
+                self._db.get_local_ignore(), self._db.delete_local_ignore,
+                self._db.clear_local_ignore, self._locales.get_string('local_ignore_title'))
+        else:
+            entries, on_remove, on_clear, title = (
+                self._db.get_server_ignore(), self._db.delete_server_ignore,
+                self._db.clear_server_ignore, self._locales.get_string('server_ignore_title'))
+        IgnoreListDialog(title, entries, on_remove, on_clear, find_mega_parent(self)).exec()
+
+
 class SettingSection(QWidget):
     def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent=parent)
@@ -224,7 +330,11 @@ class DownloadSettings(SettingSection):
             loc.get_string('headless_title'), loc.get_string('headless_desc'),
             spotify_config.turnstile_headless, self)
 
-        for card in (self._folder, self._threads, self._overwrite, self._auto_compare, self._headless):
+        self._ignore_local = IgnoreListCard('local', self)
+        self._ignore_server = IgnoreListCard('server', self)
+
+        for card in (self._folder, self._threads, self._overwrite, self._auto_compare,
+                     self._headless, self._ignore_local, self._ignore_server):
             _dim(card)
             self._layout.addWidget(card)
 

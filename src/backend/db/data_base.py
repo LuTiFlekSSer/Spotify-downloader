@@ -139,6 +139,9 @@ class DataBase(metaclass=Singleton):
     def delete_local_ignore(self, name: str) -> None:
         self._delete_ignore('local_ignore', name)
 
+    def clear_local_ignore(self) -> None:
+        self._clear_ignore('local_ignore')
+
     def get_server_ignore(self) -> set[str]:
         return self._get_ignore('server_ignore')
 
@@ -147,6 +150,9 @@ class DataBase(metaclass=Singleton):
 
     def delete_server_ignore(self, name: str) -> None:
         self._delete_ignore('server_ignore', name)
+
+    def clear_server_ignore(self) -> None:
+        self._clear_ignore('server_ignore')
 
     def _get_ignore(self, table: str) -> set[str]:
         with self._lock:
@@ -164,4 +170,10 @@ class DataBase(metaclass=Singleton):
         with self._lock:
             curr = self._connection.cursor()
             curr.execute(f'DELETE FROM {table} WHERE name = ?', (name,))
+            self._connection.commit()
+
+    def _clear_ignore(self, table: str) -> None:
+        with self._lock:
+            curr = self._connection.cursor()
+            curr.execute(f'DELETE FROM {table}')
             self._connection.commit()

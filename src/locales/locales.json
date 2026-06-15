@@ -280,6 +280,22 @@
             "ru": "Перезапись существующих треков в папке при загрузке",
             "en": "Overwriting existing tracks in a folder when downloading"
         },
+        "manage_ignore_btn": {
+            "ru": "Управление",
+            "en": "Manage"
+        },
+        "clear_all": {
+            "ru": "Очистить всё",
+            "en": "Clear all"
+        },
+        "ignore_empty": {
+            "ru": "Список пуст",
+            "en": "List is empty"
+        },
+        "close": {
+            "ru": "Закрыть",
+            "en": "Close"
+        },
         "set_language_title": {
             "ru": "Язык приложения",
             "en": "Application language"
