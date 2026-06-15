@@ -360,8 +360,9 @@ class TracksWindow(QWidget):
             self._db.add_server_ignore(key)              # key == имя файла
         else:
             self._db.add_local_ignore(build_filename(track.title, track.artists))
-        self._tracks.pop(key, None)
-        self._table.set_items(self._tracks)
+        # remove_item оперирует тем же dict, что и self._tracks, и СОХРАНЯЕТ текущую страницу
+        # (или сдвигается на предыдущую, если на текущей не осталось треков) — без прыжка на 1-ю.
+        self._table.remove_item(key)
         if not self._tracks:
             self._pager.hide()
         self._count(len(self._tracks))
