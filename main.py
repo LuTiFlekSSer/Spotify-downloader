@@ -3,6 +3,15 @@ import sys
 from types import TracebackType
 from typing import Optional
 
+# Nuitka standalone НЕ выставляет sys.frozen (в отличие от PyInstaller). Маркер компиляции
+# Nuitka — модульная глобаль __compiled__ (пред-засевается до выполнения кода модуля; сам
+# Nuitka читает sys.modules['__main__'].__compiled__). Без этого is_frozen() в собранном exe
+# вернёт False, и самообновление сломается: launch_installer() кинет UpdateError, а hmi уйдёт
+# в ветку "открыть браузер" вместо тихой установки. Эмулируем sys.frozen, чтобы все проверки
+# getattr(sys, 'frozen', ...) (is_frozen, _app_dir) работали как в PyInstaller-сборке.
+if '__compiled__' in globals():
+    sys.frozen = True
+
 
 def _app_dir() -> str:
     if getattr(sys, 'frozen', False):
