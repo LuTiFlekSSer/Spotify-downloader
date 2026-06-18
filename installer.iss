@@ -17,6 +17,13 @@
 AppId={{7F2E9C44-1A3B-4D6E-9C2A-5B8E1F0A7C31}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+; Версия в свойствах файла Setup.exe (иначе Inno ставит 0.0.0.0). {#MyAppVersion} подставляет
+; change_iss_version.py из src/version -> заполняется автоматически в каждой будущей сборке.
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoProductName={#MyAppName}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Setup
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
