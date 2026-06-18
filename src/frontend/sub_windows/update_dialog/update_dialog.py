@@ -51,8 +51,17 @@ class UpdateDownloadDialog(MessageBoxBase):
                 f'{get_normalized_size(self._locales, downloaded)} / {get_normalized_size(self._locales, total)}')
 
     def _on_finished(self) -> None:
+        # Докачка завершена. quit() ниже останавливает событийный цикл, поэтому анимация
+        # бара иначе замирает на последнем кадре (~95%). Форсим визуал в 100% (минуя
+        # анимацию) и синхронно дорисовываем бар+заголовок ДО запуска установщика и quit(),
+        # чтобы во время передачи управления установщику было видно "100% / Установка", а не
+        # зависшие 95%. Анимацию самой докачки не трогаем.
+        self._bar.ani.stop()
+        self._bar.setVal(100)
         self._title.setText(self._locales.get_string('installing_update'))
         self.cancelButton.setEnabled(False)
+        self._bar.repaint()
+        self._title.repaint()
         try:
             self._updater.launch_installer()
             QApplication.quit()
