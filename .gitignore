@@ -1,5 +1,24 @@
 /.idea/
+/.claude/
 /.cache
 /settings.db
 /output/
 /icon.psd
+
+# локальные материалы — НЕ коммитить в публичный репозиторий
+/Запросы/
+/low_bitrate_tracks.txt
+/build.txt
+
+# python / venv / build
+.venv/
+__pycache__/
+*.pyc
+/build/
+/build_*.log
+/dist/
+*.spec
+*.exe
+# собранный установщик в корне (вывод билда), а также локальные артефакты
+/tag_transfer.py
+/unavailable_tracks.txt
